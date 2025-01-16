@@ -1,7 +1,9 @@
-from django.http import JsonResponse
-from django.shortcuts import render
+from rest_framework import generics
+
+from .models import TriangleData
+from .serializers import TriangleDataSerializer
 
 
-def get_data(request):
-    data = {"labels": ["A", "B", "C", "D"], "values": [10, 20, 15, 25]}
-    return JsonResponse(data)
+class TriangleDataList(generics.ListAPIView):
+    queryset = TriangleData.objects.all()
+    serializer_class = TriangleDataSerializer

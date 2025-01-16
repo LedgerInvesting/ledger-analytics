@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -39,6 +40,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "corsheaders",
+    "api",
 ]
 
 MIDDLEWARE = [
@@ -79,11 +81,11 @@ WSGI_APPLICATION = "analytics.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "analytics_db",
-        "USER": "yourusername",
-        "PASSWORD": "yourpassword",
-        "HOST": "db",
-        "PORT": 5432,
+        "NAME": os.getenv("DATABASE_NAME", "analytics_db"),
+        "USER": os.getenv("DATABASE_USER", "yourusername"),
+        "PASSWORD": os.getenv("DATABASE_PASSWORD", "yourpassword"),
+        "HOST": os.getenv("DATABASE_HOST", "localhost"),
+        "PORT": os.getenv("DATABASE_PORT", "5432"),
     }
 }
 
