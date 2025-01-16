@@ -1,6 +1,14 @@
 <template>
   <div>
-    <h1>Data Visualization</h1>
+    <h1>SNL Loss Development</h1>
+      <div class="filter">
+        <label for="program-filter">Program: </label>
+        <select id="program-filter" v-model="selectedProgram" @change="updateChart">
+          <option v-for="program in programs" :key="program" :value="program">
+            {{ program }}
+          </option>
+      </select>
+    </div>
     <svg ref="chart" :width="width" :height="height"></svg>
   </div>
 </template>
@@ -14,7 +22,12 @@
           margin: { top: 20, right: 150, bottom: 50, left: 60 },
           width: 900,
           height: 500,
-          apiUrl: "http://localhost:8000/api/triangle-data/"
+          apiUrl: "http://localhost:8000/api/triangle-data/",
+          selectedProgram: "all",
+          programs: [],
+          historicalPointSize: 3,
+          historicalLineOpacity: 0.1,
+          historicalLineStroke: 'grey'
         };
       },
       mounted() {
@@ -40,6 +53,7 @@
           let data;
           try {
             data = await d3.json(apiUrl);
+            this.programs = Array.from(new Set(data.map(d => d.program)));
           } catch (error) {
             console.error("Error fetching data:", error);
             return;
@@ -73,7 +87,7 @@
           const lineGen = d3.line()
             .x(d => xScale(d.period_start))
             .y(d => yScale(d.loss_ratio))
-            .curve(d3.curveMonotoneX); // Smooth the line
+            .curve(d3.curveLinear); // Use straight lines between points
 
           // Append the X axis.
           const xAxis = d3.axisBottom(xScale)
@@ -111,8 +125,30 @@
               .attr("d", lineGen)
               .attr("stroke", colorScale(devLag))
               .attr("stroke-width", 2)
+              // .attr("opacity", historicalLineOpacity)
               .attr("fill", "none")
               .attr("id", "line-" + devLag);
+
+            svg.selectAll(".dot-" + devLag)
+              .data(values)
+              .enter().append("circle")
+              .attr("class", "dot dot-" + devLag)
+              // .attr("r", historicalPointSize)
+              .attr("r", 5)
+              .attr("fill", "white")
+              .attr("stroke", "#000")
+              .attr("stroke-width", 1)
+              .attr("stroke-opacity", 0.25)
+              .attr("cx", d => xScale(d.period_start))
+              .attr("cy", d => yScale(d.loss_ratio))
+              .on("mouseover", function(event, d) {
+                // d3.select(this).attr("r", historicalPointSize * 1.5);
+                // Optionally, show a tooltip here
+              })
+              .on("mouseout", function(event, d) {
+                // d3.select(this).attr("r", historicalPointSize);
+                // Optionally, hide the tooltip here
+              });
           });
 
           // Add legend for the dev lag lines.
