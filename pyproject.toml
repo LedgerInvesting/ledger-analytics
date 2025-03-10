@@ -11,6 +11,7 @@ requires-python = ">3.10"
 dynamic = ["version", "optional-dependencies"]
 dependencies = [
     "bermuda-ledger",
+    "requests",
 ]
 
 [tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
