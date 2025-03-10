@@ -31,7 +31,7 @@ def test_ledger_analytics_triangle_crud():
     assert triangle_create.triangle_id is not None
     assert isinstance(triangle_get, Triangle)
 
-    triangle_delete = client.triangle.delete(triangle_id=triangle_create.triangle_id)
+    client.triangle.delete(triangle_id=triangle_create.triangle_id)
 
     with pytest.raises(requests.HTTPError):
         client.triangle.get(triangle_id=triangle_create.triangle_id)
