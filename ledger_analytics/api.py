@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from abc import ABC
-from bermuda import Triangle
 import os
+from abc import ABC
 
-from .model import DevelopmentModel, TailModel, ForecastModel
+from bermuda import Triangle
+
+from .model import DevelopmentModel, ForecastModel, TailModel
 from .triangle import TriangleResponse
 
 
 class BaseLedgerAnalytics(ABC):
-
     def __init__(self, host: str | None = None, asynchronous: bool = False) -> None:
-        api_key = os.getenv("BERMUDA_API_KEY")
+        api_key = os.getenv("LEDGER_ANALYTICS_API_KEY")
         if api_key is not None:
             print("Found key")
         else:
@@ -37,7 +37,6 @@ class BaseLedgerAnalytics(ABC):
 
 
 class LedgerAnalytics(BaseLedgerAnalytics):
-
     @property
     def triangle(self):
         return TriangleResponse(host=self.host, headers=self.headers)

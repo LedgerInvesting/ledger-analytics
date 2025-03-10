@@ -31,6 +31,8 @@ class TriangleResponse(object):
     def get(self, triangle_id: str | None = None) -> Triangle:
         if triangle_id is None and self.triangle_id is None:
             raise ValueError("Must pass a `triangle_id` to get request")
+
+        if triangle_id is None:
             triangle_id = self.triangle_id
 
         response = requests.get(
@@ -47,6 +49,8 @@ class TriangleResponse(object):
     def delete(self, triangle_id: str | None = None) -> TriangleResponse:
         if triangle_id is None and self.triangle_id is None:
             raise ValueError("Must pass a `triangle_id` to delete request")
+
+        if triangle_id is None:
             triangle_id = self.triangle_id
 
         response = requests.delete(
