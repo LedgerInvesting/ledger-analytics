@@ -33,7 +33,7 @@ class LedgerModel(ABC):
     def predict(self, config: dict[str, Any] | None = None) -> Triangle:
         response = requests.post(self.host + self.FIT_URL + "predict", json=config or {}, headers=self.headers)
         prediction_id = response.json()["predictions"]
-        triangle = requests.get(self.host + f"triangle/{prediction_id}", headers=auth)
+        triangle = requests.get(self.host + f"triangle/{prediction_id}", headers=self.headers)
         return triangle
 
     def status(self, task_id: str) -> dict[str, Any]:
