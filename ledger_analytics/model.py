@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import requests
-from bermuda import Triangle
+from bermuda import Triangle as BermudaTriangle
 
 
 class LedgerModel(ABC):
@@ -14,6 +14,8 @@ class LedgerModel(ABC):
         self.host = host
         self.headers = headers
         self._model_id: str | None = None
+        self._fit_response: requests.Response | None = None
+        self._predict_response: requests.Response | None = None
 
         if self.FIT_URL is None:
             raise AttributeError(
@@ -21,42 +23,42 @@ class LedgerModel(ABC):
             )
 
     model_id = property(lambda self: self._model_id)
+    fit_response = property(lambda self: self._fit_response)
+    predict_repsonse = property(lambda self: self._predict_response)
 
     def fit(self, config: dict[str, Any] | None = None) -> LedgerModel:
-        response = requests.post(
+        self._fit_response = requests.post(
             self.host + self.FIT_URL, json=config, headers=self.headers
         )
 
-        breakpoint()
-        status = response.status_code
-        if status != 201:
-            raise ValueError()
+        try:
+            self._model_id = self._fit_response.json().get("model").get("id")
+        except Exception:
+            raise requests.HTTPError()
 
-        self._model_id = response.json().get("model").get("id")
         if self._model_id is None:
             raise requests.HTTPError(
                 "The model cannot be fit. The following information was returned:\n",
-                response.json(),
+                self._fit_response.json(),
             )
         return self
 
-    def predict(self, config: dict[str, Any] | None = None) -> Triangle:
-        response = requests.post(
+    def predict(self, config: dict[str, Any] | None = None) -> BermudaTriangle:
+        self._predict_response = requests.post(
             self.host + self.FIT_URL + "predict",
             json=config or {},
             headers=self.headers,
         )
-        prediction_id = response.json()["predictions"]
+
+        try:
+            prediction_id = self._predict_response.json()["predictions"]
+        except Exception:
+            raise requests.HTTPError()
+
         triangle = requests.get(
             self.host + f"triangle/{prediction_id}", headers=self.headers
         )
-        return triangle
-
-    def status(self, task_id: str | None = None) -> dict[str, Any]:
-        if task_id is None:
-            task_id = self.model_id
-
-        return requests.get(self.host + "tasks/" + task_id).json()
+        return BermudaTriangle.from_dict(triangle.json()["triangle_data"])
 
 
 class DevelopmentModel(LedgerModel):
