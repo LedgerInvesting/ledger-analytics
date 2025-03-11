@@ -1,3 +1,3 @@
-from .api import LedgerAnalytics
-from .model import DevelopmentModel, TailModel, ForecastModel
-from .triangle import TriangleResponse
+from .api import AnalyticsClient
+from .model import DevelopmentModel, ForecastModel, TailModel
+from .triangle import Triangle
