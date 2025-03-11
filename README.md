@@ -9,13 +9,13 @@ set your `LEDGER_ANALYTICS_API_KEY` environment variable.
 The typical Python workflow is, then:
 
 ```python
-from ledger_analytics import LedgerAnalytics
+from ledger_analytics import AnalyticsClient
 from bermuda import meyers_tri
 
-client = LedgerAnalytics()
+client = AnalyticsClient()
 
 # Post a new triangle object
-triangle_response = client.triangle.create(
+triangle = client.triangle.create(
     config=dict(
         triangle_name="test_meyers_triangle",
         triangle_data=meyers_tri.to_dict(),
@@ -23,23 +23,20 @@ triangle_response = client.triangle.create(
 )
 
 # Get the Bermuda Triangle object
-triangle_response.get()
+bermuda_triangle = triangle.get()
 
 # Fit a development model
 dev_model = client.development_model.fit(
-   config=dict(
-       triangle_name="test_meyers_triangle",
-       model_name="chain_ladder",
-       model_type="ChainLadder",
-       model_config={},
+   config={
+       "triangle_name": "test_meyers_triangle",
+       "model_name": "chain_ladder",
+       "model_type": "ChainLadder",
+       "model_config": {},
     )
 )
 
-# check status
-dev_model.status()
-
 # delete triangle
-triangle_response.delete()
+triangle.delete()
 ```
 
 The `LegderAnalytics` class can also be used as a simple context manager:
@@ -47,13 +44,12 @@ The `LegderAnalytics` class can also be used as a simple context manager:
 ```python
 from ledger_analytics import LedgerAnalytics
 
-with LedgerAnalytics as client:
-    triangle_response = client.triangle.create(
-        config=dict(
-            triangle_name="test_meyers_triangle",
-            triangle_data=meyers_tri.to_dict(),
+with AnalyticsClient() as client:
+    triangle = client.triangle.create(
+        config={
+            "triangle_name": "test_meyers_triangle",
+            "triangle_data": meyers_tri.to_dict(),
         )
     )
-    triangle_response.delete()
+    triangle.delete()
 ```
-        
