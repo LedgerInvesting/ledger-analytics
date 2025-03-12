@@ -6,13 +6,15 @@ from typing import Any
 import requests
 from bermuda import Triangle as BermudaTriangle
 
+from .requester import Requester
+
 
 class LedgerModel(ABC):
     FIT_URL: str | None = None
 
-    def __init__(self, host: str, headers: dict[str, str]) -> None:
+    def __init__(self, host: str, requester: Requester) -> None:
         self.host = host
-        self.headers = headers
+        self.requester = requester
         self._model_id: str | None = None
         self._fit_response: requests.Response | None = None
         self._predict_response: requests.Response | None = None
@@ -34,7 +36,7 @@ class LedgerModel(ABC):
         try:
             self._model_id = self._fit_response.json().get("model").get("id")
         except Exception:
-            raise requests.HTTPError()
+            raise requests.HTTPError(self._fit_response)
 
         if self._model_id is None:
             raise requests.HTTPError(

@@ -35,6 +35,7 @@ def test_ledger_analytics_triangle_crud():
             "triangle_data": meyers_tri.to_dict(),
         }
     )
+    assert triangle_create.post_response.status_code == 201
     triangle_get = client.triangle.get(triangle_id=triangle_create.triangle_id)
     assert triangle_create.triangle_id is not None
     assert isinstance(triangle_get, BermudaTriangle)

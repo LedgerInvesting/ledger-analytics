@@ -60,6 +60,7 @@ class Triangle(object):
             )
 
         if triangle_json is None:
+            breakpoint()
             raise requests.HTTPError(
                 f"Cannot get valid triangle data from response: {self._get_response}"
             )
@@ -77,3 +78,6 @@ class Triangle(object):
             self.host + self.ENDPOINT + "/" + triangle_id, headers=self.headers
         )
         return self
+
+    def list(self) -> list[dict[str, Any]]:
+        return requests.get(self.host + self.ENDPOINT, headers=self.headers)

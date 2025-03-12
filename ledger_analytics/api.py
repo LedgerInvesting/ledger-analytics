@@ -4,6 +4,7 @@ import os
 from abc import ABC
 
 from .model import DevelopmentModel, ForecastModel, TailModel
+from .requester import Requester
 from .triangle import Triangle
 
 
@@ -21,7 +22,7 @@ class BaseClient(ABC):
                     "Must pass in a valid `api_key` or set the `LEDGER_ANALYTICS_API_KEY` environment variable."
                 )
 
-        self.headers = {"Authorization": f"Api-Key {api_key}"}
+        self._requester = Requester(api_key)
 
         if host is None:
             host = "http://localhost:8000/analytics/"
@@ -50,7 +51,9 @@ class AnalyticsClient(BaseClient):
     ):
         super().__init__(api_key=api_key, host=host, asynchronous=asynchronous)
 
-    triangle = property(lambda self: Triangle(self.host, self.headers))
-    development_model = property(lambda self: DevelopmentModel(self.host, self.headers))
-    tail_model = property(lambda self: TailModel(self.host, self.headers))
-    forecast_model = property(lambda self: ForecastModel(self.host, self.headers))
+    triangle = property(lambda self: Triangle(self.host, self._requester))
+    development_model = property(
+        lambda self: DevelopmentModel(self.host, self._requester)
+    )
+    tail_model = property(lambda self: TailModel(self.host, self._requester))
+    forecast_model = property(lambda self: ForecastModel(self.host, self._requester))
