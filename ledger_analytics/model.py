@@ -1,75 +1,73 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
 
-import requests
 from bermuda import Triangle as BermudaTriangle
+from requests import HTTPError, Response
 
 from .requester import Requester
+from .triangle import Triangle
+from .types import JSONData
 
 
 class LedgerModel(ABC):
-    FIT_URL: str | None = None
+    BASE_ENDPOINT: str | None = None
 
-    def __init__(self, host: str, requester: Requester) -> None:
-        self.host = host
-        self.requester = requester
-        self._model_id: str | None = None
-        self._fit_response: requests.Response | None = None
-        self._predict_response: requests.Response | None = None
-
-        if self.FIT_URL is None:
+    def __init__(
+        self, host: str, requester: Requester, asynchronous: bool = False
+    ) -> None:
+        if self.BASE_ENDPOINT is None:
             raise AttributeError(
-                f"FIT_URL needs to be set in {self.__class__.__name__}"
+                f"BASE_ENDPOINT needs to be set in {self.__class__.__name__}"
             )
+
+        self.endpoint = host + self.BASE_ENDPOINT
+        self._requester = requester
+        self.asynchronous = asynchronous
+        self._model_id: str | None = None
+        self._fit_response: Response | None = None
+        self._predict_response: Response | None = None
+        self._triangle = Triangle(host, requester, asynchronous)
 
     model_id = property(lambda self: self._model_id)
     fit_response = property(lambda self: self._fit_response)
     predict_repsonse = property(lambda self: self._predict_response)
 
-    def fit(self, config: dict[str, Any] | None = None) -> LedgerModel:
-        self._fit_response = requests.post(
-            self.host + self.FIT_URL, json=config, headers=self.headers
-        )
+    def fit(self, config: JSONData | None = None) -> LedgerModel:
+        self._fit_response = self._requester.post(self.endpoint, data=config)
 
         try:
             self._model_id = self._fit_response.json().get("model").get("id")
         except Exception:
-            raise requests.HTTPError(self._fit_response)
+            raise HTTPError(self._fit_response)
 
         if self._model_id is None:
-            raise requests.HTTPError(
+            raise HTTPError(
                 "The model cannot be fit. The following information was returned:\n",
                 self._fit_response.json(),
             )
         return self
 
-    def predict(self, config: dict[str, Any] | None = None) -> BermudaTriangle:
-        self._predict_response = requests.post(
-            self.host + self.FIT_URL + "predict",
-            json=config or {},
-            headers=self.headers,
-        )
+    def predict(self, config: JSONData | None = None) -> BermudaTriangle:
+        url = self.endpoint + f"/{self._model_id}/predict"
+        self._predict_response = self._requester.post(url, data=config)
 
         try:
             prediction_id = self._predict_response.json()["predictions"]
         except Exception:
-            raise requests.HTTPError()
+            raise HTTPError()
 
-        triangle = requests.get(
-            self.host + f"triangle/{prediction_id}", headers=self.headers
-        )
+        triangle = self._triangle.get(triangle_id=prediction_id)
         return BermudaTriangle.from_dict(triangle.json()["triangle_data"])
 
 
 class DevelopmentModel(LedgerModel):
-    FIT_URL = "development-model"
+    BASE_ENDPOINT = "development-model"
 
 
 class TailModel(LedgerModel):
-    FIT_URL = "tail-model"
+    BASE_ENDPOINT = "tail-model"
 
 
 class ForecastModel(LedgerModel):
-    FIT_URL = "forecast-model"
+    BASE_ENDPOINT = "forecast-model"

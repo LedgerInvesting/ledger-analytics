@@ -7,20 +7,26 @@ class Requester(object):
     def __init__(self, api_key: str) -> None:
         self.headers = {"Authorization": f"Api-Key {api_key}"}
 
-    @property
     def post(self, url: str, data: JSONData):
         return self._factory("post", url, data)
 
-    @property
-    def get(self, url: str, data: JSONData):
+    def get(self, url: str, data: JSONData | None = None):
         return self._factory("get", url, data)
+
+    def delete(self, url: str, data: JSONData | None = None):
+        return self._factory("delete", url, data)
 
     def _factory(self, method: HTTPMethods, url: str, data: JSONData):
         if method.lower() == "post":
             request = requests.post
-        else:
+        elif method.lower() == "get":
             request = requests.get
-        response = request(url, data=data, format="json", headers=self.headers)
+        elif method.lower() == "delete":
+            request = requests.delete
+        else:
+            raise ValueError(f"Unrecognized HTTPMethod {method}.")
+
+        response = request(url, json=data or {}, headers=self.headers)
         self._catch_status(response.status_code)
         return response
 
