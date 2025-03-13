@@ -12,6 +12,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT }}
 
       - name: Install Python3
         uses: actions/setup-python@v5
@@ -27,6 +29,7 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           file_pattern: 'requirements/dev.txt'
+          github_token: ${{ secrets.PAT }}
           commit_message: Automatically built dev requirements .txt files
 
       - name: Install dependencies
