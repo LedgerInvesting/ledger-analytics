@@ -1,3 +1,8 @@
+from test.mock_requester import (
+    TriangleMockRequester,
+    TriangleMockRequesterAfterDeletion,
+)
+
 import pytest
 import requests
 from bermuda import Triangle as BermudaTriangle
@@ -11,16 +16,22 @@ from ledger_analytics import (
     Triangle,
 )
 
+API_KEY = "abc.123"
+
 
 def test_ledger_analytics_creation():
-    assert isinstance(AnalyticsClient(), AnalyticsClient)
+    assert isinstance(AnalyticsClient(API_KEY), AnalyticsClient)
 
-    client = AnalyticsClient()
+    client = AnalyticsClient(API_KEY)
     assert client.host == "http://localhost:8000/analytics/"
+    assert (
+        AnalyticsClient(API_KEY, host="http://test.com/analytics").host
+        == "http://test.com/analytics/"
+    )
 
 
 def test_ledger_analytics_models():
-    client = AnalyticsClient()
+    client = AnalyticsClient(API_KEY)
     assert isinstance(client.triangle, Triangle)
     assert isinstance(client.development_model, DevelopmentModel)
     assert isinstance(client.tail_model, TailModel)
@@ -28,7 +39,8 @@ def test_ledger_analytics_models():
 
 
 def test_ledger_analytics_triangle_crud():
-    client = AnalyticsClient()
+    client = AnalyticsClient(API_KEY, host="http://test.com/analytics/")
+    client._requester = TriangleMockRequester(API_KEY)
     triangle_create = client.triangle.create(
         config={
             "triangle_name": "test_meyers_triangle",
@@ -40,6 +52,7 @@ def test_ledger_analytics_triangle_crud():
     assert triangle_create.triangle_id is not None
     assert isinstance(triangle_get, BermudaTriangle)
 
+    client._requester = TriangleMockRequesterAfterDeletion(API_KEY)
     client.triangle.delete(triangle_id=triangle_create.triangle_id)
 
     with pytest.raises(requests.HTTPError):
