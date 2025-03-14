@@ -4,7 +4,7 @@ from bermuda import Triangle as BermudaTriangle
 from requests import HTTPError, Response
 
 from .requester import Requester
-from .types import JSONData
+from .types import ConfigDict
 
 
 class Triangle(object):
@@ -29,7 +29,19 @@ class Triangle(object):
     post_response = property(lambda self: self._post_response)
     delete_response = property(lambda self: self._delete_response)
 
-    def create(self, config: JSONData) -> Triangle:
+    def create(
+        self,
+        triangle_name: str,
+        triangle_data: ConfigDict | BermudaTriangle | None = None,
+    ) -> Triangle:
+        if isinstance(triangle_data, BermudaTriangle):
+            triangle_data = triangle_data.to_dict()
+
+        config = {
+            "triangle_name": triangle_name,
+            "triangle_data": triangle_data,
+        }
+
         self._post_response = self._requester.post(self.endpoint, data=config)
 
         try:
@@ -40,7 +52,7 @@ class Triangle(object):
             )
         return self
 
-    def get(self, triangle_id: str | None = None) -> BermudaTriangle:
+    def get(self, triangle_id: str | None = None) -> (str, BermudaTriangle):
         if triangle_id is None and self.triangle_id is None:
             raise ValueError(
                 "Must create a triangle object first or pass a `triangle_id` to the get request."
@@ -63,7 +75,8 @@ class Triangle(object):
                 f"Cannot get valid triangle data from response: {self._get_response}"
             )
 
-        return BermudaTriangle.from_dict(triangle_json)
+        name = self.get_response.json().get("triangle_name")
+        return name, BermudaTriangle.from_dict(triangle_json)
 
     def delete(self, triangle_id: str | None = None) -> Triangle:
         if triangle_id is None and self.triangle_id is None:
@@ -77,5 +90,5 @@ class Triangle(object):
         )
         return self
 
-    def list(self) -> list[JSONData]:
+    def list(self) -> list[ConfigDict]:
         return self._requester.get(self.host + self.BASE_ENDPOINT)

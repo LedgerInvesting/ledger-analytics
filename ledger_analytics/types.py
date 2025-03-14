@@ -1,4 +1,4 @@
 from typing import Any, Literal
 
-JSONData = dict[str, Any]
+ConfigDict = dict[str, Any]
 HTTPMethods = Literal["post", "get", "delete"]

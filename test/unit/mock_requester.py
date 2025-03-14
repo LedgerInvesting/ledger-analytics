@@ -3,11 +3,11 @@ from bermuda import meyers_tri
 from requests_mock import Mocker
 
 from ledger_analytics import Requester
-from ledger_analytics.types import HTTPMethods, JSONData
+from ledger_analytics.types import ConfigDict, HTTPMethods
 
 
 class TriangleMockRequester(Requester):
-    def _factory(self, method: HTTPMethods, url: str, data: JSONData):
+    def _factory(self, method: HTTPMethods, url: str, data: ConfigDict):
         with Mocker() as mocker:
             if method.lower() == "post":
                 mocker.post(url, json={"id": "abc"}, status_code=201)
@@ -15,7 +15,10 @@ class TriangleMockRequester(Requester):
             elif method.lower() == "get":
                 mocker.get(
                     url,
-                    json={"triangle_id": "abc", "triangle_data": meyers_tri.to_dict()},
+                    json={
+                        "triangle_name": "test_meyers_triangle",
+                        "triangle_data": meyers_tri.to_dict(),
+                    },
                     status_code=200,
                 )
                 response = requests.get(url)
@@ -25,12 +28,12 @@ class TriangleMockRequester(Requester):
             else:
                 raise ValueError(f"Unrecognized HTTPMethod {method}.")
 
-        self._catch_status(response.status_code)
+        self._catch_status(response)
         return response
 
 
 class TriangleMockRequesterAfterDeletion(Requester):
-    def _factory(self, method: HTTPMethods, url: str, data: JSONData):
+    def _factory(self, method: HTTPMethods, url: str, data: ConfigDict):
         with Mocker() as mocker:
             if method.lower() == "post":
                 mocker.post(url, json={"id": "abc"}, status_code=201)
@@ -44,5 +47,5 @@ class TriangleMockRequesterAfterDeletion(Requester):
             else:
                 raise ValueError(f"Unrecognized HTTPMethod {method}.")
 
-        self._catch_status(response.status_code)
+        self._catch_status(response)
         return response

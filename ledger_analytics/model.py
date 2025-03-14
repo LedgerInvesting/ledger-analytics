@@ -7,7 +7,7 @@ from requests import HTTPError, Response
 
 from .requester import Requester
 from .triangle import Triangle
-from .types import JSONData
+from .types import ConfigDict
 
 
 class LedgerModel(ABC):
@@ -32,8 +32,21 @@ class LedgerModel(ABC):
     model_id = property(lambda self: self._model_id)
     fit_response = property(lambda self: self._fit_response)
     predict_repsonse = property(lambda self: self._predict_response)
+    delete_response = property(lambda self: self._delete_response)
 
-    def fit(self, config: JSONData | None = None) -> LedgerModel:
+    def fit(
+        self,
+        triangle_name: str,
+        model_name: str,
+        model_type: str,
+        model_config: ConfigDict | None = None,
+    ) -> LedgerModel:
+        config = {
+            "triangle_name": triangle_name,
+            "model_name": model_name,
+            "model_type": model_type,
+            "model_config": model_config or {},
+        }
         self._fit_response = self._requester.post(self.endpoint, data=config)
 
         try:
@@ -48,7 +61,19 @@ class LedgerModel(ABC):
             )
         return self
 
-    def predict(self, config: JSONData | None = None) -> BermudaTriangle:
+    def predict(
+        self, triangle_name: str | None = None, predict_config: ConfigDict | None = None
+    ) -> BermudaTriangle:
+        if triangle_name is None:
+            # TODO: make it easier to handle triangle names and triangle id variables
+            # users should be able to interact with names only?
+            triangle_name = self.fit_triangle_name
+
+        config = {
+            "triangle_name": triangle_name,
+            "predict_config": predict_config or {},
+        }
+
         url = self.endpoint + f"/{self._model_id}/predict"
         self._predict_response = self._requester.post(url, data=config)
 
@@ -59,6 +84,24 @@ class LedgerModel(ABC):
 
         triangle = self._triangle.get(triangle_id=prediction_id)
         return BermudaTriangle.from_dict(triangle.json()["triangle_data"])
+
+    def delete(self, model_id: str | None = None) -> LedgerModel:
+        if model_id is None and self.model_id is None:
+            raise ValueError("`model_id` is missing.")
+
+        if model_id is None:
+            model_id = self.model_id
+
+        self._delete_response = self._requester.delete(self.endpoint + f"/{model_id}")
+        return self
+
+    @property
+    def fit_triangle_name(self) -> str:
+        if self.fit_response is None:
+            return None
+        triangle_id = self.fit_response.json().get("model").get("triangle")
+        name, _ = self._triangle.get(triangle_id)
+        return name
 
 
 class DevelopmentModel(LedgerModel):
