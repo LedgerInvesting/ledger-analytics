@@ -103,6 +103,13 @@ class LedgerModel(ABC):
         name, _ = self._triangle.get(triangle_id)
         return name
 
+    def list_model_types(self) -> list[str]:
+        url = self.endpoint + "-type"
+        return self._requester.get(url).json()
+
+    def list(self) -> list[ConfigDict]:
+        return self._requester.get(self.endpoint).json()
+
 
 class DevelopmentModel(LedgerModel):
     BASE_ENDPOINT = "development-model"
