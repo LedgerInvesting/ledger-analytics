@@ -91,4 +91,4 @@ class Triangle(object):
         return self
 
     def list(self) -> list[ConfigDict]:
-        return self._requester.get(self.host + self.BASE_ENDPOINT)
+        return self._requester.get(self.endpoint).json()
