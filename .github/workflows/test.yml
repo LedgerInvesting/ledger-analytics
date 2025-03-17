@@ -25,6 +25,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install uv
           uv pip compile requirements/dev.in -o requirements/dev.txt
+          uv pip compile requirements/docs.in -o requirements/docs.txt
 
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
