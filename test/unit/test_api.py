@@ -44,10 +44,12 @@ def test_ledger_analytics_triangle_crud():
         triangle_data=meyers_tri.to_dict(),
     )
     assert triangle_create.post_response.status_code == 201
-    name, triangle_get = client.triangle.get(triangle_id=triangle_create.triangle_id)
+    name, triangle_get_id = client.triangle.get(triangle_id=triangle_create.triangle_id)
+    name2, triangle_get_name = client.triangle.get(triangle_name="test_meyers_triangle")
     assert triangle_create.triangle_id is not None
-    assert isinstance(triangle_get, BermudaTriangle)
-    assert name == "test_meyers_triangle"
+    assert isinstance(triangle_get_id, BermudaTriangle)
+    assert isinstance(triangle_get_name, BermudaTriangle)
+    assert name == name2 == "test_meyers_triangle"
 
     client._requester = TriangleMockRequesterAfterDeletion(API_KEY)
     client.triangle.delete(triangle_id=triangle_create.triangle_id)

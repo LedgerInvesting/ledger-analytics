@@ -18,6 +18,12 @@ class TriangleMockRequester(Requester):
                     json={
                         "triangle_name": "test_meyers_triangle",
                         "triangle_data": meyers_tri.to_dict(),
+                        "results": [
+                            {
+                                "name": "test_meyers_triangle",
+                                "id": "abc",
+                            }
+                        ],
                     },
                     status_code=200,
                 )

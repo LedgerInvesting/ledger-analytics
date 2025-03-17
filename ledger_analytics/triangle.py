@@ -52,14 +52,21 @@ class Triangle(object):
             )
         return self
 
-    def get(self, triangle_id: str | None = None) -> (str, BermudaTriangle):
-        if triangle_id is None and self.triangle_id is None:
+    def get(
+        self, triangle_id: str | None = None, triangle_name: str | None = None
+    ) -> (str, BermudaTriangle):
+        if triangle_id is None and triangle_name is None and self.triangle_id is None:
             raise ValueError(
-                "Must create a triangle object first or pass a `triangle_id` to the get request."
+                "Must create a triangle object first or pass an existing `triangle_name` or `triangle_id` to the get request."
             )
 
-        if triangle_id is None:
+        if triangle_name is None and triangle_id is None:
             triangle_id = self.triangle_id
+        elif triangle_id is None:
+            triangle_ids = {
+                result["name"]: result["id"] for result in self.list()["results"]
+            }
+            triangle_id = triangle_ids[triangle_name]
 
         self._get_response = self._requester.get(self.endpoint + f"/{triangle_id}")
 
