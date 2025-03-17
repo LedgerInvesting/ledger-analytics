@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from abc import ABC, abstractmethod
 
 from bermuda import Triangle as BermudaTriangle
@@ -59,14 +60,25 @@ class LedgerModel(ABC):
                 "The model cannot be fit. The following information was returned:\n",
                 self._fit_response.json(),
             )
-        return self
+        if self.asynchronous:
+            return self
+        modal_task = self._fit_response.json()["modal_task"]["id"]
+        status = self.poll(modal_task).json().get("status")
+        while status.lower() != "success":
+            time.sleep(2)
+            status = self.poll(modal_task).json().get("status")
+            if status.lower() == "success":
+                return self
+
+    def poll(self, task: str):
+        return self._requester.get(
+            self.endpoint.replace(self.BASE_ENDPOINT, "tasks") + f"/{task}"
+        )
 
     def predict(
         self, triangle_name: str | None = None, predict_config: ConfigDict | None = None
-    ) -> BermudaTriangle:
+    ) -> Triangle:
         if triangle_name is None:
-            # TODO: make it easier to handle triangle names and triangle id variables
-            # users should be able to interact with names only?
             triangle_name = self.fit_triangle_name
 
         config = {
@@ -76,14 +88,16 @@ class LedgerModel(ABC):
 
         url = self.endpoint + f"/{self._model_id}/predict"
         self._predict_response = self._requester.post(url, data=config)
+        modal_task = self._predict_response.json()["modal_task"]["id"]
+        status = self.poll(modal_task).json().get("status")
+        while status.lower() != "success":
+            time.sleep(2)
+            status = self.poll(modal_task).json().get("status")
+            if status.lower() == "success":
+                break
 
-        try:
-            prediction_id = self._predict_response.json()["predictions"]
-        except Exception:
-            raise HTTPError()
-
-        triangle = self._triangle.get(triangle_id=prediction_id)
-        return BermudaTriangle.from_dict(triangle.json()["triangle_data"])
+        prediction_id = self._predict_response.json()["predictions"]
+        return self._triangle.get(triangle_id=prediction_id)
 
     def delete(self, model_id: str | None = None) -> LedgerModel:
         if model_id is None and self.model_id is None:
