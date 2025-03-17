@@ -31,7 +31,7 @@ class LedgerModel(ABC):
 
     model_id = property(lambda self: self._model_id)
     fit_response = property(lambda self: self._fit_response)
-    predict_repsonse = property(lambda self: self._predict_response)
+    predict_reponse = property(lambda self: self._predict_response)
     delete_response = property(lambda self: self._delete_response)
 
     def fit(

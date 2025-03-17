@@ -11,8 +11,5 @@ def test_fit_predict():
         model_type="ChainLadder",
         model_config={},
     )
-    try:
-        chain_ladder.predict(triangle_name="meyers_clipped")
-    except:
-        chain_ladder.delete()
-        raise
+    chain_ladder.predict()
+    chain_ladder.delete()
