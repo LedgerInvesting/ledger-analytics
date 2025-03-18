@@ -64,22 +64,8 @@ class LedgerModel(ABC):
         if self.asynchronous:
             return self
         remote_task = self._fit_response.json()["modal_task"]["id"]
-        self._run_remote_task(remote_task)
+        self._run_remote_task(remote_task, task="fitting")
         return self
-
-    def _run_remote_task(self, remote_id: str):
-        status = [self.poll(remote_id).json().get("status")]
-        progress = tqdm(total=2)
-        progress.set_description(status[-1])
-        while status[-1].lower() != "success":
-            time.sleep(2)
-            status.append(self.poll(remote_id).json().get("status"))
-            if status[-1] != status[-2]:
-                progress.set_description(status[-1])
-                progress.update()
-            if status[-1].lower() in ["success", "failure", "terminated", "timeout"]:
-                break
-        progress.close()
 
     def poll(self, task: str):
         return self._requester.get(
@@ -105,7 +91,7 @@ class LedgerModel(ABC):
         url = self.endpoint + f"/{model_id}/predict"
         self._predict_response = self._requester.post(url, data=config)
         remote_task = self._predict_response.json()["modal_task"]["id"]
-        self._run_remote_task(remote_task)
+        self._run_remote_task(remote_task, task="predicting")
         prediction_id = self._predict_response.json()["predictions"]
         return self._triangle.get(triangle_id=prediction_id)
 
@@ -133,6 +119,31 @@ class LedgerModel(ABC):
 
     def list(self) -> list[ConfigDict]:
         return self._requester.get(self.endpoint).json()
+
+    def _run_remote_task(self, remote_id: str, task: str = ""):
+        status = ["CREATED"]
+        tqdm_config = {
+            "total": 2,
+            "bar_format": "{desc}|{bar}| {n_fmt}/{total_fmt} [{unit}]",
+        }
+        with tqdm(**tqdm_config) as progress:
+            progress.set_description(status[-1])
+            progress.unit = f"task={task}, total={progress.format_interval(progress.format_dict['elapsed'])}"
+            progress.refresh()
+            while status[-1].lower() != "success":
+                progress.unit = f"task={task}, total={progress.format_interval(progress.format_dict['elapsed'])}"
+                progress.refresh()
+                status.append(self.poll(remote_id).json().get("status"))
+                if status[-1] != status[-2]:
+                    progress.set_description(status[-1])
+                    progress.update()
+                if status[-1].lower() in [
+                    "success",
+                    "failure",
+                    "terminated",
+                    "timeout",
+                ]:
+                    break
 
 
 class DevelopmentModel(LedgerModel):
