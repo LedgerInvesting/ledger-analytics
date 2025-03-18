@@ -6,12 +6,13 @@ from abc import ABC, abstractmethod
 from bermuda import Triangle as BermudaTriangle
 from requests import HTTPError, Response
 
+from .interface import ModelInterface
 from .requester import Requester
 from .triangle import Triangle
 from .types import ConfigDict
 
 
-class LedgerModel(ABC):
+class LedgerModel(ModelInterface):
     BASE_ENDPOINT: str | None = None
 
     def __init__(
@@ -22,9 +23,8 @@ class LedgerModel(ABC):
                 f"BASE_ENDPOINT needs to be set in {self.__class__.__name__}"
             )
 
-        self.endpoint = host + self.BASE_ENDPOINT
-        self._requester = requester
-        self.asynchronous = asynchronous
+        endpoint = host + self.BASE_ENDPOINT
+        super().__init__(endpoint, requester, asynchronous)
         self._model_id: str | None = None
         self._fit_response: Response | None = None
         self._predict_response: Response | None = None
@@ -34,6 +34,10 @@ class LedgerModel(ABC):
     fit_response = property(lambda self: self._fit_response)
     predict_reponse = property(lambda self: self._predict_response)
     delete_response = property(lambda self: self._delete_response)
+
+    def get():
+        # TODO?
+        pass
 
     def fit(
         self,

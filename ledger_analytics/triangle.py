@@ -85,17 +85,8 @@ class Triangle(object):
         name = self.get_response.json().get("triangle_name")
         return name, BermudaTriangle.from_dict(triangle_json)
 
-    def delete(self, triangle_id: str | None = None) -> Triangle:
-        if triangle_id is None and self.triangle_id is None:
-            raise ValueError("Must pass a `triangle_id` to delete request")
-
-        if triangle_id is None:
-            triangle_id = self.triangle_id
-
+    def delete(self) -> Triangle:
         self._delete_response = self._requester.delete(
-            self.endpoint + f"/{triangle_id}"
+            self.endpoint + f"/{self.triangle_id}"
         )
         return self
-
-    def list(self) -> list[ConfigDict]:
-        return self._requester.get(self.endpoint).json()
