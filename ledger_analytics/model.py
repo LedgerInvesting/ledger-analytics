@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 
 from bermuda import Triangle as BermudaTriangle
 from requests import HTTPError, Response
+from tqdm import tqdm
 
 from .requester import Requester
 from .triangle import Triangle
@@ -62,13 +63,23 @@ class LedgerModel(ABC):
             )
         if self.asynchronous:
             return self
-        modal_task = self._fit_response.json()["modal_task"]["id"]
-        status = self.poll(modal_task).json().get("status")
-        while status.lower() != "success":
+        remote_task = self._fit_response.json()["modal_task"]["id"]
+        self._run_remote_task(remote_task)
+        return self
+
+    def _run_remote_task(self, remote_id: str):
+        status = [self.poll(remote_id).json().get("status")]
+        progress = tqdm(total=2)
+        progress.set_description(status[-1])
+        while status[-1].lower() != "success":
             time.sleep(2)
-            status = self.poll(modal_task).json().get("status")
-            if status.lower() == "success":
-                return self
+            status.append(self.poll(remote_id).json().get("status"))
+            if status[-1] != status[-2]:
+                progress.set_description(status[-1])
+                progress.update()
+            if status[-1].lower() in ["success", "failure", "terminated", "timeout"]:
+                break
+        progress.close()
 
     def poll(self, task: str):
         return self._requester.get(
@@ -76,7 +87,10 @@ class LedgerModel(ABC):
         )
 
     def predict(
-        self, triangle_name: str | None = None, predict_config: ConfigDict | None = None
+        self,
+        triangle_name: str | None = None,
+        model_id: str | None = None,
+        predict_config: ConfigDict | None = None,
     ) -> Triangle:
         if triangle_name is None:
             triangle_name = self.fit_triangle_name
@@ -86,16 +100,12 @@ class LedgerModel(ABC):
             "predict_config": predict_config or {},
         }
 
-        url = self.endpoint + f"/{self._model_id}/predict"
-        self._predict_response = self._requester.post(url, data=config)
-        modal_task = self._predict_response.json()["modal_task"]["id"]
-        status = self.poll(modal_task).json().get("status")
-        while status.lower() != "success":
-            time.sleep(2)
-            status = self.poll(modal_task).json().get("status")
-            if status.lower() == "success":
-                break
+        model_id = model_id or self._model_id
 
+        url = self.endpoint + f"/{model_id}/predict"
+        self._predict_response = self._requester.post(url, data=config)
+        remote_task = self._predict_response.json()["modal_task"]["id"]
+        self._run_remote_task(remote_task)
         prediction_id = self._predict_response.json()["predictions"]
         return self._triangle.get(triangle_id=prediction_id)
 
