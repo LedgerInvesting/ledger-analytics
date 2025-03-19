@@ -51,7 +51,7 @@ class AnalyticsClient(BaseClient):
         super().__init__(api_key=api_key, host=host, asynchronous=asynchronous)
 
     triangle = property(
-        lambda self: TriangleInterface("triangle", self.host, self._requester).create()
+        lambda self: TriangleInterface("triangle", self.host, self._requester)
     )
     development_model = property(
         lambda self: ModelInterface(

@@ -1,9 +1,15 @@
 from __future__ import annotations
 
+import logging
 from abc import ABC
+
+from bermuda import Triangle as BermudaTriangle
+from requests import Response
 
 from .requester import Requester
 from .types import ConfigDict
+
+logger = logging.getLogger(__name__)
 
 
 def to_snake_case(x: str) -> str:
@@ -30,7 +36,9 @@ class ModelRegistry(Registry):
 
 
 class TriangleInterface(metaclass=TriangleRegistry):
-    # TODO: Make a generic Interface class and subclass it for TriangleInterface/ModelInterface?
+    """The TriangleInterface class handles the basic CRUD operations
+    on triangles, managed through AnalyticsClient.
+    """
 
     def __init__(
         self,
@@ -39,28 +47,81 @@ class TriangleInterface(metaclass=TriangleRegistry):
         requester: Requester,
         asynchronous: bool = False,
     ) -> None:
-        self.triangle_type = triangle_type  # probably not needed
+        self.triangle_type = triangle_type
         self.endpoint = host + "triangle"
         self._requester = requester
         self.asynchronous = asynchronous
+        self._post_response: Response | None = None
+        self._get_response: Response | None = None
+        self._delete_response: Response | None = None
 
-    def create(self, triangle_name, triangle_data):
-        # TODO: what should this return? A ledger_analytics.Triangle?
+    get_response = property(lambda self: self._get_response)
+    post_response = property(lambda self: self._post_response)
+    delete_response = property(lambda self: self._delete_response)
+
+    def create(self, triangle_name: str, triangle_data: ConfigDict):
+        if isinstance(triangle_data, BermudaTriangle):
+            triangle_data = triangle_data.to_dict()
+
+        config = {
+            "triangle_name": triangle_name,
+            "triangle_data": triangle_data,
+        }
+
+        self._post_response = self._requester.post(self.endpoint, data=config)
+        triangle_id = self._post_response.json().get("id")
+        logger.info(f"Created triangle '{triangle_name}' with ID {triangle_id}.")
+
+        endpoint = self.endpoint + f"/{triangle_id}"
         triangle = TriangleRegistry.REGISTRY[self.triangle_type](
-            self.endpoint, self._requester, self.asynchronous
+            triangle_id,
+            triangle_name,
+            triangle_data,
+            endpoint,
+            self._requester,
         )
-        return triangle.create(triangle_name, triangle_data)
+        return triangle
 
     def get(self, triangle_name: str | None = None, triangle_id: str | None = None):
-        return [
+        triangle_obj = self._get_details_from_id_name(triangle_name, triangle_id)
+        self._get_response = self._requester.get(
+            self.endpoint + f"/{triangle_obj['id']}"
+        )
+        triangle = TriangleRegistry.REGISTRY[self.triangle_type](
+            triangle_obj["id"],
+            triangle_obj["name"],
+            self.get_response.json().get("triangle_data"),
+            self.endpoint + f"/{triangle_id}",
+            self._requester,
+        )
+        return triangle
+
+    def delete(
+        self, triangle_name: str | None = None, triangle_id: str | None = None
+    ) -> None:
+        triangle_obj = self._get_details_from_id_name(triangle_name, triangle_id)
+        self._requester.delete(self.endpoint + f"/{triangle_obj['id']}")
+        logger.info(
+            f"Deleted triangle '{triangle_obj['name']}' (id: {triangle_obj['id']})."
+        )
+        return None
+
+    def _get_details_from_id_name(
+        self, triangle_name: str | None = None, triangle_id: str | None = None
+    ) -> str:
+        triangles = [
             result
             for result in self.list().get("results")
             if result.get("name") == triangle_name or result.get("id") == triangle_id
         ]
-
-    def delete(self, triangle_id: str) -> None:
-        self._requester.delete(self.endpoint + f"/{triangle_id}")
-        return None
+        if not len(triangles):
+            name_or_id = (
+                f"name '{triangle_name}'"
+                if triangle_id is None
+                else f"ID '{triangle_id}'"
+            )
+            raise ValueError(f"No triangle found with {name_or_id}.")
+        return triangles[0]
 
     def list(self) -> list[ConfigDict]:
         return self._requester.get(self.endpoint).json()
