@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 
 from bermuda import Triangle as BermudaTriangle
 from requests import HTTPError, Response
+from tqdm import tqdm
 
 from .interface import ModelInterface
 from .requester import Requester
@@ -95,16 +96,15 @@ class LedgerModel(ModelInterface):
             )
         if self.asynchronous:
             return self
-        modal_task = self._fit_response.json()["modal_task"]["id"]
-        status = self.poll(modal_task).json().get("status")
-        while status.lower() != "success":
-            time.sleep(2)
-            status = self.poll(modal_task).json().get("status")
-            if status.lower() == "success":
-                return self
+        remote_task = self._fit_response.json()["modal_task"]["id"]
+        self._run_remote_task(remote_task, task="fitting")
+        return self
 
     def predict(
-        self, triangle_name: str | None = None, predict_config: ConfigDict | None = None
+        self,
+        triangle_name: str | None = None,
+        model_id: str | None = None,
+        predict_config: ConfigDict | None = None,
     ) -> Triangle:
         if triangle_name is None:
             triangle_name = self.fit_triangle_name
@@ -114,16 +114,12 @@ class LedgerModel(ModelInterface):
             "predict_config": predict_config or {},
         }
 
-        url = self.endpoint + f"/{self._model_id}/predict"
-        self._predict_response = self._requester.post(url, data=config)
-        modal_task = self._predict_response.json()["modal_task"]["id"]
-        status = self.poll(modal_task).json().get("status")
-        while status.lower() != "success":
-            time.sleep(2)
-            status = self.poll(modal_task).json().get("status")
-            if status.lower() == "success":
-                break
+        model_id = model_id or self._model_id
 
+        url = self.endpoint + f"/{model_id}/predict"
+        self._predict_response = self._requester.post(url, data=config)
+        remote_task = self._predict_response.json()["modal_task"]["id"]
+        self._run_remote_task(remote_task, task="predicting")
         prediction_id = self._predict_response.json()["predictions"]
         return self._triangle.get(triangle_id=prediction_id)
 
@@ -143,6 +139,31 @@ class LedgerModel(ModelInterface):
 
     def list(self) -> list[ConfigDict]:
         return self._requester.get(self.endpoint).json()
+
+    def _run_remote_task(self, remote_id: str, task: str = ""):
+        status = ["CREATED"]
+        tqdm_config = {
+            "total": 2,
+            "bar_format": "{desc}|{bar}| {n_fmt}/{total_fmt} [{unit}]",
+        }
+        with tqdm(**tqdm_config) as progress:
+            progress.set_description(status[-1])
+            progress.unit = f"task={task}, total={progress.format_interval(progress.format_dict['elapsed'])}"
+            progress.refresh()
+            while status[-1].lower() != "success":
+                progress.unit = f"task={task}, total={progress.format_interval(progress.format_dict['elapsed'])}"
+                progress.refresh()
+                status.append(self.poll(remote_id).json().get("status"))
+                if status[-1] != status[-2]:
+                    progress.set_description(status[-1])
+                    progress.update()
+                if status[-1].lower() in [
+                    "success",
+                    "failure",
+                    "terminated",
+                    "timeout",
+                ]:
+                    break
 
 
 class DevelopmentModel(LedgerModel):
