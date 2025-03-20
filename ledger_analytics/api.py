@@ -54,9 +54,7 @@ class AnalyticsClient(BaseClient):
         lambda self: TriangleInterface("triangle", self.host, self._requester)
     )
     development_model = property(
-        lambda self: ModelInterface(
-            "development_model", self.host, self._requester
-        ).create()
+        lambda self: ModelInterface("development_model", self.host, self._requester)
     )
     tail_model = property(
         lambda self: ModelInterface("tail_model", self.host, self._requester)

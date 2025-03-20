@@ -140,11 +140,21 @@ class ModelInterface(metaclass=ModelRegistry):
         self._requester = requester
         self.asynchronous = asynchronous
 
-    def create(self):
-        # Should this call a LedgerModel.create method, with a model_name attribute?
-        # Then, LedgerModel.fit doesn't need to take a model_name
-        return ModelRegistry.REGISTRY[self.model_type](
-            self.endpoint, self._requester, self.asynchronous
+    def create(
+        self,
+        triangle_name: str,
+        model_name: str,
+        model_type: str,
+        model_config: ConfigDict | None = None,
+    ):
+        return ModelRegistry.REGISTRY[self.model_type].fit_from_interface(
+            triangle_name,
+            model_name,
+            model_type,
+            model_config,
+            self.endpoint,
+            self._requester,
+            self.asynchronous,
         )
 
     def get(self, model_id: str):
