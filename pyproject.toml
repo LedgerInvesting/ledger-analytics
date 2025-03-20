@@ -12,7 +12,6 @@ dynamic = ["version", "optional-dependencies"]
 dependencies = [
     "bermuda-ledger",
     "requests",
-    "tqdm",
 ]
 
 [tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]

@@ -135,10 +135,13 @@ class ModelInterface(metaclass=ModelRegistry):
         requester: Requester,
         asynchronous: bool = False,
     ) -> None:
-        self.model_type = model_type
-        self.endpoint = host
+        self._model_type = model_type
+        self._endpoint = host
         self._requester = requester
-        self.asynchronous = asynchronous
+        self._asynchronous = asynchronous
+
+    model_type = property(lambda self: self._model_type)
+    endpoint = property(lambda self: self._endpoint)
 
     def create(
         self,
@@ -152,17 +155,35 @@ class ModelInterface(metaclass=ModelRegistry):
             model_name,
             model_type,
             model_config,
-            self.endpoint,
+            self.endpoint + self.slug,
             self._requester,
-            self.asynchronous,
+            self._asynchronous,
         )
 
     def get(self, model_id: str):
-        # Not implemented yet really, not sure it's needed.
         model = ModelRegistry[self.model_type](
             self.endpoint, self._requester, self.asynchronous
         )
-        return model.get(model_id)
+        return model.get()
+
+    def predict(
+        self,
+        triangle_name: str,
+        model_name: str | None = None,
+        model_id: str | None = None,
+    ):
+        details = self._get_details_from_id_name(model_name, model_id)
+        endpoint = self.endpoint + self.slug + f"/{details['id']}"
+        model = ModelRegistry.REGISTRY[self.model_type](
+            details["id"],
+            details["name"],
+            self.model_type,
+            details["model_config"],
+            endpoint,
+            self._requester,
+            self._asynchronous,
+        )
+        return model.predict(triangle_name)
 
     def list(self) -> list[ConfigDict]:
         return self._requester.get(self.endpoint + self.slug).json()
@@ -174,3 +195,18 @@ class ModelInterface(metaclass=ModelRegistry):
     @property
     def slug(self):
         return self.model_type.replace("_", "-")
+
+    def _get_details_from_id_name(
+        self, model_name: str | None = None, model_id: str | None = None
+    ) -> str:
+        models = [
+            result
+            for result in self.list().get("results")
+            if result.get("name") == model_name or result.get("id") == model_id
+        ]
+        if not len(models):
+            name_or_id = (
+                f"name '{model_name}'" if model_id is None else f"ID '{model_id}'"
+            )
+            raise ValueError(f"No model found with {name_or_id}.")
+        return models[0]
