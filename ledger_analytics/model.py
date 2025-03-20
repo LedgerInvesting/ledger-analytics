@@ -19,6 +19,7 @@ class LedgerModel(ModelInterface):
         model_id: str,
         model_name: str,
         model_type: str,
+        model_class: str,
         model_config: ConfigDict | None,
         endpoint: str,
         requester: Requester,
@@ -29,12 +30,14 @@ class LedgerModel(ModelInterface):
         self._model_id = model_id
         self._model_name = model_name
         self._model_config = model_config or {}
+        self._model_class = model_class
         self._fit_response: Response | None = None
         self._predict_response: Response | None = None
 
     model_id = property(lambda self: self._model_id)
     model_name = property(lambda self: self._model_name)
     model_config = property(lambda self: self._model_config)
+    model_class = property(lambda self: self._model_class)
     fit_response = property(lambda self: self._fit_response)
     predict_response = property(lambda self: self._predict_response)
     delete_response = property(lambda self: self._delete_response)
@@ -49,11 +52,16 @@ class LedgerModel(ModelInterface):
         model_name: str,
         model_type: str,
         model_config: ConfigDict | None,
+        model_class: str,
         endpoint: str,
         requester: Requester,
         asynchronous: bool = False,
     ) -> LedgerModel:
-        # TODO: replace with a dedicated 'create' step for models in the API
+        """This method fits a new model and constructs a LedgerModel instance.
+        It's intended to be used from the `ModelInterface` class mainly,
+        and in the future will likely be superseded by having separate
+        `create` and `fit` API endpoints.
+        """
         config = {
             "triangle_name": triangle_name,
             "model_name": model_name,
@@ -67,44 +75,20 @@ class LedgerModel(ModelInterface):
             model_name=model_name,
             model_type=model_type,
             model_config=model_config,
+            model_class=model_class,
             endpoint=endpoint + f"/{model_id}",
             requester=requester,
             asynchronous=asynchronous,
         )
 
+        self._fit_response = fit_response
+
         if asynchronous:
             return self
 
-        self._fit_response = fit_response
-        self._run_async_task(task=f"Fitting model {self.model_name}")
+        task_id = self.fit_response.json()["modal_task"]["id"]
+        self._run_async_task(task_id, task=f"Fitting model {self.model_name}")
         return self
-
-    def fit(
-        self,
-        triangle_name: str,
-        model_name: str,
-        model_type: str,
-        model_config: ConfigDict | None = None,
-    ) -> LedgerModel:
-        try:
-            self._model_id = self._fit_response.json().get("model").get("id")
-        except Exception:
-            raise HTTPError(self._fit_response)
-
-        if self._model_id is None:
-            raise HTTPError(
-                "The model cannot be fit. The following information was returned:\n",
-                self._fit_response.json(),
-            )
-        if self._asynchronous:
-            return self
-        modal_task = self._fit_response.json()["modal_task"]["id"]
-        status = self.poll(modal_task).json().get("status")
-        while status.lower() != "success":
-            time.sleep(2)
-            status = self.poll(modal_task).json().get("status")
-            if status.lower() == "success":
-                return self
 
     def predict(
         self, triangle_name: str, predict_config: ConfigDict | None = None
@@ -120,7 +104,10 @@ class LedgerModel(ModelInterface):
         if self._asynchronous:
             return self
 
-        self._run_async_task(task=f"Predicting from model {self.model_name}")
+        task_id = self.predict_response.json()["modal_task"]["id"]
+        self._run_async_task(
+            task_id=task_id, task=f"Predicting from model {self.model_name}"
+        )
         return self
 
     def delete(self) -> LedgerModel:
@@ -130,12 +117,19 @@ class LedgerModel(ModelInterface):
     def list(self) -> list[ConfigDict]:
         return self._requester.get(self.endpoint).json()
 
-    def _run_async_task(self, task: str = ""):
+    def _poll(self, task_id: str) -> ConfigDict:
+        endpoint = self.endpoint.replace(
+            f"{self.model_class_slug}/{self.model_id}", f"tasks/{task_id}"
+        )
+        return self._requester.get(endpoint)
+
+    def _run_async_task(self, task_id: str, task: str = ""):
         status = ["CREATED"]
         console = Console()
         with console.status("Working...", spinner="bouncingBar") as _:
             while status[-1].lower() != "success":
-                status.append(self.get().json().get("modal_task_info").get("status"))
+                _status = self._poll(task_id).json().get("status")
+                status.append(_status)
                 if status[-1] != status[-2]:
                     console.log(f"{task}: {status[-1]}")
                 if status[-1].lower() in [
@@ -149,12 +143,12 @@ class LedgerModel(ModelInterface):
 
 
 class DevelopmentModel(LedgerModel):
-    BASE_ENDPOINT = "development-model"
+    pass
 
 
 class TailModel(LedgerModel):
-    BASE_ENDPOINT = "tail-model"
+    pass
 
 
 class ForecastModel(LedgerModel):
-    BASE_ENDPOINT = "forecast-model"
+    pass

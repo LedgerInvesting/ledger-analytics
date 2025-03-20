@@ -26,7 +26,6 @@ class Triangle(TriangleInterface):
         self._triangle_id: str = triangle_id
         self._triangle_name: str = triangle_name
         self._triangle_data: ConfigDict = triangle_data
-        self._post_response: Response | None = None
         self._get_response: Response | None = None
         self._delete_response: Response | None = None
 

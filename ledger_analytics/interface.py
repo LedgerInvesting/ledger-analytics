@@ -130,17 +130,17 @@ class TriangleInterface(metaclass=TriangleRegistry):
 class ModelInterface(metaclass=ModelRegistry):
     def __init__(
         self,
-        model_type: str,
+        model_class: str,
         host: str,
         requester: Requester,
         asynchronous: bool = False,
     ) -> None:
-        self._model_type = model_type
+        self._model_class = model_class
         self._endpoint = host
         self._requester = requester
         self._asynchronous = asynchronous
 
-    model_type = property(lambda self: self._model_type)
+    model_class = property(lambda self: self._model_class)
     endpoint = property(lambda self: self._endpoint)
 
     def create(
@@ -150,18 +150,19 @@ class ModelInterface(metaclass=ModelRegistry):
         model_type: str,
         model_config: ConfigDict | None = None,
     ):
-        return ModelRegistry.REGISTRY[self.model_type].fit_from_interface(
+        return ModelRegistry.REGISTRY[self.model_class].fit_from_interface(
             triangle_name,
             model_name,
             model_type,
             model_config,
-            self.endpoint + self.slug,
+            self.model_class,
+            self.endpoint + self.model_class_slug,
             self._requester,
             self._asynchronous,
         )
 
     def get(self, model_id: str):
-        model = ModelRegistry[self.model_type](
+        model = ModelRegistry[self.model_class](
             self.endpoint, self._requester, self.asynchronous
         )
         return model.get()
@@ -173,11 +174,11 @@ class ModelInterface(metaclass=ModelRegistry):
         model_id: str | None = None,
     ):
         details = self._get_details_from_id_name(model_name, model_id)
-        endpoint = self.endpoint + self.slug + f"/{details['id']}"
-        model = ModelRegistry.REGISTRY[self.model_type](
+        endpoint = self.endpoint + self.model_class_slug + f"/{details['id']}"
+        model = ModelRegistry.REGISTRY[self.model_class](
             details["id"],
             details["name"],
-            self.model_type,
+            self.model_class,
             details["model_config"],
             endpoint,
             self._requester,
@@ -185,16 +186,24 @@ class ModelInterface(metaclass=ModelRegistry):
         )
         return model.predict(triangle_name)
 
-    def list(self) -> list[ConfigDict]:
-        return self._requester.get(self.endpoint + self.slug).json()
+    def delete(
+        self, model_name: str | None = None, model_id: str | None = None
+    ) -> None:
+        model_obj = self._get_details_from_id_name(model_name, model_id)
+        self._requester.delete(self.endpoint + f"/{model_obj['id']}")
+        logger.info(f"Deleted model '{model_obj['name']}' (id: {model_obj['id']}).")
+        return None
 
-    def list_model_types(self) -> list[ConfigDict]:
-        url = self.endpoint + self.slug + "-type"
+    def list(self) -> list[ConfigDict]:
+        return self._requester.get(self.endpoint + self.model_class_slug).json()
+
+    def list_model_classs(self) -> list[ConfigDict]:
+        url = self.endpoint + self.model_class_slugslug + "-type"
         return self._requester.get(url).json()
 
     @property
-    def slug(self):
-        return self.model_type.replace("_", "-")
+    def model_class_slug(self):
+        return self.model_class.replace("_", "-")
 
     def _get_details_from_id_name(
         self, model_name: str | None = None, model_id: str | None = None

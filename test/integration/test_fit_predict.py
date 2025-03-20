@@ -1,5 +1,3 @@
-import time
-
 import pytest
 from bermuda import meyers_tri
 from requests import HTTPError
@@ -19,7 +17,6 @@ def test_fit_predict():
     assert chain_ladder.get().json()["name"] == "chain_ladder"
     chain_ladder.predict(triangle_name="meyers_clipped")
     prediction_id = chain_ladder.predict_response.json()["predictions"]
-    time.sleep(20)
     predictions = client.triangle.get(triangle_id=prediction_id)
     assert predictions.to_bermuda().extract("paid_loss").shape == (36, 10e3)
 
