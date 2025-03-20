@@ -1,101 +1,63 @@
 from __future__ import annotations
 
+import logging
+
 from bermuda import Triangle as BermudaTriangle
 from requests import HTTPError, Response
+from rich.console import Console
 
+from .interface import TriangleInterface
 from .requester import Requester
 from .types import ConfigDict
 
+logger = logging.getLogger(__name__)
 
-class Triangle(object):
-    BASE_ENDPOINT = "triangle"
 
+class Triangle(TriangleInterface):
     def __init__(
         self,
-        host: str,
+        triangle_id: str,
+        triangle_name: str,
+        triangle_data: ConfigDict,
+        endpoint: str,
         requester: Requester,
-        asynchronous: bool = False,
     ) -> None:
-        self.endpoint = host + self.BASE_ENDPOINT
+        self.endpoint = endpoint
         self._requester = requester
-        self.asynchronous = asynchronous
-        self._triangle_id: str | None = None
-        self._post_response: Response | None = None
+        self._triangle_id: str = triangle_id
+        self._triangle_name: str = triangle_name
+        self._triangle_data: ConfigDict = triangle_data
         self._get_response: Response | None = None
         self._delete_response: Response | None = None
 
     triangle_id = property(lambda self: self._triangle_id)
+    triangle_name = property(lambda self: self._triangle_name)
+    triangle_data = property(lambda self: self._triangle_data)
     get_response = property(lambda self: self._get_response)
-    post_response = property(lambda self: self._post_response)
     delete_response = property(lambda self: self._delete_response)
 
-    def create(
-        self,
-        triangle_name: str,
-        triangle_data: ConfigDict | BermudaTriangle | None = None,
-    ) -> Triangle:
-        if isinstance(triangle_data, BermudaTriangle):
-            triangle_data = triangle_data.to_dict()
+    def to_bermuda(self):
+        return BermudaTriangle.from_dict(self.triangle_data)
 
-        config = {
-            "triangle_name": triangle_name,
-            "triangle_data": triangle_data,
-        }
-
-        self._post_response = self._requester.post(self.endpoint, data=config)
-
-        try:
-            self._triangle_id = self._post_response.json().get("id")
-        except Exception:
-            raise HTTPError(
-                f"Cannot get valid triangle ID from response: {self._post_response}"
-            )
-        return self
-
+    @classmethod
     def get(
-        self, triangle_id: str | None = None, triangle_name: str | None = None
-    ) -> (str, BermudaTriangle):
-        if triangle_id is None and triangle_name is None and self.triangle_id is None:
-            raise ValueError(
-                "Must create a triangle object first or pass an existing `triangle_name` or `triangle_id` to the get request."
-            )
+        cls, triangle_id: str, triangle_name: str, endpoint: str, requester: Requester
+    ) -> Triangle:
+        console = Console()
+        with console.status("Retrieving...", spinner="bouncingBar") as _:
+            console.log(f"Getting triangle '{triangle_name}' with ID '{triangle_id}'")
+            get_response = requester.get(endpoint)
 
-        if triangle_name is None and triangle_id is None:
-            triangle_id = self.triangle_id
-        elif triangle_id is None:
-            triangle_ids = {
-                result["name"]: result["id"] for result in self.list()["results"]
-            }
-            triangle_id = triangle_ids[triangle_name]
-
-        self._get_response = self._requester.get(self.endpoint + f"/{triangle_id}")
-
-        try:
-            triangle_json = self._get_response.json().get("triangle_data")
-        except Exception:
-            raise HTTPError(
-                f"Cannot get valid triangle data from response: {self._get_response}"
-            )
-
-        if triangle_json is None:
-            raise HTTPError(
-                f"Cannot get valid triangle data from response: {self._get_response}"
-            )
-
-        name = self.get_response.json().get("triangle_name")
-        return name, BermudaTriangle.from_dict(triangle_json)
-
-    def delete(self, triangle_id: str | None = None) -> Triangle:
-        if triangle_id is None and self.triangle_id is None:
-            raise ValueError("Must pass a `triangle_id` to delete request")
-
-        if triangle_id is None:
-            triangle_id = self.triangle_id
-
-        self._delete_response = self._requester.delete(
-            self.endpoint + f"/{triangle_id}"
+        self = cls(
+            triangle_id,
+            triangle_name,
+            get_response.json().get("triangle_data"),
+            endpoint,
+            requester,
         )
+        self._get_response = get_response
         return self
 
-    def list(self) -> list[ConfigDict]:
-        return self._requester.get(self.endpoint).json()
+    def delete(self) -> Triangle:
+        self._delete_response = self._requester.delete(self.endpoint)
+        return self
