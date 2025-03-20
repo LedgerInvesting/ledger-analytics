@@ -19,31 +19,64 @@ class LedgerModel(ModelInterface):
         model_id: str,
         model_name: str,
         model_type: str,
-        model_class: str,
         model_config: ConfigDict | None,
+        model_class: str,
         endpoint: str,
         requester: Requester,
         asynchronous: bool = False,
     ) -> None:
-        super().__init__(model_type, endpoint, requester, asynchronous)
+        super().__init__(model_class, endpoint, requester, asynchronous)
 
+        self._endpoint = endpoint
         self._model_id = model_id
         self._model_name = model_name
+        self._model_type = model_type
         self._model_config = model_config or {}
         self._model_class = model_class
         self._fit_response: Response | None = None
         self._predict_response: Response | None = None
+        self._get_response: Response | None = None
 
     model_id = property(lambda self: self._model_id)
     model_name = property(lambda self: self._model_name)
+    model_type = property(lambda self: self._model_type)
     model_config = property(lambda self: self._model_config)
     model_class = property(lambda self: self._model_class)
+    endpoint = property(lambda self: self._endpoint)
     fit_response = property(lambda self: self._fit_response)
     predict_response = property(lambda self: self._predict_response)
+    get_response = property(lambda self: self._get_response)
     delete_response = property(lambda self: self._delete_response)
 
-    def get(self):
-        return self._requester.get(self.endpoint)
+    @classmethod
+    def get(
+        cls,
+        model_id: str,
+        model_name: str,
+        model_type: str,
+        model_config: ConfigDict,
+        model_class: str,
+        endpoint: str,
+        requester: Requester,
+        asynchronous: bool = False,
+    ) -> LedgerModel:
+        console = Console()
+        with console.status("Retrieving...", spinner="bouncingBar") as _:
+            console.log(f"Getting model '{model_name}' with ID '{model_id}'")
+            get_response = requester.get(endpoint)
+
+        self = cls(
+            model_id,
+            model_name,
+            model_type,
+            model_config,
+            model_class,
+            endpoint,
+            requester,
+            asynchronous,
+        )
+        self._get_response = get_response
+        return self
 
     @classmethod
     def fit_from_interface(
@@ -87,7 +120,10 @@ class LedgerModel(ModelInterface):
             return self
 
         task_id = self.fit_response.json()["modal_task"]["id"]
-        self._run_async_task(task_id, task=f"Fitting model {self.model_name}")
+        self._run_async_task(
+            task_id,
+            task=f"Fitting model '{self.model_name}' on triangle '{triangle_name}'",
+        )
         return self
 
     def predict(
@@ -106,7 +142,8 @@ class LedgerModel(ModelInterface):
 
         task_id = self.predict_response.json()["modal_task"]["id"]
         self._run_async_task(
-            task_id=task_id, task=f"Predicting from model {self.model_name}"
+            task_id=task_id,
+            task=f"Predicting from model '{self.model_name}' on triangle '{triangle_name}'",
         )
         return self
 

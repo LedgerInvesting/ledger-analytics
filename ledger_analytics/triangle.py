@@ -4,6 +4,7 @@ import logging
 
 from bermuda import Triangle as BermudaTriangle
 from requests import HTTPError, Response
+from rich.console import Console
 
 from .interface import TriangleInterface
 from .requester import Requester
@@ -38,8 +39,23 @@ class Triangle(TriangleInterface):
     def to_bermuda(self):
         return BermudaTriangle.from_dict(self.triangle_data)
 
-    def get(self) -> Triangle:
-        self._get_response = self._requester.get(self.endpoint)
+    @classmethod
+    def get(
+        cls, triangle_id: str, triangle_name: str, endpoint: str, requester: Requester
+    ) -> Triangle:
+        console = Console()
+        with console.status("Retrieving...", spinner="bouncingBar") as _:
+            console.log(f"Getting triangle '{triangle_name}' with ID '{triangle_id}'")
+            get_response = requester.get(endpoint)
+
+        self = cls(
+            triangle_id,
+            triangle_name,
+            get_response.json().get("triangle_data"),
+            endpoint,
+            requester,
+        )
+        self._get_response = get_response
         return self
 
     def delete(self) -> Triangle:

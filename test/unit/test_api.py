@@ -47,7 +47,6 @@ def test_ledger_analytics_triangle_crud():
         triangle_name="test_meyers_triangle",
         triangle_data=meyers_tri.to_dict(),
     )
-    assert triangle.get().get_response.status_code == 200
     assert triangle.triangle_id == "abc"
     assert isinstance(triangle.to_bermuda(), BermudaTriangle)
     assert triangle.triangle_data == meyers_tri.to_dict()
@@ -86,7 +85,6 @@ def test_ledger_analytics_model_crud():
 
     assert development_model.fit_response.status_code == 201
     assert development_model.fit_response.json()["model"]["id"] == "model_abc"
-    assert development_model.get().json()["name"] == "test_chain_ladder"
 
     development_model.predict("test_meyers_triangle")
     assert development_model.predict_response.status_code == 201

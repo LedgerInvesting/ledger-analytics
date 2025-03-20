@@ -84,17 +84,12 @@ class TriangleInterface(metaclass=TriangleRegistry):
 
     def get(self, triangle_name: str | None = None, triangle_id: str | None = None):
         triangle_obj = self._get_details_from_id_name(triangle_name, triangle_id)
-        self._get_response = self._requester.get(
-            self.endpoint + f"/{triangle_obj['id']}"
-        )
-        triangle = TriangleRegistry.REGISTRY[self.triangle_type](
+        return TriangleRegistry.REGISTRY[self.triangle_type].get(
             triangle_obj["id"],
             triangle_obj["name"],
-            self.get_response.json().get("triangle_data"),
-            self.endpoint + f"/{triangle_id}",
+            self.endpoint + f"/{triangle_obj['id']}",
             self._requester,
         )
-        return triangle
 
     def delete(
         self, triangle_name: str | None = None, triangle_id: str | None = None
@@ -136,9 +131,16 @@ class ModelInterface(metaclass=ModelRegistry):
         asynchronous: bool = False,
     ) -> None:
         self._model_class = model_class
-        self._endpoint = host
+        self._endpoint = host + self.model_class_slug
         self._requester = requester
         self._asynchronous = asynchronous
+        self._post_response: Response | None = None
+        self._get_response: Response | None = None
+        self._delete_response: Response | None = None
+
+    get_response = property(lambda self: self._get_response)
+    post_response = property(lambda self: self._post_response)
+    delete_response = property(lambda self: self._delete_response)
 
     model_class = property(lambda self: self._model_class)
     endpoint = property(lambda self: self._endpoint)
@@ -156,16 +158,24 @@ class ModelInterface(metaclass=ModelRegistry):
             model_type,
             model_config,
             self.model_class,
-            self.endpoint + self.model_class_slug,
+            self.endpoint,
             self._requester,
             self._asynchronous,
         )
 
-    def get(self, model_id: str):
-        model = ModelRegistry[self.model_class](
-            self.endpoint, self._requester, self.asynchronous
+    def get(self, model_name: str | None = None, model_id: str | None = None):
+        model_obj = self._get_details_from_id_name(model_name, model_id)
+        endpoint = self.endpoint + f"/{model_obj['id']}"
+        return ModelRegistry.REGISTRY[self.model_class].get(
+            model_obj["id"],
+            model_obj["name"],
+            model_obj["modal_task_info"]["task_args"]["model_type"],
+            model_obj["modal_task_info"]["task_args"]["model_config"],
+            self.model_class,
+            endpoint,
+            self._requester,
+            self._asynchronous,
         )
-        return model.get()
 
     def predict(
         self,
@@ -173,17 +183,7 @@ class ModelInterface(metaclass=ModelRegistry):
         model_name: str | None = None,
         model_id: str | None = None,
     ):
-        details = self._get_details_from_id_name(model_name, model_id)
-        endpoint = self.endpoint + self.model_class_slug + f"/{details['id']}"
-        model = ModelRegistry.REGISTRY[self.model_class](
-            details["id"],
-            details["name"],
-            self.model_class,
-            details["model_config"],
-            endpoint,
-            self._requester,
-            self._asynchronous,
-        )
+        model = self.get(model_name, model_id)
         return model.predict(triangle_name)
 
     def delete(
@@ -195,10 +195,10 @@ class ModelInterface(metaclass=ModelRegistry):
         return None
 
     def list(self) -> list[ConfigDict]:
-        return self._requester.get(self.endpoint + self.model_class_slug).json()
+        return self._requester.get(self.endpoint).json()
 
-    def list_model_classs(self) -> list[ConfigDict]:
-        url = self.endpoint + self.model_class_slugslug + "-type"
+    def list_model_types(self) -> list[ConfigDict]:
+        url = self.endpoint + "-type"
         return self._requester.get(url).json()
 
     @property

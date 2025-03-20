@@ -4,7 +4,7 @@ import pytest
 from bermuda import meyers_tri
 from requests import HTTPError
 
-from ledger_analytics import AnalyticsClient
+from ledger_analytics import AnalyticsClient, Triangle
 
 
 @pytest.fixture
@@ -19,6 +19,8 @@ def test_triangle_create_delete(client):
     )
 
     assert test_tri.to_bermuda() == meyers_tri
+
+    assert isinstance(client.triangle.get(triangle_name="__test_tri"), Triangle)
 
     test_tri.delete()
     assert test_tri.delete_response.status_code == 204
