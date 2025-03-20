@@ -3,9 +3,8 @@ from __future__ import annotations
 import os
 from abc import ABC
 
-from .model import DevelopmentModel, ForecastModel, TailModel
+from .interface import ModelInterface, TriangleInterface
 from .requester import Requester
-from .triangle import Triangle
 
 
 class BaseClient(ABC):
@@ -51,9 +50,15 @@ class AnalyticsClient(BaseClient):
     ):
         super().__init__(api_key=api_key, host=host, asynchronous=asynchronous)
 
-    triangle = property(lambda self: Triangle(self.host, self._requester))
-    development_model = property(
-        lambda self: DevelopmentModel(self.host, self._requester)
+    triangle = property(
+        lambda self: TriangleInterface("triangle", self.host, self._requester)
     )
-    tail_model = property(lambda self: TailModel(self.host, self._requester))
-    forecast_model = property(lambda self: ForecastModel(self.host, self._requester))
+    development_model = property(
+        lambda self: ModelInterface("development_model", self.host, self._requester)
+    )
+    tail_model = property(
+        lambda self: ModelInterface("tail_model", self.host, self._requester)
+    )
+    forecast_model = property(
+        lambda self: ModelInterface("forecast_model", self.host, self._requester)
+    )
