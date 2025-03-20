@@ -32,7 +32,7 @@ def test_fit_predict():
     assert predictions.to_bermuda() == predictions2.to_bermuda()
 
     chain_ladder.delete()
-    with pytest.raises(HTTPError):
+    with pytest.raises(ValueError):
         client.development_model.get(model_name=name)
 
     with pytest.raises(HTTPError):
@@ -40,5 +40,5 @@ def test_fit_predict():
         predictions.delete()
 
     predictions2.delete()
-    with pytest.raises(HTTPError):
-        predictions2.get()
+    with pytest.raises(ValueError):
+        client.development_model.get(model_name=name)
