@@ -37,5 +37,6 @@ and triangle data structure storage you require.
     pricing.rst
     tutorials/index.rst
     user-guide/index.rst
+    api/index.rst
     ecosystem.rst
 
