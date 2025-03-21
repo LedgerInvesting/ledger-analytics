@@ -42,22 +42,13 @@ class TriangleInterface(metaclass=TriangleRegistry):
 
     def __init__(
         self,
-        triangle_type: str,
         host: str,
         requester: Requester,
         asynchronous: bool = False,
     ) -> None:
-        self.triangle_type = triangle_type
         self.endpoint = host + "triangle"
         self._requester = requester
         self.asynchronous = asynchronous
-        self._post_response: Response | None = None
-        self._get_response: Response | None = None
-        self._delete_response: Response | None = None
-
-    get_response = property(lambda self: self._get_response)
-    post_response = property(lambda self: self._post_response)
-    delete_response = property(lambda self: self._delete_response)
 
     def create(self, triangle_name: str, triangle_data: ConfigDict):
         if isinstance(triangle_data, BermudaTriangle):
@@ -68,23 +59,24 @@ class TriangleInterface(metaclass=TriangleRegistry):
             "triangle_data": triangle_data,
         }
 
-        self._post_response = self._requester.post(self.endpoint, data=config)
-        triangle_id = self._post_response.json().get("id")
+        post_response = self._requester.post(self.endpoint, data=config)
+        triangle_id = post_response.json().get("id")
         logger.info(f"Created triangle '{triangle_name}' with ID {triangle_id}.")
 
         endpoint = self.endpoint + f"/{triangle_id}"
-        triangle = TriangleRegistry.REGISTRY[self.triangle_type](
+        triangle = TriangleRegistry.REGISTRY["triangle"](
             triangle_id,
             triangle_name,
             triangle_data,
             endpoint,
             self._requester,
         )
+        triangle._post_response = post_response
         return triangle
 
     def get(self, triangle_name: str | None = None, triangle_id: str | None = None):
         triangle_obj = self._get_details_from_id_name(triangle_name, triangle_id)
-        return TriangleRegistry.REGISTRY[self.triangle_type].get(
+        return TriangleRegistry.REGISTRY["triangle"].get(
             triangle_obj["id"],
             triangle_obj["name"],
             self.endpoint + f"/{triangle_obj['id']}",
@@ -94,12 +86,8 @@ class TriangleInterface(metaclass=TriangleRegistry):
     def delete(
         self, triangle_name: str | None = None, triangle_id: str | None = None
     ) -> None:
-        triangle_obj = self._get_details_from_id_name(triangle_name, triangle_id)
-        self._requester.delete(self.endpoint + f"/{triangle_obj['id']}")
-        logger.info(
-            f"Deleted triangle '{triangle_obj['name']}' (id: {triangle_obj['id']})."
-        )
-        return None
+        triangle = self.get(triangle_name, triangle_id)
+        triangle.delete()
 
     def _get_details_from_id_name(
         self, triangle_name: str | None = None, triangle_id: str | None = None
@@ -134,13 +122,6 @@ class ModelInterface(metaclass=ModelRegistry):
         self._endpoint = host + self.model_class_slug
         self._requester = requester
         self._asynchronous = asynchronous
-        self._post_response: Response | None = None
-        self._get_response: Response | None = None
-        self._delete_response: Response | None = None
-
-    get_response = property(lambda self: self._get_response)
-    post_response = property(lambda self: self._post_response)
-    delete_response = property(lambda self: self._delete_response)
 
     model_class = property(lambda self: self._model_class)
     endpoint = property(lambda self: self._endpoint)
@@ -189,9 +170,8 @@ class ModelInterface(metaclass=ModelRegistry):
     def delete(
         self, model_name: str | None = None, model_id: str | None = None
     ) -> None:
-        model_obj = self._get_details_from_id_name(model_name, model_id)
-        self._requester.delete(self.endpoint + f"/{model_obj['id']}")
-        logger.info(f"Deleted model '{model_obj['name']}' (id: {model_obj['id']}).")
+        model = self.get(model_name, model_id)
+        model.delete()
         return None
 
     def list(self) -> list[ConfigDict]:

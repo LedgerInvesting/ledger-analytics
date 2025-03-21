@@ -151,9 +151,6 @@ class LedgerModel(ModelInterface):
         self._delete_response = self._requester.delete(self.endpoint)
         return self
 
-    def list(self) -> list[ConfigDict]:
-        return self._requester.get(self.endpoint).json()
-
     def _poll(self, task_id: str) -> ConfigDict:
         endpoint = self.endpoint.replace(
             f"{self.model_class_slug}/{self.model_id}", f"tasks/{task_id}"
