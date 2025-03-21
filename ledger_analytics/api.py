@@ -70,3 +70,7 @@ class AnalyticsClient(BaseClient):
             "forecast_model", self.host, self._requester, self.asynchronous
         )
     )
+
+    def test_endpoint(self) -> str:
+        self._requester.get(self.host + "triangle")
+        return "Endpoint working!"
