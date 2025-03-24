@@ -8,18 +8,18 @@ from requests import HTTPError, Response
 from rich.console import Console
 
 from .interface import ModelInterface, TriangleInterface
+from .model_types import ConfigDict
 from .requester import Requester
 from .triangle import Triangle
-from .types import ConfigDict
 
 
 class LedgerModel(ModelInterface):
     def __init__(
         self,
-        model_id: str,
-        model_name: str,
+        id: str,
+        name: str,
         model_type: str,
-        model_config: ConfigDict | None,
+        config: ConfigDict | None,
         model_class: str,
         endpoint: str,
         requester: Requester,
@@ -28,19 +28,19 @@ class LedgerModel(ModelInterface):
         super().__init__(model_class, endpoint, requester, asynchronous)
 
         self._endpoint = endpoint
-        self._model_id = model_id
-        self._model_name = model_name
+        self._id = id
+        self._name = name
         self._model_type = model_type
-        self._model_config = model_config or {}
+        self._config = config or {}
         self._model_class = model_class
         self._fit_response: Response | None = None
         self._predict_response: Response | None = None
         self._get_response: Response | None = None
 
-    model_id = property(lambda self: self._model_id)
-    model_name = property(lambda self: self._model_name)
+    id = property(lambda self: self._id)
+    name = property(lambda self: self._name)
     model_type = property(lambda self: self._model_type)
-    model_config = property(lambda self: self._model_config)
+    config = property(lambda self: self._config)
     model_class = property(lambda self: self._model_class)
     endpoint = property(lambda self: self._endpoint)
     fit_response = property(lambda self: self._fit_response)
@@ -51,10 +51,10 @@ class LedgerModel(ModelInterface):
     @classmethod
     def get(
         cls,
-        model_id: str,
-        model_name: str,
+        id: str,
+        name: str,
         model_type: str,
-        model_config: ConfigDict,
+        config: ConfigDict,
         model_class: str,
         endpoint: str,
         requester: Requester,
@@ -62,14 +62,14 @@ class LedgerModel(ModelInterface):
     ) -> LedgerModel:
         console = Console()
         with console.status("Retrieving...", spinner="bouncingBar") as _:
-            console.log(f"Getting model '{model_name}' with ID '{model_id}'")
+            console.log(f"Getting model '{name}' with ID '{id}'")
             get_response = requester.get(endpoint)
 
         self = cls(
-            model_id,
-            model_name,
+            id,
+            name,
             model_type,
-            model_config,
+            config,
             model_class,
             endpoint,
             requester,
@@ -82,9 +82,9 @@ class LedgerModel(ModelInterface):
     def fit_from_interface(
         cls,
         triangle_name: str,
-        model_name: str,
+        name: str,
         model_type: str,
-        model_config: ConfigDict | None,
+        config: ConfigDict | None,
         model_class: str,
         endpoint: str,
         requester: Requester,
@@ -97,19 +97,19 @@ class LedgerModel(ModelInterface):
         """
         config = {
             "triangle_name": triangle_name,
-            "model_name": model_name,
+            "name": name,
             "model_type": model_type,
-            "model_config": model_config or {},
+            "config": config or {},
         }
         fit_response = requester.post(endpoint, data=config)
-        model_id = fit_response.json()["model"]["id"]
+        id = fit_response.json()["model"]["id"]
         self = cls(
-            model_id=model_id,
-            model_name=model_name,
+            id=id,
+            name=name,
             model_type=model_type,
-            model_config=model_config,
+            config=config,
             model_class=model_class,
-            endpoint=endpoint + f"/{model_id}",
+            endpoint=endpoint + f"/{id}",
             requester=requester,
             asynchronous=asynchronous,
         )
@@ -122,7 +122,7 @@ class LedgerModel(ModelInterface):
         task_id = self.fit_response.json()["modal_task"]["id"]
         self._run_async_task(
             task_id,
-            task=f"Fitting model '{self.model_name}' on triangle '{triangle_name}'",
+            task=f"Fitting model '{self.name}' on triangle '{triangle_name}'",
         )
         return self
 
@@ -143,7 +143,7 @@ class LedgerModel(ModelInterface):
         task_id = self.predict_response.json()["modal_task"]["id"]
         self._run_async_task(
             task_id=task_id,
-            task=f"Predicting from model '{self.model_name}' on triangle '{triangle_name}'",
+            task=f"Predicting from model '{self.name}' on triangle '{triangle_name}'",
         )
         return self
 
@@ -153,7 +153,7 @@ class LedgerModel(ModelInterface):
 
     def _poll(self, task_id: str) -> ConfigDict:
         endpoint = self.endpoint.replace(
-            f"{self.model_class_slug}/{self.model_id}", f"tasks/{task_id}"
+            f"{self.model_class_slug}/{self.id}", f"tasks/{task_id}"
         )
         return self._requester.get(endpoint)
 

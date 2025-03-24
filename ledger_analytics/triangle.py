@@ -16,42 +16,40 @@ logger = logging.getLogger(__name__)
 class Triangle(TriangleInterface):
     def __init__(
         self,
-        triangle_id: str,
-        triangle_name: str,
-        triangle_data: ConfigDict,
+        id: str,
+        name: str,
+        data: ConfigDict,
         endpoint: str,
         requester: Requester,
     ) -> None:
         self.endpoint = endpoint
         self._requester = requester
-        self._triangle_id: str = triangle_id
-        self._triangle_name: str = triangle_name
-        self._triangle_data: ConfigDict = triangle_data
+        self._id: str = id
+        self._name: str = name
+        self._data: ConfigDict = data
         self._get_response: Response | None = None
         self._delete_response: Response | None = None
 
-    triangle_id = property(lambda self: self._triangle_id)
-    triangle_name = property(lambda self: self._triangle_name)
-    triangle_data = property(lambda self: self._triangle_data)
+    id = property(lambda self: self._id)
+    name = property(lambda self: self._name)
+    data = property(lambda self: self._data)
     get_response = property(lambda self: self._get_response)
     delete_response = property(lambda self: self._delete_response)
 
     def to_bermuda(self):
-        return BermudaTriangle.from_dict(self.triangle_data)
+        return BermudaTriangle.from_dict(self.data)
 
     @classmethod
-    def get(
-        cls, triangle_id: str, triangle_name: str, endpoint: str, requester: Requester
-    ) -> Triangle:
+    def get(cls, id: str, name: str, endpoint: str, requester: Requester) -> Triangle:
         console = Console()
         with console.status("Retrieving...", spinner="bouncingBar") as _:
-            console.log(f"Getting triangle '{triangle_name}' with ID '{triangle_id}'")
+            console.log(f"Getting triangle '{name}' with ID '{id}'")
             get_response = requester.get(endpoint)
 
         self = cls(
-            triangle_id,
-            triangle_name,
-            get_response.json().get("triangle_data"),
+            id,
+            name,
+            get_response.json().get("data"),
             endpoint,
             requester,
         )
