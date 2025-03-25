@@ -8,9 +8,9 @@ from requests import HTTPError, Response
 from rich.console import Console
 
 from .interface import ModelInterface, TriangleInterface
-from .model_types import ConfigDict
 from .requester import Requester
 from .triangle import Triangle
+from .types import ConfigDict
 
 
 class LedgerModel(ModelInterface):
@@ -97,11 +97,13 @@ class LedgerModel(ModelInterface):
         """
         config = {
             "triangle_name": triangle_name,
-            "name": name,
+            "model_name": name,
             "model_type": model_type,
-            "config": config or {},
+            "model_config": config or {},
         }
         fit_response = requester.post(endpoint, data=config)
+        if not fit_response.ok:
+            fit_response.raise_for_status()
         id = fit_response.json()["model"]["id"]
         self = cls(
             id=id,
@@ -127,8 +129,9 @@ class LedgerModel(ModelInterface):
         return self
 
     def predict(
-        self, triangle_name: str, predict_config: ConfigDict | None = None
+        self, triangle: str | Triangle, predict_config: ConfigDict | None = None
     ) -> Triangle:
+        triangle_name = triangle if isinstance(triangle, str) else triangle.name
         config = {
             "triangle_name": triangle_name,
             "predict_config": predict_config or {},
@@ -136,6 +139,8 @@ class LedgerModel(ModelInterface):
 
         url = self.endpoint + "/predict"
         self._predict_response = self._requester.post(url, data=config)
+        if not self._predict_response.ok:
+            self._predict_response.raise_for_status()
 
         if self._asynchronous:
             return self
@@ -145,7 +150,12 @@ class LedgerModel(ModelInterface):
             task_id=task_id,
             task=f"Predicting from model '{self.name}' on triangle '{triangle_name}'",
         )
-        return self
+        triangle_id = self.predict_response.json()["predictions"]
+        triangle = TriangleInterface(
+            host=self.endpoint.replace(f"{self.model_class_slug}/{self.id}", ""),
+            requester=self._requester,
+        ).get(id=triangle_id)
+        return triangle
 
     def delete(self) -> LedgerModel:
         self._delete_response = self._requester.delete(self.endpoint)
