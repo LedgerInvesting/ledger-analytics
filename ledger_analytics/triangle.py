@@ -49,7 +49,7 @@ class Triangle(TriangleInterface):
         self = cls(
             id,
             name,
-            get_response.json().get("data"),
+            get_response.json().get("triangle_data"),
             endpoint,
             requester,
         )

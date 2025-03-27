@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import time
-from abc import ABC, abstractmethod
 
-from bermuda import Triangle as BermudaTriangle
-from requests import HTTPError, Response
+from requests import Response
 from rich.console import Console
 
 from .interface import ModelInterface, TriangleInterface
@@ -89,6 +87,7 @@ class LedgerModel(ModelInterface):
         endpoint: str,
         requester: Requester,
         asynchronous: bool = False,
+        timeout: int = 300,
     ) -> LedgerModel:
         """This method fits a new model and constructs a LedgerModel instance.
         It's intended to be used from the `ModelInterface` class mainly,
@@ -125,16 +124,20 @@ class LedgerModel(ModelInterface):
         self._run_async_task(
             task_id,
             task=f"Fitting model '{self.name}' on triangle '{triangle_name}'",
+            timeout=timeout,
         )
         return self
 
     def predict(
-        self, triangle: str | Triangle, predict_config: ConfigDict | None = None
+        self,
+        triangle: str | Triangle,
+        config: ConfigDict | None = None,
+        timeout: int = 300,
     ) -> Triangle:
         triangle_name = triangle if isinstance(triangle, str) else triangle.name
         config = {
             "triangle_name": triangle_name,
-            "predict_config": predict_config or {},
+            "predict_config": config or {},
         }
 
         url = self.endpoint + "/predict"
@@ -149,6 +152,7 @@ class LedgerModel(ModelInterface):
         self._run_async_task(
             task_id=task_id,
             task=f"Predicting from model '{self.name}' on triangle '{triangle_name}'",
+            timeout=timeout,
         )
         triangle_id = self.predict_response.json()["predictions"]
         triangle = TriangleInterface(
@@ -167,11 +171,14 @@ class LedgerModel(ModelInterface):
         )
         return self._requester.get(endpoint)
 
-    def _run_async_task(self, task_id: str, task: str = ""):
+    def _run_async_task(self, task_id: str, task: str = "", timeout: int = 300) -> None:
+        start = time.time()
         status = ["CREATED"]
         console = Console()
         with console.status("Working...", spinner="bouncingBar") as _:
             while status[-1].lower() != "success":
+                if time.time() - start > timeout:
+                    raise TimeoutError(f"Task '{task}' timed out")
                 _status = self._poll(task_id).json().get("status")
                 status.append(_status)
                 if status[-1] != status[-2]:
@@ -179,11 +186,12 @@ class LedgerModel(ModelInterface):
                 if status[-1].lower() in [
                     "success",
                     "failure",
+                    "error",
                     "terminated",
                     "timeout",
                     "not_found",
                 ]:
-                    break
+                    return
 
 
 class DevelopmentModel(LedgerModel):
