@@ -55,8 +55,8 @@ class TriangleInterface(metaclass=TriangleRegistry):
             data = data.to_dict()
 
         config = {
-            "name": name,
-            "data": data,
+            "triangle_name": name,
+            "triangle_data": data,
         }
 
         post_response = self._requester.post(self.endpoint, data=config)

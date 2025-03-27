@@ -121,17 +121,20 @@ class LedgerModel(ModelInterface):
             return self
 
         task_id = self.fit_response.json()["modal_task"]["id"]
-        self._run_async_task(
+        task_response = self._run_async_task(
             task_id,
             task=f"Fitting model '{self.name}' on triangle '{triangle_name}'",
             timeout=timeout,
         )
+        if task_response.get("status") != "success":
+            raise ValueError(f"Task failed: {task_response['error']}")
         return self
 
     def predict(
         self,
         triangle: str | Triangle,
         config: ConfigDict | None = None,
+        target_triangle: Triangle | str | None = None,
         timeout: int = 300,
     ) -> Triangle:
         triangle_name = triangle if isinstance(triangle, str) else triangle.name
@@ -139,6 +142,10 @@ class LedgerModel(ModelInterface):
             "triangle_name": triangle_name,
             "predict_config": config or {},
         }
+        if isinstance(target_triangle, Triangle):
+            config["predict_config"]["target_triangle"] = target_triangle.name
+        elif isinstance(target_triangle, str):
+            config["predict_config"]["target_triangle"] = target_triangle
 
         url = self.endpoint + "/predict"
         self._predict_response = self._requester.post(url, data=config)
@@ -149,11 +156,13 @@ class LedgerModel(ModelInterface):
             return self
 
         task_id = self.predict_response.json()["modal_task"]["id"]
-        self._run_async_task(
+        task_response = self._run_async_task(
             task_id=task_id,
             task=f"Predicting from model '{self.name}' on triangle '{triangle_name}'",
             timeout=timeout,
         )
+        if task_response.get("status") != "success":
+            raise ValueError(f"Task failed: {task_response['error']}")
         triangle_id = self.predict_response.json()["predictions"]
         triangle = TriangleInterface(
             host=self.endpoint.replace(f"{self.model_class_slug}/{self.id}", ""),
@@ -171,27 +180,22 @@ class LedgerModel(ModelInterface):
         )
         return self._requester.get(endpoint)
 
-    def _run_async_task(self, task_id: str, task: str = "", timeout: int = 300) -> None:
+    def _run_async_task(self, task_id: str, task: str = "", timeout: int = 300) -> dict:
         start = time.time()
         status = ["CREATED"]
         console = Console()
         with console.status("Working...", spinner="bouncingBar") as _:
-            while status[-1].lower() != "success":
-                if time.time() - start > timeout:
-                    raise TimeoutError(f"Task '{task}' timed out")
-                _status = self._poll(task_id).json().get("status")
-                status.append(_status)
+            while time.time() - start < timeout:
+                task = self._poll(task_id).json()
+                modal_status = (
+                    "FINISHED" if task["task_response"] is not None else "PENDING"
+                )
+                status.append(modal_status)
                 if status[-1] != status[-2]:
-                    console.log(f"{task}: {status[-1]}")
-                if status[-1].lower() in [
-                    "success",
-                    "failure",
-                    "error",
-                    "terminated",
-                    "timeout",
-                    "not_found",
-                ]:
-                    return
+                    console.log(f"{task['id']}: {status[-1]}")
+                if status[-1].lower() == "finished":
+                    return task["task_response"]
+            raise TimeoutError(f"Task '{task}' timed out")
 
 
 class DevelopmentModel(LedgerModel):
