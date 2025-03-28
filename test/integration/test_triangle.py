@@ -14,13 +14,11 @@ def client():
 
 def test_triangle_create_delete(client):
     name = "__test_tri"
-    test_tri = client.triangle.create(
-        triangle_name=name, triangle_data=meyers_tri.to_dict()
-    )
+    test_tri = client.triangle.create(name=name, data=meyers_tri.to_dict())
 
     assert test_tri.to_bermuda() == meyers_tri
 
-    assert isinstance(client.triangle.get(triangle_name="__test_tri"), Triangle)
+    assert isinstance(client.triangle.get(name="__test_tri"), Triangle)
 
     test_tri.delete()
     assert test_tri.delete_response.status_code == 204
@@ -33,5 +31,5 @@ def test_triangle_create_delete(client):
 
 
 def test_triangle_get(client):
-    meyers = client.triangle.get(triangle_name="meyers")
-    assert meyers.triangle_data == meyers_tri.to_dict()
+    meyers = client.triangle.get(name="meyers")
+    assert meyers.data == meyers_tri.to_dict()

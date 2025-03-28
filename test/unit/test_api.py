@@ -46,7 +46,7 @@ def test_ledger_analytics_triangle_crud():
         name="test_meyers_triangle",
         data=meyers_tri.to_dict(),
     )
-    assert triangle.triangle_id == "abc"
+    assert triangle.id == "abc"
     assert isinstance(triangle.to_bermuda(), BermudaTriangle)
     assert triangle.data == meyers_tri.to_dict()
     assert triangle.name == "test_meyers_triangle"
@@ -55,7 +55,7 @@ def test_ledger_analytics_triangle_crud():
     client._requester = TriangleMockRequesterAfterDeletion(API_KEY)
 
     with pytest.raises(requests.HTTPError):
-        client.triangle.get(triangle_id=triangle.triangle_id)
+        client.triangle.get(id=triangle.id)
 
 
 def test_ledger_analytics_model_crud():
