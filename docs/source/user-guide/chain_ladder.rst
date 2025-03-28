@@ -11,7 +11,7 @@ the base ``ChainLadder`` model is expressed as:
     \begin{align}
         \begin{split}
             y_{ij} &\sim \mathrm{Gamma(\mu_{ij}, \sigma_{ij}^2)}\\
-            \mu_{ij} &= \log(ATA_{j - 1} y_{ij-1})\\
+            \mu_{ij} &= ATA_{j - 1} y_{ij-1}\\
             \sigma_{ij}^2 &= \exp(\sigma_{\text{int}} + \sigma_{\text{slope}} j + \ln(y_{ij-1})),  \quad{\forall j \in (1, \tau]}\\
             \log \bf{ATA}_{1:M - 1} &\sim \mathrm{Normal}(0, 5)\\
             \sigma_{\text{int}} &\sim \mathrm{Normal}(0, 3)\\
@@ -26,13 +26,16 @@ that indicates how many development lags should be used to fit the model to, and
 Gamma distribution. In practice, :math:`\tau` is determined by preprocessing (i.e. clipping) the 
 triangle before fitting. 
 
-The ``ChainLadder`` model above is fit using the following API call: 
+Model Fit Configuration
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``ChainLadder`` model is fit using the following API call: 
 
 .. code-block:: python
 
     model = client.development_model.create(
         triangle=...,
-        model_name=...,
+        model_name="example_name",
         model_type="ChainLadder",
         model_config={ # default model_config
             "loss_definition": "reported",
@@ -54,10 +57,6 @@ The ``ChainLadder`` model above is fit using the following API call:
             "seed": None
         }
     )
-
-
-Model Configuration
-^^^^^^^^^^^^^^^^^^^^
 
 The ``ChainLadder`` model accepts the following configuration parameters in ``model_config``:
 
@@ -89,7 +88,7 @@ The ``ChainLadder`` model accepts the following configuration parameters in ``mo
         "WC": "Workers' Compensation"
     }
 
-- ``informed_priors_version``: Version of the industry-informed priors to use when fitting the model (when ``use_multivariate=True``). Supported versions currently only include: ``"2022"``. Specify as ``"latest"`` to always use the most up-to-date priors available.
+- ``informed_priors_version``: Version of the industry-informed priors to use when fitting the model (when ``use_multivariate=True``). Supported versions currently only include: ``"2022"``. Specify as ``"latest"`` to always use the most up-to-date priors available. Defaults to ``None``.
 - ``priors``: Dictionary of prior distributions to use for model fitting. Default priors are: 
 
 .. code-block:: python
@@ -106,3 +105,34 @@ The ``ChainLadder`` model accepts the following configuration parameters in ``mo
 
 - ``recency_decay``: Likelihood weight decay for recent observations. Defaults to ``1.0``, which means no decay. If set to a value between ``0.0`` and ``1.0``, the likelihood of recent observations will be downweighted by a geometric decay function with factor ``recency_decay``.
 - ``seed``: Random seed for model fitting.
+
+
+Model Predict Configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``ChainLadder`` model is used to predict future losses using the following API call:
+
+.. code-block:: python
+
+    predictions = model.development_model.predict(
+        triangle=...,
+        config={ # default config
+            "max_dev_lag": None,
+            "include_process_noise": True,
+        }
+        target_triangle=None,
+    )
+
+Above, ``triangle`` is the triangle to use to start making predictions from. For most use-cases 
+this will be the same triangle used to fit the model initially, but in some cases users may wish to 
+estimate model parameters on one triangle and then make predictions with that model on a different 
+triangle. In either case, predictions are generated starting from the right edge of ``triangle``. 
+
+``target_triangle`` allows users to precisely specify the triangle that predictions should be made 
+on. If not specified, the model will predict out to the maximum development lag in ``triangle`` (or
+to the ``max_dev_lag`` specified in ``config``, see below). 
+
+The ``ChainLadder`` prediction behavior can be further changed with configuration parameters in ``config``:
+
+- ``max_dev_lag``: Maximum development lag to predict out to. If not specified, the model will predict out to the maximum development lag in ``triangle``. Note that ``ChainLadder`` can only generative predictions out to the maximum development lag in the training triangle, as there is no mechanism in the model to extrapolate out age-to-age beyond the training data.
+- ``include_process_noise``: Whether to include process noise in the predictions. Defaults to ``True``, which generates posterior predictions from the mathematical model as specified above. If set to ``False``, the model will generate predictions without adding process noise to the predicted losses. Referring to the mathematical expression above, this equates to obtaining the expectation :math:`\mu_{ij}` as predictions as oppposed to :math:`y_{ij}`.
