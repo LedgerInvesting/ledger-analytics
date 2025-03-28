@@ -106,6 +106,9 @@ class TriangleInterface(metaclass=TriangleRegistry):
 
 
 class ModelInterface(metaclass=ModelRegistry):
+    """The ModelInterface class allows basic CRUD operations
+    on for model endpoints and objects."""
+
     def __init__(
         self,
         model_class: str,

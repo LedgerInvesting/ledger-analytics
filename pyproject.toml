@@ -17,6 +17,7 @@ dependencies = [
 
 [tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
 dev = ["requirements/dev.txt"]
+docs = ["requirements/docs.txt"]
 
 [tool.hatch.version]
 path = "ledger_analytics/__about__.py"
