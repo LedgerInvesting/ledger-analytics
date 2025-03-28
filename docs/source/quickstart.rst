@@ -47,8 +47,9 @@ library.
 
     from bermuda import meyers_tri
 
-    _, clip_date = max(meyers_tri.periods)
-    meyers_train = meyers_tri.clip(max_eval=clip_date)
+    meyers_tri.plot_data_completeness()
+    clipped_meyers = meyers_tri.clip(max_eval=date(2010, 12, 31)) 
+    clipped_meyers.plot_data_completeness()
 
 We split the 10x10 triangle into a typical 55-cell loss
 development triangle using Bermuda's ``Triangle.clip`` method.
@@ -61,16 +62,17 @@ triangle in the remote database.
     Your API key is unique to you within your organization,
     and so you will only be able to access triangles and models
     created by your organization. Created triangles and models
-    are unique to your API key, and won't be overridden by other
-    users.
+    are unique to your organization. Other users within your 
+    organazition do have the ability to overwrite your triangles
+    and models.
 
 ..  code:: python
 
-    triangle = client.triangle.create(triangle_name="meyers_triangle", triangle_data=meyers_train)
+    triangle = client.triangle.create(triangle_name="meyers_triangle", triangle_data=clipped_meyers)
 
 Alternatively, we could have passed a dictionary of data to the ``triangle_data``
 argument of the Bermuda JSON format returned by ``bermuda.Triangle.to_dict``,
-e.g. ``meyers_train.to_dict()``. Thus, Bermuda is not required to use our
+e.g. ``clipped_meyers.to_dict()``. Thus, Bermuda is not required to use our
 endpoints, although makes integration much easier.
 
 The ``triangle`` object is now an instance of ``ledger_analytics.Triangle``,
@@ -152,6 +154,20 @@ instantiate the computing service and compile the model.
 If you are running multiple models, however,
 our remote compute service will become more efficient.
 
+Model types
+^^^^^^^^^^^^^
+
+In addition to listing fitted models, you can inspect our available library of models
+using the ``list_model_types`` method:
+
+..  code:: python
+
+    client.development_model.list_model_types()
+    client.tail_model.list_model_types()
+    client.forecast_model.list_model_types()
+
+Predictions
+^^^^^^^^^^^^^
 Once the model has been created and fit, you can make predictions.
 
 ..  code:: python
@@ -196,8 +212,13 @@ extract the ID of the predictions triangle as below:
        reinsurance_basis  Net 
        loss_definition  Loss+DCC
 
+    >>> predictions.to_binary('predictions.trib')
+    >>> predictions.to_wide_csv('predictions.csv')
+
 Our predicted triangle holds, by default, 10,000 samples from the posterior predictive
 distribution of ``paid_loss``.
+
+`See our bermuda documention for more information on bermuda triangle objects. <https://ledger-investing-bermuda-ledger.readthedocs-hosted.com/en/latest/?badge=latest>`_
 
 Like triangles above, we can inspect available models you've fit and have access to
 using the ``list`` method:
@@ -208,14 +229,3 @@ using the ``list`` method:
     client.tail_model.list()
     client.forecast_model.list()
 
-Model types
-^^^^^^^^^^^^^
-
-In addition to listing fitted models, you can inspect our available library of models
-using the ``list_model_types`` method:
-
-..  code:: python
-
-    client.development_model.list_model_types()
-    client.tail_model.list_model_types()
-    client.forecast_model.list_model_types()
