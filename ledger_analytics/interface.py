@@ -123,7 +123,7 @@ class ModelInterface(metaclass=ModelRegistry):
 
     def create(
         self,
-        triangle: str | "Triangle",
+        triangle: str | Triangle,
         model_name: str,
         model_type: str,
         model_config: ConfigDict | None = None,
