@@ -3,8 +3,8 @@ from __future__ import annotations
 import os
 from abc import ABC
 
-from .model import DevelopmentModel, ForecastModel, TailModel
-from .triangle import Triangle
+from .interface import ModelInterface, TriangleInterface
+from .requester import Requester
 
 
 class BaseClient(ABC):
@@ -21,7 +21,7 @@ class BaseClient(ABC):
                     "Must pass in a valid `api_key` or set the `LEDGER_ANALYTICS_API_KEY` environment variable."
                 )
 
-        self.headers = {"Authorization": f"Api-Key {api_key}"}
+        self._requester = Requester(api_key)
 
         if host is None:
             host = "http://localhost:8000/analytics/"
@@ -50,7 +50,25 @@ class AnalyticsClient(BaseClient):
     ):
         super().__init__(api_key=api_key, host=host, asynchronous=asynchronous)
 
-    triangle = property(lambda self: Triangle(self.host, self.headers))
-    development_model = property(lambda self: DevelopmentModel(self.host, self.headers))
-    tail_model = property(lambda self: TailModel(self.host, self.headers))
-    forecast_model = property(lambda self: ForecastModel(self.host, self.headers))
+    triangle = property(
+        lambda self: TriangleInterface(self.host, self._requester, self.asynchronous)
+    )
+    development_model = property(
+        lambda self: ModelInterface(
+            "development_model", self.host, self._requester, self.asynchronous
+        )
+    )
+    tail_model = property(
+        lambda self: ModelInterface(
+            "tail_model", self.host, self._requester, self.asynchronous
+        )
+    )
+    forecast_model = property(
+        lambda self: ModelInterface(
+            "forecast_model", self.host, self._requester, self.asynchronous
+        )
+    )
+
+    def test_endpoint(self) -> str:
+        self._requester.get(self.host + "triangle")
+        return "Endpoint working!"

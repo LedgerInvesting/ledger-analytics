@@ -12,6 +12,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.LEDGER_ANALYTICS_CI_TOKEN }}
 
       - name: Install Python3
         uses: actions/setup-python@v5
@@ -27,6 +29,7 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           file_pattern: 'requirements/dev.txt'
+          github_token: ${{ secrets.LEDGER_ANALYTICS_CI_TOKEN }}
           commit_message: Automatically built dev requirements .txt files
 
       - name: Install dependencies
@@ -34,5 +37,5 @@ jobs:
           python3 -m pip install '.[dev]'
           python3 -m pip install .
 
-      - name: Test
-        run: pytest test
+      - name: Run unit tests
+        run: pytest test/unit
