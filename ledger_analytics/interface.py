@@ -50,64 +50,61 @@ class TriangleInterface(metaclass=TriangleRegistry):
         self._requester = requester
         self.asynchronous = asynchronous
 
-    def create(self, triangle_name: str, triangle_data: ConfigDict):
-        if isinstance(triangle_data, BermudaTriangle):
-            triangle_data = triangle_data.to_dict()
+    def create(self, name: str, data: ConfigDict):
+        if isinstance(data, BermudaTriangle):
+            data = data.to_dict()
 
         config = {
-            "triangle_name": triangle_name,
-            "triangle_data": triangle_data,
+            "triangle_name": name,
+            "triangle_data": data,
         }
 
         post_response = self._requester.post(self.endpoint, data=config)
-        triangle_id = post_response.json().get("id")
-        logger.info(f"Created triangle '{triangle_name}' with ID {triangle_id}.")
+        id = post_response.json().get("id")
+        logger.info(f"Created triangle '{name}' with ID {id}.")
 
-        endpoint = self.endpoint + f"/{triangle_id}"
+        endpoint = self.endpoint + f"/{id}"
         triangle = TriangleRegistry.REGISTRY["triangle"](
-            triangle_id,
-            triangle_name,
-            triangle_data,
+            id,
+            name,
+            data,
             endpoint,
             self._requester,
         )
         triangle._post_response = post_response
         return triangle
 
-    def get(self, triangle_name: str | None = None, triangle_id: str | None = None):
-        triangle_obj = self._get_details_from_id_name(triangle_name, triangle_id)
+    def get(self, name: str | None = None, id: str | None = None):
+        obj = self._get_details_from_id_name(name, id)
         return TriangleRegistry.REGISTRY["triangle"].get(
-            triangle_obj["id"],
-            triangle_obj["name"],
-            self.endpoint + f"/{triangle_obj['id']}",
+            obj["id"],
+            obj["name"],
+            self.endpoint + f"/{obj['id']}",
             self._requester,
         )
 
-    def delete(
-        self, triangle_name: str | None = None, triangle_id: str | None = None
-    ) -> None:
-        triangle = self.get(triangle_name, triangle_id)
+    def delete(self, name: str | None = None, id: str | None = None) -> None:
+        triangle = self.get(name, id)
         triangle.delete()
 
     def _get_details_from_id_name(
-        self, triangle_name: str | None = None, triangle_id: str | None = None
+        self, name: str | None = None, id: str | None = None
     ) -> str:
         triangles = [
             result
             for result in self.list().get("results")
-            if result.get("name") == triangle_name or result.get("id") == triangle_id
+            if result.get("name") == name or result.get("id") == id
         ]
         if not len(triangles):
-            name_or_id = (
-                f"name '{triangle_name}'"
-                if triangle_id is None
-                else f"ID '{triangle_id}'"
-            )
+            name_or_id = f"name '{name}'" if id is None else f"ID '{id}'"
             raise ValueError(f"No triangle found with {name_or_id}.")
         return triangles[0]
 
     def list(self) -> list[ConfigDict]:
-        return self._requester.get(self.endpoint).json()
+        response = self._requester.get(self.endpoint)
+        if not response.ok:
+            response.raise_for_status()
+        return response.json()
 
 
 class ModelInterface(metaclass=ModelRegistry):
@@ -128,11 +125,12 @@ class ModelInterface(metaclass=ModelRegistry):
 
     def create(
         self,
-        triangle_name: str,
+        triangle: str | "Triangle",
         model_name: str,
         model_type: str,
         model_config: ConfigDict | None = None,
     ):
+        triangle_name = triangle if isinstance(triangle, str) else triangle.name
         return ModelRegistry.REGISTRY[self.model_class].fit_from_interface(
             triangle_name,
             model_name,

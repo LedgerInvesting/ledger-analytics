@@ -16,7 +16,6 @@ from ledger_analytics import (
     ForecastModel,
     ModelInterface,
     TailModel,
-    Triangle,
     TriangleInterface,
 )
 
@@ -44,13 +43,13 @@ def test_ledger_analytics_triangle_crud():
     client = AnalyticsClient(API_KEY, host=TEST_HOST)
     client._requester = TriangleMockRequester(API_KEY)
     triangle = client.triangle.create(
-        triangle_name="test_meyers_triangle",
-        triangle_data=meyers_tri.to_dict(),
+        name="test_meyers_triangle",
+        data=meyers_tri.to_dict(),
     )
     assert triangle.triangle_id == "abc"
     assert isinstance(triangle.to_bermuda(), BermudaTriangle)
-    assert triangle.triangle_data == meyers_tri.to_dict()
-    assert triangle.triangle_name == "test_meyers_triangle"
+    assert triangle.data == meyers_tri.to_dict()
+    assert triangle.name == "test_meyers_triangle"
 
     triangle.delete()
     client._requester = TriangleMockRequesterAfterDeletion(API_KEY)
@@ -64,17 +63,17 @@ def test_ledger_analytics_model_crud():
     client._requester = ModelMockRequester(API_KEY)
 
     development_model = client.development_model.create(
-        triangle_name="test_meyers_triangle",
+        triangle="test_meyers_triangle",
         model_name="test_chain_ladder",
         model_type="ChainLadder",
     )
     tail_model = client.tail_model.create(
-        triangle_name="test_meyers_triangle",
+        triangle="test_meyers_triangle",
         model_name="test_bondy",
         model_type="GeneralizedBondy",
     )
     forecast_model = client.forecast_model.create(
-        triangle_name="test_meyers_triangle",
+        triangle="test_meyers_triangle",
         model_name="test_ar1",
         model_type="AR1",
     )

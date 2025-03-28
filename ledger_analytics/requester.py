@@ -36,8 +36,10 @@ class Requester(object):
         try:
             message = response.json()
         except requests.exceptions.JSONDecodeError:
-            message = response
+            message = response.text
         match status:
+            case 400:
+                raise requests.HTTPError(f"400: Bad request, {message}.")
             case 404:
                 raise requests.HTTPError(
                     f"404: Cannot find the given endpoint, {message}."
