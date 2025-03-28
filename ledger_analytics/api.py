@@ -51,9 +51,7 @@ class AnalyticsClient(BaseClient):
         super().__init__(api_key=api_key, host=host, asynchronous=asynchronous)
 
     triangle = property(
-        lambda self: TriangleInterface(
-            "triangle", self.host, self._requester, self.asynchronous
-        )
+        lambda self: TriangleInterface(self.host, self._requester, self.asynchronous)
     )
     development_model = property(
         lambda self: ModelInterface(
@@ -70,3 +68,7 @@ class AnalyticsClient(BaseClient):
             "forecast_model", self.host, self._requester, self.asynchronous
         )
     )
+
+    def test_endpoint(self) -> str:
+        self._requester.get(self.host + "triangle")
+        return "Endpoint working!"

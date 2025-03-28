@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import time
-from abc import ABC, abstractmethod
 
-from bermuda import Triangle as BermudaTriangle
-from requests import HTTPError, Response
+from requests import Response
 from rich.console import Console
 
 from .interface import ModelInterface, TriangleInterface
@@ -16,10 +14,10 @@ from .types import ConfigDict
 class LedgerModel(ModelInterface):
     def __init__(
         self,
-        model_id: str,
-        model_name: str,
+        id: str,
+        name: str,
         model_type: str,
-        model_config: ConfigDict | None,
+        config: ConfigDict | None,
         model_class: str,
         endpoint: str,
         requester: Requester,
@@ -28,19 +26,19 @@ class LedgerModel(ModelInterface):
         super().__init__(model_class, endpoint, requester, asynchronous)
 
         self._endpoint = endpoint
-        self._model_id = model_id
-        self._model_name = model_name
+        self._id = id
+        self._name = name
         self._model_type = model_type
-        self._model_config = model_config or {}
+        self._config = config or {}
         self._model_class = model_class
         self._fit_response: Response | None = None
         self._predict_response: Response | None = None
         self._get_response: Response | None = None
 
-    model_id = property(lambda self: self._model_id)
-    model_name = property(lambda self: self._model_name)
+    id = property(lambda self: self._id)
+    name = property(lambda self: self._name)
     model_type = property(lambda self: self._model_type)
-    model_config = property(lambda self: self._model_config)
+    config = property(lambda self: self._config)
     model_class = property(lambda self: self._model_class)
     endpoint = property(lambda self: self._endpoint)
     fit_response = property(lambda self: self._fit_response)
@@ -51,10 +49,10 @@ class LedgerModel(ModelInterface):
     @classmethod
     def get(
         cls,
-        model_id: str,
-        model_name: str,
+        id: str,
+        name: str,
         model_type: str,
-        model_config: ConfigDict,
+        config: ConfigDict,
         model_class: str,
         endpoint: str,
         requester: Requester,
@@ -62,14 +60,14 @@ class LedgerModel(ModelInterface):
     ) -> LedgerModel:
         console = Console()
         with console.status("Retrieving...", spinner="bouncingBar") as _:
-            console.log(f"Getting model '{model_name}' with ID '{model_id}'")
+            console.log(f"Getting model '{name}' with ID '{id}'")
             get_response = requester.get(endpoint)
 
         self = cls(
-            model_id,
-            model_name,
+            id,
+            name,
             model_type,
-            model_config,
+            config,
             model_class,
             endpoint,
             requester,
@@ -82,13 +80,14 @@ class LedgerModel(ModelInterface):
     def fit_from_interface(
         cls,
         triangle_name: str,
-        model_name: str,
+        name: str,
         model_type: str,
-        model_config: ConfigDict | None,
+        config: ConfigDict | None,
         model_class: str,
         endpoint: str,
         requester: Requester,
         asynchronous: bool = False,
+        timeout: int = 300,
     ) -> LedgerModel:
         """This method fits a new model and constructs a LedgerModel instance.
         It's intended to be used from the `ModelInterface` class mainly,
@@ -97,19 +96,21 @@ class LedgerModel(ModelInterface):
         """
         config = {
             "triangle_name": triangle_name,
-            "model_name": model_name,
+            "model_name": name,
             "model_type": model_type,
-            "model_config": model_config or {},
+            "model_config": config or {},
         }
         fit_response = requester.post(endpoint, data=config)
-        model_id = fit_response.json()["model"]["id"]
+        if not fit_response.ok:
+            fit_response.raise_for_status()
+        id = fit_response.json()["model"]["id"]
         self = cls(
-            model_id=model_id,
-            model_name=model_name,
+            id=id,
+            name=name,
             model_type=model_type,
-            model_config=model_config,
+            config=config,
             model_class=model_class,
-            endpoint=endpoint + f"/{model_id}",
+            endpoint=endpoint + f"/{id}",
             requester=requester,
             asynchronous=asynchronous,
         )
@@ -120,63 +121,81 @@ class LedgerModel(ModelInterface):
             return self
 
         task_id = self.fit_response.json()["modal_task"]["id"]
-        self._run_async_task(
+        task_response = self._run_async_task(
             task_id,
-            task=f"Fitting model '{self.model_name}' on triangle '{triangle_name}'",
+            task=f"Fitting model '{self.name}' on triangle '{triangle_name}'",
+            timeout=timeout,
         )
+        if task_response.get("status") != "success":
+            raise ValueError(f"Task failed: {task_response['error']}")
         return self
 
     def predict(
-        self, triangle_name: str, predict_config: ConfigDict | None = None
+        self,
+        triangle: str | Triangle,
+        config: ConfigDict | None = None,
+        target_triangle: Triangle | str | None = None,
+        timeout: int = 300,
     ) -> Triangle:
+        triangle_name = triangle if isinstance(triangle, str) else triangle.name
         config = {
             "triangle_name": triangle_name,
-            "predict_config": predict_config or {},
+            "predict_config": config or {},
         }
+        if isinstance(target_triangle, Triangle):
+            config["predict_config"]["target_triangle"] = target_triangle.name
+        elif isinstance(target_triangle, str):
+            config["predict_config"]["target_triangle"] = target_triangle
 
         url = self.endpoint + "/predict"
         self._predict_response = self._requester.post(url, data=config)
+        if not self._predict_response.ok:
+            self._predict_response.raise_for_status()
 
         if self._asynchronous:
             return self
 
         task_id = self.predict_response.json()["modal_task"]["id"]
-        self._run_async_task(
+        task_response = self._run_async_task(
             task_id=task_id,
-            task=f"Predicting from model '{self.model_name}' on triangle '{triangle_name}'",
+            task=f"Predicting from model '{self.name}' on triangle '{triangle_name}'",
+            timeout=timeout,
         )
-        return self
+        if task_response.get("status") != "success":
+            raise ValueError(f"Task failed: {task_response['error']}")
+        triangle_id = self.predict_response.json()["predictions"]
+        triangle = TriangleInterface(
+            host=self.endpoint.replace(f"{self.model_class_slug}/{self.id}", ""),
+            requester=self._requester,
+        ).get(id=triangle_id)
+        return triangle
 
     def delete(self) -> LedgerModel:
         self._delete_response = self._requester.delete(self.endpoint)
         return self
 
-    def list(self) -> list[ConfigDict]:
-        return self._requester.get(self.endpoint).json()
-
     def _poll(self, task_id: str) -> ConfigDict:
         endpoint = self.endpoint.replace(
-            f"{self.model_class_slug}/{self.model_id}", f"tasks/{task_id}"
+            f"{self.model_class_slug}/{self.id}", f"tasks/{task_id}"
         )
         return self._requester.get(endpoint)
 
-    def _run_async_task(self, task_id: str, task: str = ""):
+    def _run_async_task(self, task_id: str, task: str = "", timeout: int = 300) -> dict:
+        start = time.time()
         status = ["CREATED"]
         console = Console()
         with console.status("Working...", spinner="bouncingBar") as _:
-            while status[-1].lower() != "success":
-                _status = self._poll(task_id).json().get("status")
-                status.append(_status)
+            while time.time() - start < timeout:
+                task = self._poll(task_id).json()
+                modal_status = (
+                    "FINISHED" if task["task_response"] is not None else "PENDING"
+                )
+                status.append(modal_status)
                 if status[-1] != status[-2]:
-                    console.log(f"{task}: {status[-1]}")
-                if status[-1].lower() in [
-                    "success",
-                    "failure",
-                    "terminated",
-                    "timeout",
-                    "not_found",
-                ]:
-                    break
+                    console.log(f"{task['id']}: {status[-1]}")
+                if status[-1].lower() == "finished":
+                    return task["task_response"]
+            raise TimeoutError(f"Task '{task}' timed out")
 
 
 class DevelopmentModel(LedgerModel):
