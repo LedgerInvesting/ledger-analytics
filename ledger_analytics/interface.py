@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import logging
-from abc import ABC
 
 from bermuda import Triangle as BermudaTriangle
-from requests import Response
 
 from .requester import Requester
 from .types import ConfigDict
