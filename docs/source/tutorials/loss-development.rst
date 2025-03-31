@@ -48,7 +48,7 @@ based on the evaluation date.
 
     chain_ladder = client.development_model.create(
         triangle="meyers_triangle",
-        model_name="paid_body_development",
+        name="paid_body_development",
         model_type="ChainLadder",
         model_config={
             "loss_definition": "paid",
@@ -63,7 +63,7 @@ use a GeneralizedBondy model which is a generalization of the classic Bondy mode
 
     bondy = client.tail_model.create(
         triangle="meyers_triangle",
-        model_name="paid_bondy",
+        name="paid_bondy",
         model_type="GeneralizedBondy",
         model_config={
             "loss_definition": "paid",

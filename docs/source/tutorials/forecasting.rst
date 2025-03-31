@@ -39,7 +39,7 @@ model is essentially a moving average of the loss ratios from previous accident 
 
    gcc_forecast = client.forecast_model.create(
        triangle="full_meyers",
-       model_name="gcc_forecast",
+       name="gcc_forecast",
        model_type="TraditionalGcc",
        model_config={
            "loss_definition": "paid",
@@ -78,7 +78,7 @@ We can compare this to a more sophisticated model, like the LR_SSM model. This m
 
     lr_ssm_forecast = client.forecast_model.create(
        triangle="full_meyers",
-       model_name="lr_ssm_forecast",
+       name="lr_ssm_forecast",
        model_type="LR_SSM",
        model_config={
            "loss_definition": "paid",
