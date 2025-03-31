@@ -6,6 +6,8 @@ from abc import ABC
 from .interface import ModelInterface, TriangleInterface
 from .requester import Requester
 
+DEFAULT_HOST = "https://ldgr.app/analytics/"
+
 
 class BaseClient(ABC):
     def __init__(
@@ -24,7 +26,7 @@ class BaseClient(ABC):
         self._requester = Requester(api_key)
 
         if host is None:
-            host = "http://localhost:8000/analytics/"
+            host = DEFAULT_HOST
 
         trailing_slash = host[-1] == "/"
         if trailing_slash:
