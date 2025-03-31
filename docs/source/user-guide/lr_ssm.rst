@@ -155,7 +155,10 @@ The ``LR_SSM`` model is used to predict future losses using the following API ca
         target_triangle=None,
     )
 
-Above, ``triangle`` is the triangle to use to start making predictions from and ``target_triangle`` is the triangle to make predictions on. For most use-cases, ``triangle`` will be the same triangle that was used in model fitting, and setting ``target_triangle=None`` will create a squared version of the modeled triangle. However, decoupling ``triangle`` and ``target_triangle`` means users could train the model on one triangle, and then make predictions starting from and/or on a different triangle. By default, predictions will be made out to the maximum development lag in ``triangle``, but users can also set ``max_dev_lag`` in the configuration directly.
+Above, ``triangle`` is the triangle to use to start making predictions from and ``target_triangle`` 
+is the triangle to make predictions on. For most use-cases, ``triangle`` will be the same triangle 
+that was used in model fitting, and ``target_triangle`` should be specified to include future 
+accident periods (including earned premium values) that forecasts should be made on.
 
 The ``LR_SSM`` prediction behavior can be further changed with configuration parameters in 
 ``config``:
