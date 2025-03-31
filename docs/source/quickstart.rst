@@ -48,7 +48,7 @@ library.
     from bermuda import meyers_tri
 
     meyers_tri.plot_data_completeness()
-    clipped_meyers = meyers_tri.clip(max_eval=date(2010, 12, 31)) 
+    clipped_meyers = meyers_tri.clip(max_eval=date(1997, 12, 31)) 
     clipped_meyers.plot_data_completeness()
 
 We split the 10x10 triangle into a typical 55-cell loss
@@ -68,7 +68,7 @@ triangle in the remote database.
 
 ..  code:: python
 
-    triangle = client.triangle.create(triangle_name="meyers_triangle", triangle_data=clipped_meyers)
+    triangle = client.triangle.create(name="meyers_triangle", data=clipped_meyers)
 
 Alternatively, we could have passed a dictionary of data to the ``triangle_data``
 argument of the Bermuda JSON format returned by ``bermuda.Triangle.to_dict``,
@@ -85,7 +85,7 @@ you can use the following GET request:
 
 ..  code:: python
 
-    >>> triangle_get = client.triangle.get(triangle_name="meyers_triangle")
+    >>> triangle_get = client.triangle.get(name="meyers_triangle")
     [08:42:03] Getting triangle 'meyers_triangle' with ID 'triangle2ucSk7MTN5QNjzjleT0TZ8uWCWu'              triangle.py:48
 
 Note, the triangle ID above will not match your triangle ID.
@@ -137,7 +137,7 @@ ladder model to the triangle we created above.
 ..  code:: python
 
     chain_ladder = client.development_model.create(
-        triangle_name="meyers_triangle",
+        triangle="meyers_triangle",
         model_name="development",
         model_type="ChainLadder",
     )
@@ -172,22 +172,15 @@ Once the model has been created and fit, you can make predictions.
 
 ..  code:: python
 
-   chain_ladder.predict(triangle_name="meyers_triangle")
+   predictions = chain_ladder.predict(triangle="meyers_triangle")
 
 The ``chain_ladder`` model object will now contain a ``predict_response``
-attribute, which is a raw ``requests.Response`` instance. To retrieve
-the predicted triangle, we can again use the ``AnalyticsClient`` class
-as we did above. We can either use the predicted triangle's name or ID.
-The name will always be of the form ``<model_name>_<triangle_name>``,
-in this case ``development_meyers_triangle``. Otherwise, you can
-extract the ID of the predictions triangle as below:
+attribute, which is a raw ``requests.Response`` instance. The ``predict`` method
+returns a ``ledger_analytics.Triangle`` object, which can be converted to a Bermuda
+triangle object using the ``to_bermuda`` method. It can be saved out in various formats
+including a binary file or as a wide CSV file.
 
 ..  code:: python
-
-    >>> predictions_id = chain_ladder.predict_response.json().get("predictions")
-    
-    >>> predictions = client.triangle.get(triangle_id=predictions_id)
-    [08:47:16] Getting triangle 'development_meyers_triangle' with ID 'triangle2ucTKYN0mRonnONU5rwpHxpE03V'    triangle.py:48
 
     >>> predictions.to_bermuda()
 

@@ -27,7 +27,7 @@ def test_ledger_analytics_creation():
     assert isinstance(AnalyticsClient(API_KEY), AnalyticsClient)
 
     client = AnalyticsClient(API_KEY)
-    assert client.host == "http://localhost:8000/analytics/"
+    assert client.host == "https://ldgr.app/analytics/"
     assert AnalyticsClient(API_KEY, host=TEST_HOST[:-1]).host == TEST_HOST
 
 
@@ -64,17 +64,17 @@ def test_ledger_analytics_model_crud():
 
     development_model = client.development_model.create(
         triangle="test_meyers_triangle",
-        model_name="test_chain_ladder",
+        name="test_chain_ladder",
         model_type="ChainLadder",
     )
     tail_model = client.tail_model.create(
         triangle="test_meyers_triangle",
-        model_name="test_bondy",
+        name="test_bondy",
         model_type="GeneralizedBondy",
     )
     forecast_model = client.forecast_model.create(
         triangle="test_meyers_triangle",
-        model_name="test_ar1",
+        name="test_ar1",
         model_type="AR1",
     )
 
@@ -93,4 +93,4 @@ def test_ledger_analytics_model_crud():
 
     client._requester = ModelMockRequesterAfterDeletion(API_KEY)
     with pytest.raises(requests.HTTPError):
-        client.development_model.delete(model_name="test_chain_ladder")
+        client.development_model.delete(name="test_chain_ladder")
