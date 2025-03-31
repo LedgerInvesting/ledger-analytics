@@ -126,8 +126,8 @@ class LedgerModel(ModelInterface):
             task_name=f"Fitting model '{self.name}' on triangle '{triangle_name}'",
             timeout=timeout,
         )
-        if task_response.get("model_fit_status") != "success":
-            raise ValueError(f"Task failed: {task_response}")
+        if task_response.get("status") != "success":
+            raise ValueError(f"Task failed: {task_response['error']}")
         return self
 
     def predict(
@@ -161,8 +161,8 @@ class LedgerModel(ModelInterface):
             task_name=f"Predicting from model '{self.name}' on triangle '{triangle_name}'",
             timeout=timeout,
         )
-        if task_response.get("triangle_fit_status") != "success":
-            raise ValueError(f"Task failed: {task_response}")
+        if task_response.get("status") != "success":
+            raise ValueError(f"Task failed: {task_response['error']}")
         triangle_id = self.predict_response.json()["predictions"]
         triangle = TriangleInterface(
             host=self.endpoint.replace(f"{self.model_class_slug}/{self.id}", ""),
