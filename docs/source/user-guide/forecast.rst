@@ -1,18 +1,26 @@
 Forecasting Models
 ========================
 
-For all models, we use :math:`\mathcal{Y}` to denote the loss development triangle for an 
+For all forecasting models, we use :math:`\mathcal{LR}` to denote the ultimate loss ratios for an 
 aggregated pool of insurance policies, defined by:
 
 .. math::
 
-    \mathcal{Y} = \{y_{ij} : i = 1, ..., N; j = 1, ..., N - i + 1\}
+    \mathcal{LR} = \{LR_{i} : i = 1, ..., N\}
 
-where :math:`y_{ij}` is the cumulative loss amount for accident year :math:`i` at development
-lag :math:`j`. In real-world data, losses for a given accident year :math:`i` are only known up 
-to development lag :math:`j = N - i + 1`, creating the triangular data structure that loss 
-triangles are named for. However, sometimes historic data will be available such that we have 
-a full *square*, in which case we indicate the development lag with :math:`j = 1, ..., M`.
+where :math:`LR_{i}` is the ultimate loss ratio amount for accident period :math:`i`. In real-world data, ultimate losses for a given accident period :math:`i` are only known to the extent that we 
+have sufficient historic data to observe the losses reach their ultimate state. In practice, this 
+means that ultimate loss ratios for recent accident periods will actually be predictions or estimates
+of the true ultimate loss ratios. In some cases, users may simply assume that the expected ultimate 
+loss ratio is the true loss ratio for these accident periods, but in other cases users may want to 
+explicitly account for measurement error or uncertainty in the ultimate loss ratio estimates. 
+Currently, our ``LR_SSM`` model is the only model that explicitly accounts for measurement error.
+
+Note that despite our models being formulated to use ultimate loss ratios as the target variable,
+ultimate losses and earned premiums are used as input data to fit the models. All forecasting models
+use the ultimate loss and premium to compute loss ratios for modeling internally, and resulting 
+outputs (i.e. predictions) are given back on the loss scale (i.e. ultimate losses as opposed to 
+ultimate loss ratios).
 
 .. toctree::
    :maxdepth: 2

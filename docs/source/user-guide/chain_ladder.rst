@@ -2,7 +2,7 @@ Chain Ladder Model (``ChainLadder``)
 ------------------------------------
 
 The chain ladder method is a simple loss development technique that assumes that the ratio of 
-ultimate losses to current losses is the same for all accident years. Our chain ladder *model* is 
+ultimate losses to current losses is the same for all accident periods. Our chain ladder *model* is 
 based on the chain ladder method, and is implemented by the ``ChainLadder`` model type. Mathematically,
 the base ``ChainLadder`` model is expressed as:
 
