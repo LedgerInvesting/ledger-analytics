@@ -34,6 +34,7 @@ package-mode = false
 [project.urls]
 Homepage = "https://github.com/LedgerInvesting/ledger-analytics/"
 Repository = "https://github.com/LedgerInvesting/ledger-analytics/"
+Documentation = "https://ledger-investing-ledger-analytics.readthedocs-hosted.com/en/latest/"
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
