@@ -93,4 +93,4 @@ def test_ledger_analytics_model_crud():
 
     client._requester = ModelMockRequesterAfterDeletion(API_KEY)
     with pytest.raises(requests.HTTPError):
-        client.development_model.delete(model_name="test_chain_ladder")
+        client.development_model.delete(name="test_chain_ladder")
