@@ -62,7 +62,7 @@ Now we can predict future losses using this model. We'll create a triangle that 
         ]
     )
     target = client.triangle.create(name="target_triangle", data=target_triangle)
-    gcc_prediction = gcc_forecast.predict("full_meyers", config={"target_triangle": "target_triangle"})
+    gcc_prediction = gcc_forecast.predict("full_meyers", target_triangle=target)
 
 It can be helpful to convert the prediction to bermuda to inspect the results
 
@@ -84,7 +84,7 @@ We can compare this to a more sophisticated model, like the LR_SSM model. This m
            "loss_definition": "paid",
        }
     )
-    lr_ssm_prediction = lr_ssm_forecast.predict("full_meyers", config={"target_triangle": "target_triangle"})
+    lr_ssm_prediction = lr_ssm_forecast.predict("full_meyers", target_triangle=target)
     lr_ssm_prediction_tri = lr_ssm_prediction.to_bermuda()
     lr_ssm_loss_ratio = lr_ssm_prediction_tri[0]['paid_loss'] / lr_ssm_prediction_tri[0]['earned_premium']
 
