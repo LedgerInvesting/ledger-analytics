@@ -1,9 +1,4 @@
-LedgerAnalytics Python
-===========================
-
-LedgerAnalytics Python is the Python interface to `Ledger Investing <ledgerinvesting.com>`_'s
-analytics infrastructure. Our analytics API endpoints allow easy access to Ledger's suite of
-reliable, scalable and state-of-the-art insurance data science models and data structures.
+calable and state-of-the-art insurance data science models and data structures.
 LedgerAnalytics Python efficiently makes HTTP requests to these endpoints, integrating with
 our `lower-level software ecosystem <ecosystem.rst>`_, and handling all the complex
 dependencies so you don't have to. Get set up in minutes by `requesting
