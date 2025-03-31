@@ -1,7 +1,7 @@
 Tail Models
 ========================
 
-For all models, we use :math:`\mathcal{Y}` to denote the loss development triangle for an 
+For all tail models, we use :math:`\mathcal{Y}` to denote the loss development triangle for an 
 aggregated pool of insurance policies, defined by:
 
 .. math::

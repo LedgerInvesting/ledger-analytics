@@ -127,24 +127,24 @@ class ModelInterface(metaclass=ModelRegistry):
     def create(
         self,
         triangle: str | Triangle,  # noqa: F821
-        model_name: str,
+        name: str,
         model_type: str,
-        model_config: ConfigDict | None = None,
+        config: ConfigDict | None = None,
     ):
         triangle_name = triangle if isinstance(triangle, str) else triangle.name
         return ModelRegistry.REGISTRY[self.model_class].fit_from_interface(
             triangle_name,
-            model_name,
+            name,
             model_type,
-            model_config,
+            config,
             self.model_class,
             self.endpoint,
             self._requester,
             self._asynchronous,
         )
 
-    def get(self, model_name: str | None = None, model_id: str | None = None):
-        model_obj = self._get_details_from_id_name(model_name, model_id)
+    def get(self, name: str | None = None, id: str | None = None):
+        model_obj = self._get_details_from_id_name(name, id)
         endpoint = self.endpoint + f"/{model_obj['id']}"
         return ModelRegistry.REGISTRY[self.model_class].get(
             model_obj["id"],
@@ -159,19 +159,16 @@ class ModelInterface(metaclass=ModelRegistry):
 
     def predict(
         self,
-        triangle_name: str,
-        model_name: str | None = None,
-        model_id: str | None = None,
+        triangle: str | Triangle,  # noqa: F821
+        name: str | None = None,
+        id: str | None = None,
     ):
-        model = self.get(model_name, model_id)
-        return model.predict(triangle_name)
+        model = self.get(name, id)
+        return model.predict(triangle)
 
-    def delete(
-        self, model_name: str | None = None, model_id: str | None = None
-    ) -> None:
-        model = self.get(model_name, model_id)
-        model.delete()
-        return None
+    def delete(self, name: str | None = None, id: str | None = None) -> None:
+        model = self.get(name, id)
+        return model.delete()
 
     def list(self) -> list[ConfigDict]:
         return self._requester.get(self.endpoint).json()

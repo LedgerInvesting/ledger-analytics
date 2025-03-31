@@ -13,14 +13,14 @@ directly to the triangle of interest. The Generalized Bondy model is implemented
         \begin{split}
             y_{ij} &\sim \mathrm{Gamma(\mu_{ij}, \sigma_{ij}^2)}\\
             \mu_{ij} &= ATA_{ij} y_{ij - 1}\\
-            ATA_{ij} &= ATA_{\text{init}}^{\beta^{j}}\\
+            ATA_{ij} &= \exp( ATA_{\text{init}} \beta^{j} )\\
             \sigma_{ij}^2 &= \exp(\sigma_{\text{int}} + \sigma_{\text{slope}} j + \ln(y_{ij-1})), \quad{\forall j \in [\rho_1, \rho_2]}\\
-            \log ATA_{\text{init}} &\sim \mathrm{Normal}^{+}(\log ATA_{\text{init}, \text{loc}}, \log ATA_{\text{init}, \text{scale}})\\
+            \log ATA_{\text{init}} &\sim \mathrm{Normal}(ATA_{\text{init}, \text{loc}}, ATA_{\text{init}, \text{scale}})\\
             \log \frac{\beta}{1 - \beta} &\sim \mathrm{Normal}(\beta_{\text{loc}}, \beta_{\text{scale}})\\
             \sigma_{\text{int}} &\sim \mathrm{Normal}(\sigma_{\text{int}, \text{loc}}, \sigma_{\text{int}, \text{scale}})\\
             \sigma_{\text{slope}} &\sim \mathrm{Normal}(\sigma_{\text{slope}, \text{loc}}, \sigma_{\text{slope}, \text{scale}})\\
-            \log ATA_{\text{init}, \text{loc}} &= 0\\
-            \log ATA_{\text{init}, \text{scale}} &= 1\\
+            ATA_{\text{init}, \text{loc}} &= 0\\
+            ATA_{\text{init}, \text{scale}} &= 1\\
             \beta_{\text{loc}} &= -2\\
             \beta_{\text{scale}} &= .5\\
             \sigma_{\text{int}, \text{loc}} &= -3\\
