@@ -1,0 +1,33 @@
+name: Tag and Release
+permissions:
+  contents: write
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: 
+          token: ${{ secrets.LEDGER_ANALYTICS_CI_TOKEN }}
+
+      - name: Show Version
+        run: cat ledger_analytics/__about__.py
+
+      - name: Extract Version Tag
+        id: get_tag
+        run: echo "VERSION=v$(grep '__version__' ledger_analytics/__about__.py | cut -d "'" -f2)" >> $GITHUB_ENV
+
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.36.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.LEDGER_ANALYTICS_CI_TOKEN }}
+          CUSTOM_TAG: ${{ env.VERSION }}
+
+      - name: Create a GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ env.VERSION }}
+          name: Release ${{ env.VERSION }}
