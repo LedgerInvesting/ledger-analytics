@@ -45,6 +45,7 @@ library.
 
 ..  code:: python
 
+    from datetime import date
     from bermuda import meyers_tri
 
     meyers_tri.plot_data_completeness()
