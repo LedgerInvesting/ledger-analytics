@@ -10,25 +10,26 @@ def test_fit_predict():
     name = "__test_chain_ladder"
     chain_ladder = client.development_model.create(
         triangle="meyers_clipped",
-        model_name="__test_chain_ladder",
+        name="__test_chain_ladder",
         model_type="ChainLadder",
     )
 
-    model_from_client = client.development_model.get(model_name=name)
+    model_from_client = client.development_model.get(name=name)
     assert isinstance(model_from_client, DevelopmentModel)
     assert model_from_client.get_response.status_code == 200
     assert model_from_client.get_response.json()["name"] == name
 
     predictions = chain_ladder.predict(triangle="meyers_clipped")
     predictions2 = client.development_model.predict(
-        triangle_name="meyers_clipped", model_name=name
+        triangle="meyers_clipped",
+        name=name,
     )
     assert predictions.to_bermuda().extract("paid_loss").shape == (36, 10e3)
     assert predictions.to_bermuda() == predictions2.to_bermuda()
 
     chain_ladder.delete()
     with pytest.raises(ValueError):
-        client.development_model.get(model_name=name)
+        client.development_model.get(name=name)
 
     with pytest.raises(HTTPError):
         # Overwrote above, can't delete
@@ -36,4 +37,4 @@ def test_fit_predict():
 
     predictions2.delete()
     with pytest.raises(ValueError):
-        client.development_model.get(model_name=name)
+        client.development_model.get(name=name)
