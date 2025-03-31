@@ -1,7 +1,10 @@
 User Guide
 ===============
 
-..  toctree::
-    :titlesonly:
+.. toctree::
+   :maxdepth: 2
 
-    overview.rst
+   overview.rst
+   development.rst
+   tail.rst
+   forecast.rst
