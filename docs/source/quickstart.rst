@@ -139,7 +139,7 @@ ladder model to the triangle we created above.
 
     chain_ladder = client.development_model.create(
         triangle="meyers_triangle",
-        model_name="development",
+        name="development",
         model_type="ChainLadder",
     )
     [08:43:50] Fitting model 'development' on triangle 'meyers_triangle': PENDING                             model.py:171
