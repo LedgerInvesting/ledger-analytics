@@ -4,8 +4,8 @@ Generalized Bondy Model (``GeneralizedBondy``)
 Our Generalized Bondy model is a generalization of the Bondy method used by actuaries to
 estimate ultimate losses given histoic development patterns. Whereas the Bondy method is
 typically performed given age-to-age factors as input, our Generalized Bondy model is fitted
-directly to the triangle of interest. The Generalized Bondy model is implemented in the
-``GeneralizedBondy`` class, and is expressed mathematically as:
+directly to the triangle of interest. The Generalized Bondy model is implemented by the
+``GeneralizedBondy`` model type, and is expressed mathematically as:
 
 .. math::
 
@@ -15,10 +15,18 @@ directly to the triangle of interest. The Generalized Bondy model is implemented
             \mu_{ij} &= ATA_{ij} y_{ij - 1}\\
             ATA_{ij} &= ATA_{\text{init}}^{\beta^{j}}\\
             \sigma_{ij}^2 &= \exp(\sigma_{\text{int}} + \sigma_{\text{slope}} j + \ln(y_{ij-1})), \quad{\forall j \in [\rho_1, \rho_2]}\\
-            \log ATA_{\text{init}} &\sim \mathrm{Normal}^{+}(0, 1)\\
-            \log \frac{\beta}{1 - \beta} &\sim \mathrm{Normal}(-2, .5)\\
-            \sigma_{\text{int}} &\sim \mathrm{Normal}(-3, .25)\\
-            \sigma_{\text{slope}} &\sim \mathrm{Normal}(-1, .1)
+            \log ATA_{\text{init}} &\sim \mathrm{Normal}^{+}(\log ATA_{\text{init}, \text{loc}}, \log ATA_{\text{init}, \text{scale}})\\
+            \log \frac{\beta}{1 - \beta} &\sim \mathrm{Normal}(\beta_{\text{loc}}, \beta_{\text{scale}})\\
+            \sigma_{\text{int}} &\sim \mathrm{Normal}(\sigma_{\text{int}, \text{loc}}, \sigma_{\text{int}, \text{scale}})\\
+            \sigma_{\text{slope}} &\sim \mathrm{Normal}(\sigma_{\text{slope}, \text{loc}}, \sigma_{\text{slope}, \text{scale}})\\
+            \log ATA_{\text{init}, \text{loc}} &= 0\\
+            \log ATA_{\text{init}, \text{scale}} &= 1\\
+            \beta_{\text{loc}} &= -2\\
+            \beta_{\text{scale}} &= .5\\
+            \sigma_{\text{int}, \text{loc}} &= -3\\
+            \sigma_{\text{int}, \text{scale}} &= .25\\
+            \sigma_{\text{slope}, \text{loc}} &= -1\\
+            \sigma_{\text{slope}, \text{scale}} &= .1
         \end{split}
     \end{align}
 
@@ -121,14 +129,7 @@ The ``GeneralizedBondy`` model is used to predict future losses using the follow
         target_triangle=None,
     )
 
-Above, ``triangle`` is the triangle to use to initiate predictions. For most use-cases this will
-be the same triangle used to fit the model initially, but in some cases users may wish to estimate 
-model parameters on one triangle and then make predictions with that model on a different 
-triangle. In either case, predictions are generated starting from the right edge of ``triangle``. 
-
-``target_triangle`` allows users to precisely specify the triangle that predictions should be made 
-on. If not specified, the model will predict out to the maximum development lag in ``triangle`` (or
-to the ``max_dev_lag`` specified in ``config``, see below). 
+Above, ``triangle`` is the triangle to use to start making predictions from and ``target_triangle`` is the triangle to make predictions on. For most use-cases, ``triangle`` will be the same triangle that was used in model fitting, and setting ``target_triangle=None`` will create a squared version of the modeled triangle. However, decoupling ``triangle`` and ``target_triangle`` means users could train the model on one triangle, and then make predictions starting from and/or on a different triangle. By default, predictions will be made out to the maximum development lag in ``triangle``, but users can also set ``max_dev_lag`` in the configuration directly. 
 
 The ``GeneralizedBondy`` prediction behavior can be further changed with configuration parameters in ``config``:
 

@@ -3,7 +3,7 @@ Chain Ladder Model (``ChainLadder``)
 
 The chain ladder method is a simple loss development technique that assumes that the ratio of 
 ultimate losses to current losses is the same for all accident years. Our chain ladder *model* is 
-based on the chain ladder method, and is implemented in the ``ChainLadder`` class. Mathematically,
+based on the chain ladder method, and is implemented by the ``ChainLadder`` model type. Mathematically,
 the base ``ChainLadder`` model is expressed as:
 
 .. math::
@@ -13,9 +13,15 @@ the base ``ChainLadder`` model is expressed as:
             y_{ij} &\sim \mathrm{Gamma(\mu_{ij}, \sigma_{ij}^2)}\\
             \mu_{ij} &= ATA_{j - 1} y_{ij-1}\\
             \sigma_{ij}^2 &= \exp(\sigma_{\text{int}} + \sigma_{\text{slope}} j + \ln(y_{ij-1})),  \quad{\forall j \in (1, \tau]}\\
-            \log \bf{ATA}_{1:M - 1} &\sim \mathrm{Normal}(0, 5)\\
-            \sigma_{\text{int}} &\sim \mathrm{Normal}(0, 3)\\
-            \sigma_{\text{slope}} &\sim \mathrm{Normal}(-.6, .3)\\
+            \log \bf{ATA}_{1:M - 1} &\sim \mathrm{Normal}(ATA_{\text{loc}}, ATA_{\text{scale}})\\
+            \sigma_{\text{int}} &\sim \mathrm{Normal}(\sigma_{\text{int}, \text{loc}}, \sigma_{\text{int}, \text{scale}})\\
+            \sigma_{\text{slope}} &\sim \mathrm{Normal}(\sigma_{\text{slope}, \text{loc}}, \sigma_{\text{slope}, \text{scale}})\\
+            ATA_{\text{loc}} &= 0\\
+            ATA_{\text{scale}} &= 5\\
+            \sigma_{\text{int}, \text{loc}} &= 0\\
+            \sigma_{\text{int}, \text{scale}} &= 3\\
+            \sigma_{\text{slope}, \text{loc}} &= -0.6\\
+            \sigma_{\text{slope}, \text{scale}} &= 0.3
         \end{split}
     \end{align}
 
@@ -68,7 +74,9 @@ The ``ChainLadder`` model accepts the following configuration parameters in ``mo
 
     \begin{align}
         \sigma_{ij}^2 &= \exp((\sigma_{\text{int}} + \sigma_{\text{noise},j}) + \sigma_{\text{slope}} j + \ln(y_{ij-1}))\\
-        \sigma_{\text{noise},j} &\sim \mathrm{Normal}(0, .5)
+        \sigma_{\text{noise},j} &\sim \mathrm{Normal}(\sigma_{\text{noise},\text{loc}}, \sigma_{\text{noise},\text{scale}})\\
+        \sigma_{\text{noise},\text{loc}} &= 0\\
+        \sigma_{\text{noise},\text{scale}} &= 0.5
     \end{align}
 
 - ``use_multivariate``: Whether to use a industry-informed multivariate normal prior distribution on the age-to-age factors to leverage industry ATA means and covariances across development lags when fitting to the given triangle. Defaults to ``False``. If set to ``True``, ``line_of_business`` and ``informed_priors_version`` must also be specified. Cannot be used with ``use_linear_noise=False``.
@@ -123,14 +131,7 @@ The ``ChainLadder`` model is used to predict future losses using the following A
         target_triangle=None,
     )
 
-Above, ``triangle`` is the triangle to use to start making predictions from. For most use-cases 
-this will be the same triangle used to fit the model initially, but in some cases users may wish to 
-estimate model parameters on one triangle and then make predictions with that model on a different 
-triangle. In either case, predictions are generated starting from the right edge of ``triangle``. 
-
-``target_triangle`` allows users to precisely specify the triangle that predictions should be made 
-on. If not specified, the model will predict out to the maximum development lag in ``triangle`` (or
-to the ``max_dev_lag`` specified in ``config``, see below). 
+Above, ``triangle`` is the triangle to use to start making predictions from and ``target_triangle`` is the triangle to make predictions on. For most use-cases, ``triangle`` will be the same triangle that was used in model fitting, and setting ``target_triangle=None`` will create a squared version of the modeled triangle. However, decoupling ``triangle`` and ``target_triangle`` means users could train the model on one triangle, and then make predictions starting from and/or on a different triangle. By default, predictions will be made out to the maximum development lag in ``triangle``, but users can also set ``max_dev_lag`` in the configuration directly.
 
 The ``ChainLadder`` prediction behavior can be further changed with configuration parameters in ``config``:
 
