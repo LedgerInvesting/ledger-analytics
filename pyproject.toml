@@ -32,8 +32,9 @@ profile = "black"
 package-mode = false
 
 [project.urls]
-Homepage = "https://github.com/LedgerInvesting/ledger-analytics/"
+Homepage = "https://ledger-investing-ledger-analytics.readthedocs-hosted.com/en/latest/"
 Repository = "https://github.com/LedgerInvesting/ledger-analytics/"
+Documentation = "https://ledger-investing-ledger-analytics.readthedocs-hosted.com/en/latest/"
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
