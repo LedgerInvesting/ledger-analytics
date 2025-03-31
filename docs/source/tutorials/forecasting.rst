@@ -1,4 +1,4 @@
-Loss development modeling
+Forecast Modeling
 ================================
 
 This tutorial walks through a typical forecasting
@@ -87,3 +87,7 @@ We can compare this to a more sophisticated model, like the LR_SSM model. This m
     lr_ssm_prediction = lr_ssm_forecast.predict("full_meyers", config={"target_triangle": "target_triangle"})
     lr_ssm_prediction_tri = lr_ssm_prediction.to_bermuda()
     lr_ssm_loss_ratio = lr_ssm_prediction_tri[0]['paid_loss'] / lr_ssm_prediction_tri[0]['earned_premium']
+
+Note that the lr_ssm_loss_ratio is a posterior distribution of 10,000 samples of the ultimate loss ratio unlike the GCC point estimate.
+
+.. image:: loss_ratio_distribution.png
