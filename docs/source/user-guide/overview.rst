@@ -62,7 +62,9 @@ Alternatively, users can set the ``LEDGER_ANALYTICS_API_KEY``
 environment variable rather than passing the API key as a string
 to the class constructor.
 
-The client acts as an interface to triangle and model endpoints.
+The client acts as an interface to triangle and model endpoints via
+the specific ``ledger_analytics.Triange`` and ``ledger_analytics.LedgerModel``
+classes.
 Here are some common usage examples, along with their return values:
 
 ..  code:: python
@@ -87,3 +89,58 @@ Here are some common usage examples, along with their return values:
 
     squared_triangle: Triangle = development.predict(triangle=triangle)
 
+Fit & predict workflows
+-------------------------
+
+LedgerAnalytics opens access to a variety of model types, but the fit/predict
+syntax is similar between all endpoints.
+
+As shown in the previous section, models are fit using the ``create`` method,
+which has the generic function signature:
+
+..  code:: python
+
+    client.<model_type>.create(
+        name="...",
+        model_type="...",
+        triangle=...,
+        config={...},
+    )
+
+where ``model_type`` can be ``development_model``, ``tail_model`` or ``forecast_model``.
+The ``config`` dictionary varies by each model type, and is explained more in the model-specific
+pages of this User Guide.
+
+Similarly, the ``predict`` step has the generic signature:
+
+..  code:: python
+
+    model: LedgerModel = ...
+
+    model.predict(triangle=..., config={...}, target_triangle=...)
+
+where the ``config`` is a dictionary of model-specific configuration parameters,
+and ``target_triangle`` is an optional triangle to make predictions on.
+The latter allows a decoupling between the triangle used to fit the model,
+and the triangle used to make predictions. For instance, the following 
+example fits a (fake) model to one triangle and predicts on another:
+
+..  code:: python
+
+    model = client.development_model.create(
+        name="development",
+        model_type="ChainLadder",
+        triangle=reference_triangle,
+    )
+
+    predictions = model.predict(
+        triangle=initial_triangle,
+        target_triangle=pred_triangle,
+    )
+
+where ``reference_triangle`` is some triangle to model,
+``initial_triangle`` is a triangle to start the predictions
+from (e.g. a typical upper-diagonal triangle used for loss
+development modeling), 
+and ``pred_triangle`` is the actual triangle we want to 
+make predictions on. 

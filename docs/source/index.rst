@@ -25,7 +25,6 @@ and triangle data structure storage you require.
 ..  toctree::
     :titlesonly:
 
-    index.rst
     installation.rst
     apikeys.rst
     quickstart.rst
