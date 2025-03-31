@@ -21,12 +21,12 @@ directly to the triangle of interest. The Generalized Bondy model is implemented
             \sigma_{\text{slope}} &\sim \mathrm{Normal}(\sigma_{\text{slope}, \text{loc}}, \sigma_{\text{slope}, \text{scale}})\\
             ATA_{\text{init}, \text{loc}} &= 0\\
             ATA_{\text{init}, \text{scale}} &= 1\\
-            \beta_{\text{loc}} &= -2\\
-            \beta_{\text{scale}} &= .5\\
-            \sigma_{\text{int}, \text{loc}} &= -3\\
-            \sigma_{\text{int}, \text{scale}} &= .25\\
-            \sigma_{\text{slope}, \text{loc}} &= -1\\
-            \sigma_{\text{slope}, \text{scale}} &= .1
+            \beta_{\text{loc}} &= 0\\
+            \beta_{\text{scale}} &= .3\\
+            \sigma_{\text{int}, \text{loc}} &= 0\\
+            \sigma_{\text{int}, \text{scale}} &= 3\\
+            \sigma_{\text{slope}, \text{loc}} &= -.6\\
+            \sigma_{\text{slope}, \text{scale}} &= .3
         \end{split}
     \end{align}
 
