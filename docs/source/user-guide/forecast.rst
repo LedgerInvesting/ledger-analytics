@@ -18,7 +18,7 @@ Currently, our ``LR_SSM`` model is the only model that explicitly accounts for m
 
 Note that despite our models being formulated to use ultimate loss ratios as the target variable,
 ultimate losses and earned premiums are used as input data to fit the models. All forecasting models
-use the ultimate loss and premium to compute loss ratios for modeling internally, and resulting 
+use the ultimate losses and premiums to compute loss ratios for modeling internally, and resulting 
 outputs (i.e. predictions) are given back on the loss scale (i.e. ultimate losses as opposed to 
 ultimate loss ratios).
 

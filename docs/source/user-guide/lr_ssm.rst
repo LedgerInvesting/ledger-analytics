@@ -1,7 +1,7 @@
 Loss Ratio State Space Model (``LR_SSM``)
 -----------------------------------------
 
-State-space models are appealing for loss ratio forecasting because they allow separattion of 
+State-space models are appealing for loss ratio forecasting because they allow separation of 
 observation noise from the *true* latent variability in the underlying ultimate loss ratios. The 
 distinction is important, particularly in cases where the premium volume of a program
 changes significantly over time, or when extending the model to capture effects that
@@ -41,7 +41,7 @@ Our Loss Ratio State Space Model (``LR_SSM``) can be viewed as a latent random w
 where :math:`\mathrm{LR}_i` indicates the observed loss ratio for accident period :math:`i`, 
 :math:`\eta_i` is the latent log loss ratio for the same accident period, and :math:`UEP_i` is the 
 *used earned premium* for the same accident period (see details below). The state space component of 
-the model is captured by how the latent log loss ratio (:math:`\eta_i`) evolves over time. The
+the model captures how the latent log loss ratio (:math:`\eta_i`) evolves over time. The
 evolution of :math:`\eta_i` is controlled by a reversion parameter (:math:`\phi_{\text{reversion}}`),
 a momentum parameter (:math:`\gamma_{\text{momentum}}`), and a latent noise parameter 
 (:math:`\epsilon_{\text{latent}}`). The reversion parameter controls how much the latent log loss
