@@ -21,7 +21,7 @@ jobs:
           custom_release_rules: MAJOR:major,MINOR:minor,PATCH:patch,FIX:patch,BUG:patch,FEATURE:minor
 
       - name: Update __version__
-        run: echo "__version__ = '${{ steps.get_tag_version.outputs.new_tag }}'" > bermuda/__about__.py
+        run: echo "__version__ = '${{ steps.get_tag_version.outputs.new_tag }}'" > ledger_analytics/__about__.py
 
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
