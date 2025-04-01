@@ -7,7 +7,9 @@ from ledger_analytics.types import ConfigDict, HTTPMethods
 
 
 class TriangleMockRequester(Requester):
-    def _factory(self, method: HTTPMethods, url: str, data: ConfigDict):
+    def _factory(
+        self, method: HTTPMethods, url: str, data: ConfigDict, stream: bool = False
+    ):
         with Mocker() as mocker:
             if method.lower() == "post":
                 mocker.post(url, json={"id": "abc"}, status_code=201)
@@ -39,7 +41,9 @@ class TriangleMockRequester(Requester):
 
 
 class TriangleMockRequesterAfterDeletion(Requester):
-    def _factory(self, method: HTTPMethods, url: str, data: ConfigDict):
+    def _factory(
+        self, method: HTTPMethods, url: str, data: ConfigDict, stream: bool = False
+    ):
         with Mocker() as mocker:
             if method.lower() == "post":
                 mocker.post(url, json={"id": "abc"}, status_code=201)
@@ -58,7 +62,9 @@ class TriangleMockRequesterAfterDeletion(Requester):
 
 
 class ModelMockRequester(Requester):
-    def _factory(self, method: HTTPMethods, url: str, data: ConfigDict):
+    def _factory(
+        self, method: HTTPMethods, url: str, data: ConfigDict, stream: bool = False
+    ):
         with Mocker() as mocker:
             if method.lower() == "post" and "predict" not in url:
                 mocker.post(url, json={"model": {"id": "model_abc"}}, status_code=201)
@@ -92,7 +98,9 @@ class ModelMockRequester(Requester):
 
 
 class ModelMockRequesterAfterDeletion(Requester):
-    def _factory(self, method: HTTPMethods, url: str, data: ConfigDict):
+    def _factory(
+        self, method: HTTPMethods, url: str, data: ConfigDict, stream: bool = False
+    ):
         with Mocker() as mocker:
             if method.lower() == "get":
                 mocker.get(url, status_code=404)

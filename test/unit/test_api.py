@@ -18,6 +18,7 @@ from ledger_analytics import (
     TailModel,
     TriangleInterface,
 )
+from ledger_analytics.api import ENV
 
 API_KEY = "abc.123"
 TEST_HOST = "http://test.com/analytics/"
@@ -27,7 +28,7 @@ def test_ledger_analytics_creation():
     assert isinstance(AnalyticsClient(API_KEY), AnalyticsClient)
 
     client = AnalyticsClient(API_KEY)
-    assert client.host == "https://api.ldgr.app/analytics/"
+    assert client.host == ENV.host
 
 
 def test_ledger_analytics_models():
