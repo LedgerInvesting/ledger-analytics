@@ -41,9 +41,9 @@ The ``ChainLadder`` model is fit using the following API call:
 
     model = client.development_model.create(
         triangle=...,
-        model_name="example_name",
+        name="example_name",
         model_type="ChainLadder",
-        model_config={ # default model_config
+        config={ # default model_config
             "loss_definition": "reported",
             "loss_family": "gamma",
             "use_linear_noise": True,

@@ -52,9 +52,9 @@ The ``GeneralizedBondy`` model above is fit using the following API call:
 
     model = client.tail_model.create(
         triangle=...,
-        model_name=...,
+        name="example_name",
         model_type="GeneralizedBondy",
-        model_config={ # default model_config
+        config={ # default model_config
             "loss_definition": "reported",
             "loss_family": "gamma",
             "line_of_business": None,
