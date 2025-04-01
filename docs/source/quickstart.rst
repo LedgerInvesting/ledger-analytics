@@ -46,6 +46,7 @@ library.
 ..  code:: python
 
     from bermuda import meyers_tri
+    from datetime import date
 
     meyers_tri.plot_data_completeness()
     clipped_meyers = meyers_tri.clip(max_eval=date(1997, 12, 31)) 
@@ -138,17 +139,17 @@ ladder model to the triangle we created above.
 
     chain_ladder = client.development_model.create(
         triangle="meyers_triangle",
-        model_name="development",
+        name="development",
         model_type="ChainLadder",
     )
     [08:43:50] Fitting model 'development' on triangle 'meyers_triangle': PENDING                             model.py:171
     [ ===] Working...
     ...
-    [08:44:46] Fitting model 'development' on triangle 'meyers_triangle': SUCCESS
+    [08:44:46] Fitting model 'development' on triangle 'meyers_triangle': FINISHED
 
 You will see a convenient status bar keeping you up-to-date with the model
 fitting progress, which is currently in three stages: ``CREATED``, ``PENDING``
-and ``SUCCESS``. The latter stage could be ``FAILURE``, ``TERMINATED`` or ``TIMEOUT``
+and ``FINISHED``. The latter stage could be ``FAILURE``, ``TERMINATED`` or ``TIMEOUT``
 if errors occur. When running a model in a new session, it will take a small bit of time to 
 instantiate the computing service and compile the model. 
 If you are running multiple models, however,
