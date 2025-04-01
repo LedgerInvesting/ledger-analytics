@@ -126,7 +126,7 @@ class ModelInterface(metaclass=ModelRegistry):
 
     def create(
         self,
-        triangle: str | Triangle,  # noqa: F821
+        triangle: str | Triangle,
         name: str,
         model_type: str,
         config: ConfigDict | None = None,
@@ -161,9 +161,9 @@ class ModelInterface(metaclass=ModelRegistry):
 
     def predict(
         self,
-        triangle: str | Triangle,  # noqa: F821
+        triangle: str | Triangle,
         config: ConfigDict | None = None,
-        target_triangle: str | Triangle | None = None,  # noqa: F821
+        target_triangle: str | Triangle | None = None,
         timeout: int | None = None,
         name: str | None = None,
         id: str | None = None,
