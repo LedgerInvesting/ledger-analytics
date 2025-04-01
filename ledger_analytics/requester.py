@@ -50,5 +50,9 @@ class Requester(object):
                 )
             case 500:
                 raise requests.HTTPError(f"500: Internal server error, {message}")
+            case 200:
+                raise requests.HTTPError(
+                    f"{status}: JSON response can't be decoded (likely empty)."
+                )
             case _:
                 pass
