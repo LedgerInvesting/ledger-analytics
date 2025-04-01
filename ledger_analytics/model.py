@@ -94,6 +94,7 @@ class LedgerModel(ModelInterface):
         and in the future will likely be superseded by having separate
         `create` and `fit` API endpoints.
         """
+
         config = {
             "triangle_name": triangle_name,
             "model_name": name,
@@ -121,7 +122,7 @@ class LedgerModel(ModelInterface):
             return self
 
         task_id = self.fit_response.json()["modal_task"]["id"]
-        task_response = self._run_async_task(
+        task_response = self._poll_remote_task(
             task_id,
             task_name=f"Fitting model '{self.name}' on triangle '{triangle_name}'",
             timeout=timeout,
@@ -156,7 +157,7 @@ class LedgerModel(ModelInterface):
             return self
 
         task_id = self.predict_response.json()["modal_task"]["id"]
-        task_response = self._run_async_task(
+        task_response = self._poll_remote_task(
             task_id=task_id,
             task_name=f"Predicting from model '{self.name}' on triangle '{triangle_name}'",
             timeout=timeout,
@@ -180,7 +181,7 @@ class LedgerModel(ModelInterface):
         )
         return self._requester.get(endpoint)
 
-    def _run_async_task(
+    def _poll_remote_task(
         self, task_id: str, task_name: str = "", timeout: int = 300
     ) -> dict:
         start = time.time()

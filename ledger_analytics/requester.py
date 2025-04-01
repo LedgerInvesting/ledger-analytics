@@ -33,10 +33,12 @@ class Requester(object):
     @staticmethod
     def _catch_status(response: requests.Response) -> requests.HTTPError:
         status = response.status_code
+        json_error = False
         try:
             message = response.json()
         except requests.exceptions.JSONDecodeError:
             message = response.text
+            json_error = True
         match status:
             case 400:
                 raise requests.HTTPError(f"400: Bad request, {message}.")
@@ -50,5 +52,10 @@ class Requester(object):
                 )
             case 500:
                 raise requests.HTTPError(f"500: Internal server error, {message}")
+            case 200:
+                if json_error:
+                    raise requests.HTTPError(
+                        f"{status}: JSON response can't be decoded (likely empty). Check your host."
+                    )
             case _:
                 pass

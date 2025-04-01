@@ -4,6 +4,7 @@ import logging
 
 from bermuda import Triangle as BermudaTriangle
 from requests import HTTPError, Response
+from requests.exceptions import ChunkedEncodingError
 from rich.console import Console
 
 from .interface import TriangleInterface
@@ -44,7 +45,15 @@ class Triangle(TriangleInterface):
         console = Console()
         with console.status("Retrieving...", spinner="bouncingBar") as _:
             console.log(f"Getting triangle '{name}' with ID '{id}'")
-            get_response = requester.get(endpoint)
+            get_response = None
+            retries = 0
+            max_retries = 5
+            while get_response is None and retries < max_retries:
+                try:
+                    retries += 1
+                    get_response = requester.get(endpoint)
+                except ChunkedEncodingError:
+                    continue
 
         self = cls(
             id,

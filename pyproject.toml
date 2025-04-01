@@ -103,3 +103,6 @@ docstring-code-format = true
 # This only has an effect when the `docstring-code-format` setting is
 # enabled.
 docstring-code-line-length = 30
+
+[tool.ruff.lint.per-file-ignores]
+"ledger_analytics/interface.py" = ["F821"]
