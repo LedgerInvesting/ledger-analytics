@@ -27,7 +27,7 @@ def test_ledger_analytics_creation():
     assert isinstance(AnalyticsClient(API_KEY), AnalyticsClient)
 
     client = AnalyticsClient(API_KEY)
-    assert client.host == "https://ldgr.app/analytics/"
+    assert client.host == "https://api.ldgr.app/analytics/"
     assert AnalyticsClient(API_KEY, host=TEST_HOST[:-1]).host == TEST_HOST
 
 
