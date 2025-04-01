@@ -1,5 +1,4 @@
 import pytest
-from bermuda import meyers_tri
 from requests import HTTPError
 
 from ledger_analytics import AnalyticsClient, DevelopmentModel
