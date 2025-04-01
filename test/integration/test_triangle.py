@@ -1,5 +1,3 @@
-import time
-
 import pytest
 from bermuda import meyers_tri
 from requests import HTTPError
