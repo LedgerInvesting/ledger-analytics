@@ -3,6 +3,23 @@ import requests
 from .types import ConfigDict, HTTPMethods
 
 
+def _get_stream_chunks(**kwargs):
+    response = requests.get(**kwargs, stream=True)
+    response.raise_for_status()
+
+    # stream content in chunks for potentially large files
+    content = []
+    for chunk in response.iter_content(chunk_size=8192):
+        if chunk:
+            content.append(chunk)
+
+    # join chunks to response content
+    response._content = b"".join(content)
+    response.close()
+
+    return response
+
+
 class Requester(object):
     def __init__(self, api_key: str) -> None:
         self.headers = {"Authorization": f"Api-Key {api_key}"}
@@ -20,13 +37,13 @@ class Requester(object):
         if method.lower() == "post":
             request = requests.post
         elif method.lower() == "get":
-            request = requests.get
+            request = _get_stream_chunks
         elif method.lower() == "delete":
             request = requests.delete
         else:
             raise ValueError(f"Unrecognized HTTPMethod {method}.")
 
-        response = request(url, json=data or {}, headers=self.headers)
+        response = request(url=url, json=data or {}, headers=self.headers)
         self._catch_status(response)
         return response
 
