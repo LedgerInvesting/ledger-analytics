@@ -55,7 +55,7 @@ class Requester(object):
             case 200:
                 if json_error:
                     raise requests.HTTPError(
-                        f"{status}: JSON response can't be decoded (likely empty)."
+                        f"{status}: JSON response can't be decoded (likely empty). Check your host."
                     )
             case _:
                 pass
