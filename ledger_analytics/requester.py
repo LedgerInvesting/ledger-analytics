@@ -4,20 +4,18 @@ from .types import ConfigDict, HTTPMethods
 
 
 def _get_stream_chunks(**kwargs):
-    response = requests.get(**kwargs, stream=True)
-    response.raise_for_status()
+    with requests.get(**kwargs, stream=True) as response:
+        response.raise_for_status()
 
-    # stream content in chunks for potentially large files
-    content = []
-    for chunk in response.iter_content(chunk_size=8192):
-        if chunk:
-            content.append(chunk)
+        # stream content in chunks for potentially large files
+        content = []
+        for chunk in response.iter_content(chunk_size=8192):
+            if chunk:
+                content.append(chunk)
 
-    # join chunks to response content
-    response._content = b"".join(content)
-    response.close()
-
-    return response
+        # join chunks to response content
+        response._content = b"".join(content)
+        return response
 
 
 class Requester(object):
@@ -27,17 +25,19 @@ class Requester(object):
     def post(self, url: str, data: ConfigDict):
         return self._factory("post", url, data)
 
-    def get(self, url: str, data: ConfigDict | None = None):
-        return self._factory("get", url, data)
+    def get(self, url: str, data: ConfigDict | None = None, stream: bool = False):
+        return self._factory("get", url, data, stream)
 
     def delete(self, url: str, data: ConfigDict | None = None):
         return self._factory("delete", url, data)
 
-    def _factory(self, method: HTTPMethods, url: str, data: ConfigDict):
+    def _factory(
+        self, method: HTTPMethods, url: str, data: ConfigDict, stream: bool = False
+    ):
         if method.lower() == "post":
             request = requests.post
         elif method.lower() == "get":
-            request = _get_stream_chunks
+            request = _get_stream_chunks if stream else requests.get
         elif method.lower() == "delete":
             request = requests.delete
         else:
