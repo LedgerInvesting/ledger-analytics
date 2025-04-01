@@ -81,6 +81,8 @@ to satisfy certain real-world constraints and assumptions
 that users may want to impose but are not yet handled
 by our models.
 
+.. _geometric-decay:
+
 Geometric decay weighting
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Most models can down-weight older
