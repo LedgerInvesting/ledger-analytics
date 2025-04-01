@@ -64,7 +64,7 @@ triangle in the remote database.
     and so you will only be able to access triangles and models
     created by your organization. Created triangles and models
     are unique to your organization. Other users within your 
-    organazition do have the ability to overwrite your triangles
+    organization have the ability to overwrite your triangles
     and models.
 
 ..  code:: python

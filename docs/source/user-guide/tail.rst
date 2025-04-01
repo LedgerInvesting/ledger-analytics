@@ -18,4 +18,4 @@ a full *square*, in which case we indicate the development lag with :math:`j = 1
    :maxdepth: 2
    :caption: Available Models
 
-   generalized_bondy
+   generalized-bondy
