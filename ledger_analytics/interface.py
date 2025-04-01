@@ -162,7 +162,7 @@ class ModelInterface(metaclass=ModelRegistry):
     def predict(
         self,
         triangle: str | Triangle,  # noqa: F821
-        config: ConfigDict = None,
+        config: ConfigDict | None = None,
         target_triangle: str | Triangle = None,  # noqa: F821
         timeout: int | None = None,
         name: str | None = None,
