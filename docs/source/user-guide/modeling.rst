@@ -85,8 +85,8 @@ by our models.
 
 Geometric decay weighting
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Most models can down-weight older
-experience periods using geometric decay weighting,
+Most models can down-weight data from older
+evaluation dates using geometric decay weighting,
 which is controlled by the ``recency_decay`` option passed
 to the ``config`` dictionary. If set to ``None``,
 this value is ``1.0`` by default, which means the data is
@@ -97,8 +97,10 @@ using the rule
 :math:`\rho^{(T - t) f}`, where :math:`\rho`
 is the ``recency_decay`` value, :math:`T`
 and :math:`t` are the maximum and current
-experience period indices, and :math:`f`
-is the triangle resolution in years.
+evaluation date indices, and :math:`f`
+is the triangle resolution in years. In forecasting
+models decay weighting is based on the experience period
+rather than the evaluation date.
 You can play around with this using our Bermuda package:
 
 .. code:: python
