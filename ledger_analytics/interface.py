@@ -160,11 +160,13 @@ class ModelInterface(metaclass=ModelRegistry):
     def predict(
         self,
         triangle: str | Triangle,  # noqa: F821
+        config: ConfigDict = None,
+        target_triangle: str | Triangle = None,  # noqa: F821
         name: str | None = None,
         id: str | None = None,
     ):
         model = self.get(name, id)
-        return model.predict(triangle)
+        return model.predict(triangle, config=config, target_triangle=target_triangle)
 
     def delete(self, name: str | None = None, id: str | None = None) -> None:
         model = self.get(name, id)

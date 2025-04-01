@@ -18,7 +18,9 @@ def test_triangle_create_delete(client):
 
     assert test_tri.to_bermuda() == meyers_tri
 
-    assert isinstance(client.triangle.get(name="__test_tri"), Triangle)
+    assert isinstance(client.triangle.get(name=name), Triangle)
+
+    assert client.triangle.get(name=name).to_bermuda() == meyers_tri
 
     test_tri.delete()
     assert test_tri.delete_response.status_code == 204
@@ -28,8 +30,3 @@ def test_triangle_create_delete(client):
 
     with pytest.raises(ValueError):
         client.triangle.delete(name)
-
-
-def test_triangle_get(client):
-    meyers = client.triangle.get(name="meyers")
-    assert meyers.data == meyers_tri.to_dict()

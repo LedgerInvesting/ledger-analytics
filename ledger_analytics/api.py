@@ -6,7 +6,7 @@ from abc import ABC
 from .interface import ModelInterface, TriangleInterface
 from .requester import Requester
 
-DEFAULT_HOST = "https://ldgr.app/analytics/"
+DEFAULT_HOST = "https://api.ldgr.app/analytics/"
 
 
 class BaseClient(ABC):
