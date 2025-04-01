@@ -36,10 +36,12 @@ Easy default prior distributions
 ------------------------------------
 
 Prior distributions are set to be weakly informative by default,
-which will work fine in many cases. Users
-can also set the ``line_of_business`` argument in the ``config``
-dictionary to user line of business-specific prior distributions
+which will work fine in many cases. For select models,
+users can alternatively set the ``line_of_business`` argument in the ``config``
+dictionary to use line of business-specific prior distributions
 that have been internally derived and validated.
+See the individual model vignettes for more information about
+which lines of business are accepted.
 While these values are proprietary, 
 users can run prior predictive checks to check the implications
 of prior distributions by adding ``prior_only=True`` into the
@@ -48,7 +50,7 @@ of prior distributions by adding ``prior_only=True`` into the
 Loss likelihood distributions
 ------------------------------------
 
-Secondly, all stochastic models modeling pure losses and loss ratios
+All stochastic models modeling pure losses and loss ratios
 have the option to set a
 ``loss_family`` in the ``config`` dictionary to specify the
 likelihood distribution.
@@ -70,4 +72,66 @@ combining model predictions with downstream models.
 Under-the-hood, we handle this using a measurement error
 assumption, as explained more in our `Bayesian workflow
 <https://arxiv.org/abs/2407.14666>`_ paper.
+
+Deterministic data adjustments
+--------------------------------
+
+In some cases, we provide options to manipulate input data
+to satisfy certain real-world constraints and assumptions
+that users may want to impose but are not yet handled
+by our models.
+
+Geometric decay weighting
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Most models can down-weight older
+experience periods using geometric decay weighting,
+which is controlled by the ``recency_decay`` option passed
+to the ``config`` dictionary. If set to ``None``,
+this value is ``1.0`` by default, which means the data is
+not down-weighted. If ``0 < recency_decay < 1``, then 
+older observations 
+are down-weighted by multiplying the raw data
+using the rule
+:math:`\rho^{(T - t) f}`, where :math:`\rho`
+is the ``recency_decay`` value, :math:`T`
+and :math:`t` are the maximum and current
+experience period indices, and :math:`f`
+is the triangle resolution in years.
+You can play around with this using our Bermuda package:
+
+.. code:: python
+
+   from bermuda import meyers_tri, weight_geometric_decay
+
+   paid_loss = meyers_tri.extract("paid_loss")
+
+   rho = 0.8
+   paid_loss_downweighted = weight_geometric_decay(
+    triangle=meyers_tri,
+    annual_decay_factor=rho,
+    tri_fields="paid_loss",
+    weight_as_field=False,
+   ).extract("paid_loss")
+
+   list(zip(paid_loss, paid_loss_downweighted))
+
+
+Cape Cod method
+^^^^^^^^^^^^^^^^^^^^
+
+Users can implement the Cape Cod method,
+which down-weights earned premium for less-developed
+experience periods by multiplying the raw premium
+by the loss emergence percentage or the inverse
+of the ultimate development factor. 
+This is useful if users want to impose the assumption
+that greener experience periods' loss ratios should be more
+uncertain. For instance, in forecasting, more recent
+experience periods' ultimate loss ratios are based
+on, typically, less data than older experience periods.
+
+We recommend users opt for the 'samples as data' approach
+above over the Cape Cod adjustment where possible,
+which has similar properties but is a model-based
+solution that can handle more complex use-cases.
 
