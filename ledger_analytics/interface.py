@@ -163,7 +163,7 @@ class ModelInterface(metaclass=ModelRegistry):
         self,
         triangle: str | Triangle,  # noqa: F821
         config: ConfigDict | None = None,
-        target_triangle: str | Triangle = None,  # noqa: F821
+        target_triangle: str | Triangle | None = None,  # noqa: F821
         timeout: int | None = None,
         name: str | None = None,
         id: str | None = None,
