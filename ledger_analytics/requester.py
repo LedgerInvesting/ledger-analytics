@@ -4,16 +4,17 @@ from .types import ConfigDict, HTTPMethods
 
 
 def _get_stream_chunks(**kwargs):
+    """
+    Downloads content in chunks to handle large files more efficiently.
+    """
     with requests.get(**kwargs, stream=True) as response:
         response.raise_for_status()
 
-        # stream content in chunks for potentially large files
         content = []
         for chunk in response.iter_content(chunk_size=8192):
             if chunk:
                 content.append(chunk)
 
-        # join chunks to response content
         response._content = b"".join(content)
         return response
 
