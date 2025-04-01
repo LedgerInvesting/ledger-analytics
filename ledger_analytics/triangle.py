@@ -46,8 +46,11 @@ class Triangle(TriangleInterface):
         with console.status("Retrieving...", spinner="bouncingBar") as _:
             console.log(f"Getting triangle '{name}' with ID '{id}'")
             get_response = None
-            while get_response is None:
+            retries = 0
+            max_retries = 5
+            while get_response is None and retries < max_retries:
                 try:
+                    retries += 1
                     get_response = requester.get(endpoint)
                 except ChunkedEncodingError:
                     continue
