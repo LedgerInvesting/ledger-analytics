@@ -10,6 +10,8 @@ from .requester import Requester
 from .triangle import Triangle
 from .types import ConfigDict
 
+DEFAULT_TIMEOUT = 300
+
 
 class LedgerModel(ModelInterface):
     def __init__(
@@ -87,13 +89,16 @@ class LedgerModel(ModelInterface):
         endpoint: str,
         requester: Requester,
         asynchronous: bool = False,
-        timeout: int = 300,
+        timeout: int | None = None,
     ) -> LedgerModel:
         """This method fits a new model and constructs a LedgerModel instance.
         It's intended to be used from the `ModelInterface` class mainly,
         and in the future will likely be superseded by having separate
         `create` and `fit` API endpoints.
         """
+        if timeout is None:
+            timeout = DEFAULT_TIMEOUT
+
         config = {
             "triangle_name": triangle_name,
             "model_name": name,
@@ -121,7 +126,7 @@ class LedgerModel(ModelInterface):
             return self
 
         task_id = self.fit_response.json()["modal_task"]["id"]
-        task_response = self._run_async_task(
+        task_response = self._poll_remote_task(
             task_id,
             task_name=f"Fitting model '{self.name}' on triangle '{triangle_name}'",
             timeout=timeout,
@@ -135,8 +140,11 @@ class LedgerModel(ModelInterface):
         triangle: str | Triangle,
         config: ConfigDict | None = None,
         target_triangle: Triangle | str | None = None,
-        timeout: int = 300,
+        timeout: int | None = None,
     ) -> Triangle:
+        if timeout is None:
+            timeout = DEFAULT_TIMEOUT
+
         triangle_name = triangle if isinstance(triangle, str) else triangle.name
         config = {
             "triangle_name": triangle_name,
@@ -156,7 +164,7 @@ class LedgerModel(ModelInterface):
             return self
 
         task_id = self.predict_response.json()["modal_task"]["id"]
-        task_response = self._run_async_task(
+        task_response = self._poll_remote_task(
             task_id=task_id,
             task_name=f"Predicting from model '{self.name}' on triangle '{triangle_name}'",
             timeout=timeout,
@@ -180,7 +188,7 @@ class LedgerModel(ModelInterface):
         )
         return self._requester.get(endpoint)
 
-    def _run_async_task(
+    def _poll_remote_task(
         self, task_id: str, task_name: str = "", timeout: int = 300
     ) -> dict:
         start = time.time()

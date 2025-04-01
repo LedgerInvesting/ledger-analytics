@@ -130,6 +130,7 @@ class ModelInterface(metaclass=ModelRegistry):
         name: str,
         model_type: str,
         config: ConfigDict | None = None,
+        timeout: int | None = None,
     ):
         triangle_name = triangle if isinstance(triangle, str) else triangle.name
         return ModelRegistry.REGISTRY[self.model_class].fit_from_interface(
@@ -141,6 +142,7 @@ class ModelInterface(metaclass=ModelRegistry):
             self.endpoint,
             self._requester,
             self._asynchronous,
+            timeout=timeout,
         )
 
     def get(self, name: str | None = None, id: str | None = None):
@@ -162,11 +164,14 @@ class ModelInterface(metaclass=ModelRegistry):
         triangle: str | Triangle,  # noqa: F821
         config: ConfigDict = None,
         target_triangle: str | Triangle = None,  # noqa: F821
+        timeout: int | None = None,
         name: str | None = None,
         id: str | None = None,
     ):
         model = self.get(name, id)
-        return model.predict(triangle, config=config, target_triangle=target_triangle)
+        return model.predict(
+            triangle, config=config, target_triangle=target_triangle, timeout=timeout
+        )
 
     def delete(self, name: str | None = None, id: str | None = None) -> None:
         model = self.get(name, id)

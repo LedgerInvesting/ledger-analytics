@@ -27,7 +27,7 @@ def test_fit_predict():
         triangle=triangle,
         name=name,
     )
-    assert predictions.to_bermuda().extract("paid_loss").shape == (36, 10e3)
+    assert predictions.to_bermuda().extract("paid_loss").shape == (45, 10e3)
     assert predictions.to_bermuda() == predictions2.to_bermuda()
 
     chain_ladder.delete()
