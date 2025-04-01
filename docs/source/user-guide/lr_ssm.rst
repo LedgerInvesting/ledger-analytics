@@ -63,9 +63,9 @@ The ``LR_SSM`` model is fit using the following API call:
 
     model = client.forecast_model.create(
         triangle=...,
-        model_name="example_name",
+        name="example_name",
         model_type="LR_SSM",
-        model_config={ # default model_config
+        config={ # default model_config
             "loss_definition": "reported",
             "loss_family": "gamma",
             "include_momentum": True,
