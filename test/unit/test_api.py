@@ -28,7 +28,6 @@ def test_ledger_analytics_creation():
 
     client = AnalyticsClient(API_KEY)
     assert client.host == "https://api.ldgr.app/analytics/"
-    assert AnalyticsClient(API_KEY, host=TEST_HOST[:-1]).host == TEST_HOST
 
 
 def test_ledger_analytics_models():
@@ -40,7 +39,8 @@ def test_ledger_analytics_models():
 
 
 def test_ledger_analytics_triangle_crud():
-    client = AnalyticsClient(API_KEY, host=TEST_HOST)
+    client = AnalyticsClient(API_KEY)
+    client.host = TEST_HOST
     client._requester = TriangleMockRequester(API_KEY)
     triangle = client.triangle.create(
         name="test_meyers_triangle",
@@ -59,7 +59,8 @@ def test_ledger_analytics_triangle_crud():
 
 
 def test_ledger_analytics_model_crud():
-    client = AnalyticsClient(API_KEY, host=TEST_HOST, asynchronous=True)
+    client = AnalyticsClient(API_KEY, asynchronous=True)
+    client.host = TEST_HOST
     client._requester = ModelMockRequester(API_KEY)
 
     development_model = client.development_model.create(
