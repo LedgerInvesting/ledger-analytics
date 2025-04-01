@@ -10,8 +10,6 @@ from .requester import Requester
 from .triangle import Triangle
 from .types import ConfigDict
 
-DEFAULT_TIMEOUT = 300
-
 
 class LedgerModel(ModelInterface):
     def __init__(
@@ -89,15 +87,13 @@ class LedgerModel(ModelInterface):
         endpoint: str,
         requester: Requester,
         asynchronous: bool = False,
-        timeout: int | None = None,
+        timeout: int = 300,
     ) -> LedgerModel:
         """This method fits a new model and constructs a LedgerModel instance.
         It's intended to be used from the `ModelInterface` class mainly,
         and in the future will likely be superseded by having separate
         `create` and `fit` API endpoints.
         """
-        if timeout is None:
-            timeout = DEFAULT_TIMEOUT
 
         config = {
             "triangle_name": triangle_name,
@@ -140,11 +136,8 @@ class LedgerModel(ModelInterface):
         triangle: str | Triangle,
         config: ConfigDict | None = None,
         target_triangle: Triangle | str | None = None,
-        timeout: int | None = None,
+        timeout: int = 300,
     ) -> Triangle:
-        if timeout is None:
-            timeout = DEFAULT_TIMEOUT
-
         triangle_name = triangle if isinstance(triangle, str) else triangle.name
         config = {
             "triangle_name": triangle_name,

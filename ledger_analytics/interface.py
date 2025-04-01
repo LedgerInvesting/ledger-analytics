@@ -130,7 +130,7 @@ class ModelInterface(metaclass=ModelRegistry):
         name: str,
         model_type: str,
         config: ConfigDict | None = None,
-        timeout: int | None = None,
+        timeout: int = 300,
     ):
         triangle_name = triangle if isinstance(triangle, str) else triangle.name
         return ModelRegistry.REGISTRY[self.model_class].fit_from_interface(
@@ -164,7 +164,7 @@ class ModelInterface(metaclass=ModelRegistry):
         triangle: str | Triangle,
         config: ConfigDict | None = None,
         target_triangle: str | Triangle | None = None,
-        timeout: int | None = None,
+        timeout: int = 300,
         name: str | None = None,
         id: str | None = None,
     ):
