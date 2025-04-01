@@ -136,6 +136,7 @@ class LedgerModel(ModelInterface):
         triangle: str | Triangle,
         config: ConfigDict | None = None,
         target_triangle: Triangle | str | None = None,
+        prediction_name: str | None = None,
         timeout: int = 300,
     ) -> Triangle:
         triangle_name = triangle if isinstance(triangle, str) else triangle.name
@@ -143,6 +144,9 @@ class LedgerModel(ModelInterface):
             "triangle_name": triangle_name,
             "predict_config": config or {},
         }
+        if prediction_name:
+            config["prediction_name"] = prediction_name
+
         if isinstance(target_triangle, Triangle):
             config["predict_config"]["target_triangle"] = target_triangle.name
         elif isinstance(target_triangle, str):
