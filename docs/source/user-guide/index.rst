@@ -5,6 +5,7 @@ User Guide
    :maxdepth: 2
 
    overview.rst
+   modeling.rst
    development.rst
    tail.rst
    forecast.rst

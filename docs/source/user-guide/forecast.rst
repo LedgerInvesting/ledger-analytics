@@ -27,4 +27,4 @@ ultimate loss ratios).
    :caption: Available Models
 
    ar1
-   lr_ssm
+   lr-ssm

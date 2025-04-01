@@ -18,4 +18,4 @@ a full *square*, in which case we indicate the development lag with :math:`j = 1
    :maxdepth: 2
    :caption: Available Models
 
-   chain_ladder
+   chain-ladder
