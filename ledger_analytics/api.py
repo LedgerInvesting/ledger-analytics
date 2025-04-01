@@ -30,7 +30,6 @@ class BaseClient(ABC):
     def __init__(
         self,
         api_key: str | None = None,
-        host: str | None = None,
         asynchronous: bool = False,
     ) -> None:
         if api_key is None:
@@ -42,14 +41,7 @@ class BaseClient(ABC):
 
         self._requester = Requester(api_key)
 
-        if host is None:
-            host = ENV.host
-
-        trailing_slash = host[-1] == "/"
-        if trailing_slash:
-            self.host = host
-        else:
-            self.host = host + "/"
+        self.host = ENV.host
 
         self.asynchronous = asynchronous
 
@@ -64,10 +56,9 @@ class AnalyticsClient(BaseClient):
     def __init__(
         self,
         api_key: str | None = None,
-        host: str | None = None,
         asynchronous: bool = False,
     ):
-        super().__init__(api_key=api_key, host=host, asynchronous=asynchronous)
+        super().__init__(api_key=api_key, asynchronous=asynchronous)
 
     triangle = property(
         lambda self: TriangleInterface(self.host, self._requester, self.asynchronous)
