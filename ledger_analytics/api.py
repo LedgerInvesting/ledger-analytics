@@ -2,11 +2,28 @@ from __future__ import annotations
 
 import os
 from abc import ABC
+from collections import namedtuple
 
 from .interface import ModelInterface, TriangleInterface
 from .requester import Requester
 
 DEFAULT_HOST = "https://api.ldgr.app/analytics/"
+env_config = namedtuple("env_config", ["host", "api_key"])
+ENVIRONMENTS = {
+    "PROD": env_config(
+        host="https://api.ldgr.app/analytics/",
+        api_key=os.getenv("LEDGER_ANALYTICS_API_KEY"),
+    ),
+    "DEV": env_config(
+        host="https://platform-api-development.up.railway.app/analytics/",
+        api_key=os.getenv("LEDGER_ANALYTICS_DEV_API_KEY"),
+    ),
+    "LOCAL": env_config(
+        host="http://localhost:8000/analytics/",
+        api_key=os.getenv("LEDGER_ANALYTICS_LOCAL_API_KEY"),
+    ),
+}
+ENV = ENVIRONMENTS[os.getenv("LEDGER_ANALYTICS_ENV", "PROD").upper()]
 
 
 class BaseClient(ABC):
@@ -17,7 +34,7 @@ class BaseClient(ABC):
         asynchronous: bool = False,
     ) -> None:
         if api_key is None:
-            api_key = os.getenv("LEDGER_ANALYTICS_API_KEY")
+            api_key = ENV.api_key
             if api_key is None:
                 raise ValueError(
                     "Must pass in a valid `api_key` or set the `LEDGER_ANALYTICS_API_KEY` environment variable."
@@ -26,7 +43,7 @@ class BaseClient(ABC):
         self._requester = Requester(api_key)
 
         if host is None:
-            host = DEFAULT_HOST
+            host = ENV.host
 
         trailing_slash = host[-1] == "/"
         if trailing_slash:
