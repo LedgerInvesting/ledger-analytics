@@ -101,23 +101,69 @@ evaluation date indices, and :math:`f`
 is the triangle resolution in years. In forecasting
 models decay weighting is based on the experience period
 rather than the evaluation date.
+
 You can play around with this using our Bermuda package:
 
 .. code:: python
 
    from bermuda import meyers_tri, weight_geometric_decay
 
-   paid_loss = meyers_tri.extract("paid_loss")
+   weight_test = meyers_tri.derive_fields(
+      weight=1.0
+   )
 
    rho = 0.8
-   paid_loss_downweighted = weight_geometric_decay(
-    triangle=meyers_tri,
+   evaluation_date_decay = weight_geometric_decay(
+    triangle=weight_test,
     annual_decay_factor=rho,
-    tri_fields="paid_loss",
+    basis='evaluation',
+    tri_fields="weight",
     weight_as_field=False,
-   ).extract("paid_loss")
+   )
+   evaluation_date_decay.to_array_data_frame('weight')
 
-   list(zip(paid_loss, paid_loss_downweighted))
+       period         0        12        24        36  ...        60        72        84        96       108
+    0  1988-01-01  0.018014  0.022518  0.028147  0.035184  ...  0.054976  0.068719  0.085899  0.107374  0.134218
+    1  1989-01-01  0.022518  0.028147  0.035184  0.043980  ...  0.068719  0.085899  0.107374  0.134218  0.167772
+    2  1990-01-01  0.028147  0.035184  0.043980  0.054976  ...  0.085899  0.107374  0.134218  0.167772  0.209715
+    3  1991-01-01  0.035184  0.043980  0.054976  0.068719  ...  0.107374  0.134218  0.167772  0.209715  0.262144
+    4  1992-01-01  0.043980  0.054976  0.068719  0.085899  ...  0.134218  0.167772  0.209715  0.262144  0.327680
+    5  1993-01-01  0.054976  0.068719  0.085899  0.107374  ...  0.167772  0.209715  0.262144  0.327680  0.409600
+    6  1994-01-01  0.068719  0.085899  0.107374  0.134218  ...  0.209715  0.262144  0.327680  0.409600  0.512000
+    7  1995-01-01  0.085899  0.107374  0.134218  0.167772  ...  0.262144  0.327680  0.409600  0.512000  0.640000
+    8  1996-01-01  0.107374  0.134218  0.167772  0.209715  ...  0.327680  0.409600  0.512000  0.640000  0.800000
+    9  1997-01-01  0.134218  0.167772  0.209715  0.262144  ...  0.409600  0.512000  0.640000  0.800000  1.000000
+
+    [10 rows x 11 columns]
+
+The above shows a weighting scheme as applied to loss development, 
+the following shows the experience period weighting scheme as
+applied to forecast models.
+
+.. code:: python
+
+   experience_date_decay = weight_geometric_decay(
+    triangle=weight_test,
+    annual_decay_factor=rho,
+    basis='experience',
+    tri_fields="weight",
+    weight_as_field=False,
+   )
+   experience_date_decay.to_array_data_frame('weight')
+
+   period         0        12        24        36  ...        60        72        84        96       108
+    0  1988-01-01  0.134218  0.134218  0.134218  0.134218  ...  0.134218  0.134218  0.134218  0.134218  0.134218
+    1  1989-01-01  0.167772  0.167772  0.167772  0.167772  ...  0.167772  0.167772  0.167772  0.167772  0.167772
+    2  1990-01-01  0.209715  0.209715  0.209715  0.209715  ...  0.209715  0.209715  0.209715  0.209715  0.209715
+    3  1991-01-01  0.262144  0.262144  0.262144  0.262144  ...  0.262144  0.262144  0.262144  0.262144  0.262144
+    4  1992-01-01  0.327680  0.327680  0.327680  0.327680  ...  0.327680  0.327680  0.327680  0.327680  0.327680
+    5  1993-01-01  0.409600  0.409600  0.409600  0.409600  ...  0.409600  0.409600  0.409600  0.409600  0.409600
+    6  1994-01-01  0.512000  0.512000  0.512000  0.512000  ...  0.512000  0.512000  0.512000  0.512000  0.512000
+    7  1995-01-01  0.640000  0.640000  0.640000  0.640000  ...  0.640000  0.640000  0.640000  0.640000  0.640000
+    8  1996-01-01  0.800000  0.800000  0.800000  0.800000  ...  0.800000  0.800000  0.800000  0.800000  0.800000
+    9  1997-01-01  1.000000  1.000000  1.000000  1.000000  ...  1.000000  1.000000  1.000000  1.000000  1.000000
+
+    [10 rows x 11 columns]
 
 
 Cape Cod method
