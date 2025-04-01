@@ -111,7 +111,7 @@ The ``ChainLadder`` model accepts the following configuration parameters in ``mo
         "sigma_noise__sigma_scale": 0.5, # for use_linear_noise=False
     }
 
-- ``recency_decay``: Likelihood weight decay to down-weight older experience periods. Defaults to ``1.0``, which means no decay. If set to a value between ``0.0`` and ``1.0``, the likelihood of older experience periods will be downweighted by a geometric decay function with factor ``recency_decay``. See :ref:`geometric-decay` for more information.
+- ``recency_decay``: Likelihood weight decay to down-weight data from older evaluation dates. Defaults to ``1.0``, which means no decay. If set to a value between ``0.0`` and ``1.0``, the likelihood of older experience periods will be downweighted by a geometric decay function with factor ``recency_decay``. See :ref:`geometric-decay` for more information.
 - ``seed``: Random seed for model fitting.
 
 

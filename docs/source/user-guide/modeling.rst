@@ -85,8 +85,8 @@ by our models.
 
 Geometric decay weighting
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Most models can down-weight older
-experience periods using geometric decay weighting,
+Most models can down-weight data from older
+evaluation dates using geometric decay weighting,
 which is controlled by the ``recency_decay`` option passed
 to the ``config`` dictionary. If set to ``None``,
 this value is ``1.0`` by default, which means the data is
@@ -97,25 +97,56 @@ using the rule
 :math:`\rho^{(T - t) f}`, where :math:`\rho`
 is the ``recency_decay`` value, :math:`T`
 and :math:`t` are the maximum and current
-experience period indices, and :math:`f`
-is the triangle resolution in years.
+evaluation date indices, and :math:`f`
+is the triangle resolution in years. In forecasting
+models decay weighting is based on the experience period
+rather than the evaluation date.
+
 You can play around with this using our Bermuda package:
 
 .. code:: python
 
+   from datetime import date
    from bermuda import meyers_tri, weight_geometric_decay
 
-   paid_loss = meyers_tri.extract("paid_loss")
+   weight_test = meyers_tri.derive_fields(
+      weight=1.0
+   ).clip(max_eval=date(1990, 12, 31))
 
    rho = 0.8
-   paid_loss_downweighted = weight_geometric_decay(
-    triangle=meyers_tri,
+   evaluation_date_decay = weight_geometric_decay(
+    triangle=weight_test,
     annual_decay_factor=rho,
-    tri_fields="paid_loss",
+    basis='evaluation',
+    tri_fields="weight",
     weight_as_field=False,
-   ).extract("paid_loss")
+   )
+   evaluation_date_decay.to_array_data_frame('weight')
 
-   list(zip(paid_loss, paid_loss_downweighted))
+           period     0   12   24
+    0  1988-01-01  0.64  0.8  1.0
+    1  1989-01-01  0.80  1.0  NaN
+    2  1990-01-01  1.00  NaN  NaN
+
+The above shows a weighting scheme as applied to loss development, 
+the following shows the experience period weighting scheme as
+applied to forecast models.
+
+.. code:: python
+
+   experience_date_decay = weight_geometric_decay(
+    triangle=weight_test,
+    annual_decay_factor=rho,
+    basis='experience',
+    tri_fields="weight",
+    weight_as_field=False,
+   )
+   experience_date_decay.to_array_data_frame('weight')
+
+           period     0    12    24
+    0  1988-01-01  0.64  0.64  0.64
+    1  1989-01-01  0.80  0.80   NaN
+    2  1990-01-01  1.00   NaN   NaN
 
 
 Cape Cod method
