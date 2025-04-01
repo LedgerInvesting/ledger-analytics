@@ -137,7 +137,7 @@ The ``LR_SSM`` model accepts the following configuration parameters in ``model_c
         "momentum_logit_scale": 1.0,
     }
 
-- ``recency_decay``: Likelihood weight decay for recent observations. Defaults to ``1.0``, which means no decay. If set to a value between ``0.0`` and ``1.0``, the likelihood of recent observations will be downweighted by a geometric decay function with factor ``recency_decay``.
+- ``recency_decay``: Likelihood weight decay to down-weight older experience periods. Defaults to ``1.0``, which means no decay. If set to a value between ``0.0`` and ``1.0``, the likelihood of older experience periods will be downweighted by a geometric decay function with factor ``recency_decay``. See :ref:`geometric-decay` for more information.
 - ``seed``: Random seed for model fitting.
 
 Model Predict Configuration
