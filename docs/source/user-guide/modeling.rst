@@ -22,6 +22,16 @@ MCMC sampler arguments, will be provided soon.
 Our modeling tools also have the option to use other estimation
 methods, like maximum likelihood estimation, if users wish.
 
+One of the implications of using stochastic methods is that
+results may change depending on the seed used to
+seed downstream random number generators. Our models
+accept a ``seed: int`` option to ensure models can
+be reproducible. **However**, full reproducibility
+depends on multiple factors, such as using the same
+machine, with the same local environment (e.g. package versions),
+the same input data, etc. It is up to the users
+to manage this appropriately.
+
 Easy default prior distributions
 ------------------------------------
 
