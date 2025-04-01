@@ -8,17 +8,17 @@ from .interface import ModelInterface, TriangleInterface
 from .requester import Requester
 
 DEFAULT_HOST = "https://api.ldgr.app/analytics/"
-env_config = namedtuple("env_config", ["host", "api_key"])
+EnvConfig = namedtuple("EnvConfig", ["host", "api_key"])
 ENVIRONMENTS = {
-    "PROD": env_config(
+    "PROD": EnvConfig(
         host="https://api.ldgr.app/analytics/",
         api_key=os.getenv("LEDGER_ANALYTICS_API_KEY"),
     ),
-    "DEV": env_config(
+    "DEV": EnvConfig(
         host="https://platform-api-development.up.railway.app/analytics/",
         api_key=os.getenv("LEDGER_ANALYTICS_DEV_API_KEY"),
     ),
-    "LOCAL": env_config(
+    "LOCAL": EnvConfig(
         host="http://localhost:8000/analytics/",
         api_key=os.getenv("LEDGER_ANALYTICS_LOCAL_API_KEY"),
     ),
