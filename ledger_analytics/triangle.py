@@ -48,11 +48,13 @@ class Triangle(TriangleInterface):
             get_response = None
             retries = 0
             max_retries = 5
+            stream = False
             while get_response is None and retries < max_retries:
                 try:
                     retries += 1
-                    get_response = requester.get(endpoint)
+                    get_response = requester.get(endpoint, stream=stream)
                 except ChunkedEncodingError:
+                    stream = True
                     continue
 
         self = cls(
