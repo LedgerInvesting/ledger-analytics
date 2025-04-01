@@ -71,13 +71,13 @@ use a GeneralizedBondy model which is a generalization of the classic Bondy mode
     )
 
 Now we can square this triangle using a combination of body development via the chain_ladder model and
-tail development using bondy.
+tail development using bondy. Note that by default the prediction triangle will be named "paid_body_meyers_triangle" based on the ``model_name`` and the triangle name. You have the option of passing in a different ``prediction_name`` to the ``predict`` method that will save the output triangle with a user-specified name.
 
 .. code:: python
 
     chain_ladder_predictions = chain_ladder.predict(
         triangle="meyers_triangle",
-        config={"max_dev_lag": 84}
+        config={"max_dev_lag": 84},
     )
 
     chain_ladder_predictions.to_bermuda().plot_data_completeness()
