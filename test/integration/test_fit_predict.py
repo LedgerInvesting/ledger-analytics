@@ -1,3 +1,5 @@
+import time
+
 import pytest
 from bermuda import meyers_tri
 from requests import HTTPError
@@ -13,7 +15,7 @@ def test_fit_predict():
     name = "__test_chain_ladder"
     chain_ladder = client.development_model.create(
         triangle=triangle,
-        name="__test_chain_ladder",
+        name=name,
         model_type="ChainLadder",
     )
 
@@ -30,6 +32,8 @@ def test_fit_predict():
     assert predictions.to_bermuda().extract("paid_loss").shape == (45, 10e3)
     assert predictions.to_bermuda() == predictions2.to_bermuda()
 
+    assert chain_ladder.terminate() == chain_ladder
+
     chain_ladder.delete()
     with pytest.raises(ValueError):
         client.development_model.get(name=name)
@@ -42,4 +46,24 @@ def test_fit_predict():
     with pytest.raises(ValueError):
         client.development_model.get(name=name)
 
+    triangle.delete()
+
+
+def test_fit_termination():
+    client = AnalyticsClient(asynchronous=True)
+    clipped = meyers_tri.clip(max_eval=max(meyers_tri.periods)[-1])
+    triangle = client.triangle.create(name="__test_tri", data=clipped)
+
+    name = "__test_chain_ladder"
+    chain_ladder = client.development_model.create(
+        triangle=triangle,
+        name=name,
+        model_type="ChainLadder",
+    )
+
+    chain_ladder.terminate()
+
+    assert chain_ladder.poll().get("status") == "TERMINATED"
+
+    chain_ladder.delete()
     triangle.delete()
