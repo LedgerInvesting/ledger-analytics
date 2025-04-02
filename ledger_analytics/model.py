@@ -102,7 +102,7 @@ class LedgerModel(ModelInterface):
             "triangle_name": triangle_name,
             "model_name": name,
             "model_type": model_type,
-            "model_config": cls.FIT_CONFIG(**(config or {})),
+            "model_config": cls.FIT_CONFIG(**(config or {})).__dict__,
         }
         fit_response = requester.post(endpoint, data=config)
         if not fit_response.ok:
@@ -120,6 +120,7 @@ class LedgerModel(ModelInterface):
         )
 
         self._fit_response = fit_response
+        breakpoint()
 
         if asynchronous:
             return self
