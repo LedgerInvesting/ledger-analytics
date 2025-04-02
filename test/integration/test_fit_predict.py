@@ -70,3 +70,4 @@ def test_fit_termination():
     assert chain_ladder.poll().get("status") == "TERMINATED"
 
     chain_ladder.delete()
+    triangle.delete()
