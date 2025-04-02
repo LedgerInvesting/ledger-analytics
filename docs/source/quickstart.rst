@@ -155,6 +155,19 @@ instantiate the computing service and compile the model.
 If you are running multiple models, however,
 our remote compute service will become more efficient.
 
+Cancelling fits
+^^^^^^^^^^^^^^^^^^^^
+
+If you need to terminate a fit, you can use the ``LedgerModel.terminate``
+method:
+
+.. code:: python
+
+   chain_ladder.terminate()
+
+   # alternatively 
+   client.development_model.terminate(name="development")
+
 Model types
 ^^^^^^^^^^^^^
 
