@@ -10,9 +10,9 @@ the base ``ChainLadder`` model is expressed as:
 
     \begin{align}
         \begin{split}
-            y_{ij} &\sim \mathrm{Gamma(\mu_{ij}, \sigma_{ij}^2)}\\
+            y_{ij} &\sim \mathrm{Gamma(\mu_{ij}, \sigma_{ij}^2)},  \quad{\forall j \in (1, \tau]}\\
             \mu_{ij} &= ATA_{j - 1} y_{ij-1}\\
-            \sigma_{ij}^2 &= \exp(\sigma_{\text{int}} + \sigma_{\text{slope}} j + \ln(y_{ij-1})),  \quad{\forall j \in (1, \tau]}\\
+            \sigma_{ij}^2 &= \exp(\sigma_{\text{int}} + \sigma_{\text{slope}} j + \ln(y_{ij-1}))\\
             \log \bf{ATA}_{1:M - 1} &\sim \mathrm{Normal}(ATA_{\text{loc}}, ATA_{\text{scale}})\\
             \sigma_{\text{int}} &\sim \mathrm{Normal}(\sigma_{\text{int}, \text{loc}}, \sigma_{\text{int}, \text{scale}})\\
             \sigma_{\text{slope}} &\sim \mathrm{Normal}(\sigma_{\text{slope}, \text{loc}}, \sigma_{\text{slope}, \text{scale}})\\
@@ -111,7 +111,7 @@ The ``ChainLadder`` model accepts the following configuration parameters in ``mo
         "sigma_noise__sigma_scale": 0.5, # for use_linear_noise=False
     }
 
-- ``recency_decay``: Likelihood weight decay to down-weight data from older evaluation dates. Defaults to ``1.0``, which means no decay. If set to a value between ``0.0`` and ``1.0``, the likelihood of older experience periods will be downweighted by a geometric decay function with factor ``recency_decay``. See :ref:`geometric-decay` for more information.
+- ``recency_decay``: Likelihood weight decay to down-weight data from older evaluation dates. Defaults to ``1.0``, which means no decay. If set to a value between ``0.0`` and ``1.0``, the likelihood of older evaluation dates will be downweighted by a geometric decay function with factor ``recency_decay``. See :ref:`geometric-decay` for more information.
 - ``seed``: Random seed for model fitting.
 
 
