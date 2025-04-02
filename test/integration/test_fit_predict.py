@@ -32,7 +32,7 @@ def test_fit_predict():
     assert predictions.to_bermuda().extract("paid_loss").shape == (45, 10e3)
     assert predictions.to_bermuda() == predictions2.to_bermuda()
 
-    assert isinstance(chain_ladder.terminate(), chain_ladder)
+    assert chain_ladder.terminate() == chain_ladder
 
     chain_ladder.delete()
     with pytest.raises(ValueError):

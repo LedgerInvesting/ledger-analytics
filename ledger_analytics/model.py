@@ -183,7 +183,7 @@ class LedgerModel(ModelInterface):
         self._requester.post(self.endpoint + "/terminate", data={})
         status = self.poll().get("status")
 
-        if status.lower() == "terminated" or status.lower() == "finished":
+        if status.lower() != "pending":
             return self
 
         console = Console()
