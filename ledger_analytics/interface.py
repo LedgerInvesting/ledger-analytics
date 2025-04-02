@@ -133,7 +133,8 @@ class ModelInterface(metaclass=ModelRegistry):
         timeout: int = 300,
     ):
         triangle_name = triangle if isinstance(triangle, str) else triangle.name
-        return ModelRegistry.REGISTRY[self.model_class].fit_from_interface(
+        breakpoint()
+        return ModelRegistry.REGISTRY[model_type].fit_from_interface(
             triangle_name,
             name,
             model_type,
