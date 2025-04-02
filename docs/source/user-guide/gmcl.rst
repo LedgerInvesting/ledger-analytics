@@ -88,7 +88,7 @@ The ``Gmcl`` model accepts the following configuration parameters in ``model_con
 
 - ``loss_definition``: Pair of loss fields to model in the underlying triangle (e.g., ``"reported"``, ``"paid"``, or ``"incurred"``). Defaults to ``["paid", "reported"]``. Note that the ``Gmcl`` differs from other loss development models in that it requires two fields to be modeled simultaneously. Therefore, both specified fields must be present in the triangle. 
 - ``loss_family``: Outcome distribution family (e.g., ``"gamma"``, ``"lognormal"``, or ``""normal"``). Defaults to ``"gamma"``.
-- ``is_general``: Whether the general form of the model should be used. Defaults to ``False``, which effectively sets the correlation matrix on the age-to-age factors to be diagonal (i.e. :math:`\mathbf{R}_{\text{ATA}} = \mathbf{I}`). If set to ``True``, the model will estimate the correlation matrix as specified above.
+- ``is_general``: Whether the general form of the model should be used. Defaults to ``False``, which effectively sets the correlation matrix on age-to-age factors to the identity matrix (i.e. :math:`\mathbf{R}_{\text{ATA}} = \mathbf{I}`). If set to ``True``, the model will estimate the correlation matrix as specified above.
 - ``include_intercepts``: Whether to include intercept terms in the model. Defaults to ``False``, which effectively sets the intercept terms to zero (i.e. :math:`\boldsymbol{\beta_{\text{int}}} = 0`). If set to ``True``, the model will estimate intercept terms for each triangle as specified above.
 - ``priors``: Dictionary of prior distributions to use for model fitting. Default priors are: 
 
