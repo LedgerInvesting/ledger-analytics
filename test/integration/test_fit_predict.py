@@ -61,12 +61,8 @@ def test_fit_termination():
         model_type="ChainLadder",
     )
 
-    with pytest.raises(HTTPError):
-        # 500 error while the task is immediately spawned/setting up
-        chain_ladder.terminate()
-
-    time.sleep(2)
     chain_ladder.terminate()
+
     assert chain_ladder.poll().get("status") == "TERMINATED"
 
     chain_ladder.delete()

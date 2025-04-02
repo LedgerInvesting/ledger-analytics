@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 
 from requests import Response
+from requests.exceptions import HTTPError
 from rich.console import Console
 
 from .interface import ModelInterface, TriangleInterface
@@ -180,18 +181,22 @@ class LedgerModel(ModelInterface):
         return self
 
     def terminate(self) -> LedgerModel:
-        self._requester.post(self.endpoint + "/terminate", data={})
         status = self.poll().get("status")
 
-        if status.lower() != "pending":
+        if status.lower() not in ["created", "pending"]:
             return self
 
         console = Console()
         timeout = 60
         start = time.time()
         with console.status("Terminating...", spinner="bouncingBar") as _:
+            console.log(f"Terminating model {self.name} with ID {self.id}.")
             while status.lower() != "terminated" and time.time() - start < timeout:
-                status = self.poll().get("status")
+                try:
+                    self._requester.post(self.endpoint + "/terminate", data={})
+                    status = self.poll().get("status")
+                except HTTPError:
+                    continue
                 if status.lower() == "terminated":
                     return self
             raise TimeoutError(f"Could not terminate within {timeout} seconds.")
