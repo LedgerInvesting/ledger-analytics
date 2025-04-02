@@ -179,6 +179,30 @@ class LedgerModel(ModelInterface):
         self._delete_response = self._requester.delete(self.endpoint)
         return self
 
+    def terminate(self) -> LedgerModel:
+        self._requester.post(self.endpoint + "/terminate", data={})
+        status = self.poll().get("status")
+
+        if status.lower() == "terminated" or status.lower() == "finished":
+            return self
+
+        console = Console()
+        timeout = 60
+        start = time.time()
+        with console.status("Terminating...", spinner="bouncingBar") as _:
+            while status.lower() != "terminated" and time.time() - start < timeout:
+                status = self.poll().get("status")
+                if status.lower() == "terminated":
+                    return self
+            raise TimeoutError(f"Could not terminate within {timeout} seconds.")
+
+    def poll(self):
+        try:
+            task_id = self._fit_response.json()["modal_task"]["id"]
+            return self._poll(task_id).json()
+        except AttributeError:
+            return None
+
     def _poll(self, task_id: str) -> ConfigDict:
         endpoint = self.endpoint.replace(
             f"{self.model_class_slug}/{self.id}", f"tasks/{task_id}"

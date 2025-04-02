@@ -173,6 +173,10 @@ class ModelInterface(metaclass=ModelRegistry):
             triangle, config=config, target_triangle=target_triangle, timeout=timeout
         )
 
+    def terminate(self, name: str | None = None, id: str | None = None):
+        model = self.get(name, id)
+        return model.terminate()
+
     def delete(self, name: str | None = None, id: str | None = None) -> None:
         model = self.get(name, id)
         return model.delete()
