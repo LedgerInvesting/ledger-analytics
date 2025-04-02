@@ -19,3 +19,5 @@ a full *square*, in which case we indicate the development lag with :math:`j = 1
    :caption: Available Models
 
    generalized-bondy
+   sherman
+   classical-power

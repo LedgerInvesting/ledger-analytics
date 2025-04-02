@@ -20,3 +20,6 @@ a full *square*, in which case we indicate the development lag with :math:`j = 1
 
    chain-ladder
    gmcl
+   manual-ata
+   meyers-crc
+   trad-chain-ladder
