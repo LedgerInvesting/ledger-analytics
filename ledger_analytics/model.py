@@ -204,6 +204,16 @@ class LedgerModel(ModelInterface):
                     return task["task_response"]
             raise TimeoutError(f"Task '{task}' timed out")
 
+    def fit_status(self) -> str:
+        task_id = self._fit_response.json()["modal_task"]["id"]
+        task = self._poll(task_id).json()
+        modal_status = (
+            task["task_response"]["status"]
+            if task["task_response"] is not None
+            else "pending"
+        )
+        return modal_status
+
 
 class DevelopmentModel(LedgerModel):
     pass
