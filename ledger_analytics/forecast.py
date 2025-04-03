@@ -14,7 +14,7 @@ class AR1(ForecastModel):
 
         y_{i} &\sim \mathrm{Gamma}(\mu_{i}, \sigma_{i}^2) \\\\
         \mu_{ij} &= \\alpha y_{i - 1} + (1 - \\alpha) \mu \\\\
-        \\sigma_{ij}^2 &= \\sigma_{\mathrm{base}} + \\frac{\\sigma_{obs}}{EP}
+        \\sigma_{i}^2 &= \\sigma_{\mathrm{base}} + \\frac{\\sigma_{obs}}{EP}
 
     where :math:`y` represents loss ratios. 
     See the model-specific documentation in the User Guide for more details.
@@ -24,27 +24,97 @@ class AR1(ForecastModel):
     """
 
     class DefaultPriors(Enum):
-        """Default priors for ChainLadder.
+        """Default priors for AR1.
 
         Attributes:
-            ata__loc: the location of the ATA priors, either a float
-                or a list of floats, one for each ATA parameter.
         """
 
-        init_log_ata__loc: float = 0.0
-        init_log_ata__scale: float = 1.0
-        bondy_exp__loc: float = 0.0
-        bondy_exp__scale: float = 0.3
-        sigma_slope__loc: float = -0.6
-        sigma_slope__scale: float = 0.3
-        sigma_intercept__loc: float = 0.0
-        sigma_intercept__scale: float = 3.0
+        reversion__loc: float = 0.0
+        reversion__scale: float = 1.0
+        base_sigma__loc: float = -2.0
+        base_sigma__scale: float = 1.0
+        obs_sigma__loc: float = -2.0
+        obs_sigma__scale: float = 1.0
+        target_lr__loc: float = -0.5
+        target_lr__scale: float = 1.0
 
     class Config(ValidationConfig):
-        """ChainLadder model configuration class.
+        """AR1 model configuration class.
 
         Attributes:
-            loss_family: the loss family to use. One of ``"Gamma"``, ``"Lognormal"``,
+            loss_family: the likelihood family to use. One of ``"Gamma"``, ``"Lognormal"``,
+                ``"Normal"`` or ``"InverseGaussian"``. Defaults to ``"Gamma"``.
+            loss_definition: the field to model in the triangle. One of
+                ``"paid"`` ``"reported"`` or ``"incurred"``.
+            recency_decay: geometric decay parameter to downweight earlier
+                diagonals (see `Modeling rationale...` section
+                in the User Guide). Defaults to 1.0 for no geometric decay.
+                Can be ``"lookup"`` to choose based on ``line_of_business``.
+            priors: dictionary of priors. Defaults to ``None`` to use the default priors.
+                See the AR1DefaultPriors class for default (non line-of-business)
+                priors.
+            seed: Seed to use for model sampling. Defaults to ``None``, but it is highly recommended
+                to set.
+        """
+
+        loss_family: str = "Gamma"
+        loss_definition: str = "paid"
+        recency_decay: str | float | None = None
+        priors: dict[str, list[float] | float] | None = None
+        seed: int | None = None
+
+    class PredictConfig(ValidationConfig):
+        """AR1 predict configuration class.
+
+        Attributes:
+            include_process_risk: should process risk or
+                aleatoric uncertainty be included in the predictions.
+                Defaults to ``True``. If ``False``, predictions are
+                based on the mean function, only.
+        """
+
+        include_process_risk: bool = True
+
+
+class LR_SSM(ForecastModel):
+    """LR_SSM.
+
+    This model implements, by default, a Bayesian 
+    autoregressive lag-1 forecasting model, with the form:
+
+    ..  math::
+
+        y_{i} &\sim \mathrm{Gamma}(\mu_{i}, \sigma_{i}^2) \\\\
+        \mu_{ij} &= \\alpha y_{i - 1} + (1 - \\alpha) \mu \\\\
+        \\sigma_{i}^2 &= \\sigma_{\mathrm{base}} + \\frac{\\sigma_{obs}}{EP}
+
+    where :math:`y` represents loss ratios. 
+    See the model-specific documentation in the User Guide for more details.
+
+    The fit and predict configurations are controlled by :class:`Config` and
+    :class:`PredictConfig` classes, respectively.
+    """
+
+    class DefaultPriors(Enum):
+        """Default priors for LR_SSM.
+
+        Attributes:
+        """
+
+        reversion__loc: float = 0.0
+        reversion__scale: float = 1.0
+        base_sigma__loc: float = -2.0
+        base_sigma__scale: float = 1.0
+        obs_sigma__loc: float = -2.0
+        obs_sigma__scale: float = 1.0
+        target_lr__loc: float = -0.5
+        target_lr__scale: float = 1.0
+
+    class Config(ValidationConfig):
+        """LR_SSM model configuration class.
+
+        Attributes:
+            loss_family: the likelihood to use. One of ``"Gamma"``, ``"Lognormal"``,
                 ``"Normal"`` or ``"InverseGaussian"``. Defaults to ``"Gamma"``.
             loss_definition: the field to model in the triangle. One of
                 ``"paid"`` ``"reported"`` or ``"incurred"``.
@@ -62,7 +132,7 @@ class AR1(ForecastModel):
                 the Bondy exponent term. By default, this is 0.0, but can be set to a
                 suitable development lag (in months) to center the Bondy parameters.
             priors: dictionary of priors. Defaults to ``None`` to use the default priors.
-                See the ChainLadderDefaultPriors class for default (non line-of-business)
+                See the LR_SSMDefaultPriors class for default (non line-of-business)
                 priors.
             informed_priors_version: If ``line_of_business`` is set, the priors are based
                 on Ledger Investing's proprietary values derived from industry data.
@@ -83,7 +153,7 @@ class AR1(ForecastModel):
         seed: int | None = None
 
     class PredictConfig(ValidationConfig):
-        """ChainLadder predict configuration class.
+        """LR_SSM predict configuration class.
 
         Attributes:
             include_process_risk: should process risk or

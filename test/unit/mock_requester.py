@@ -80,9 +80,20 @@ class ModelMockRequester(Requester):
                 mocker.get(
                     url,
                     json={
-                        "triangle_name": "test_meyers_triangle",
-                        "name": "test_chain_ladder",
-                        "id": "model_abc",
+                        "results": [
+                            {
+                                "triangle_name": "test_meyers_triangle",
+                                "name": "test_chain_ladder",
+                                "id": "model_abc",
+                                "modal_task_info": {
+                                    "id": "abc123",
+                                    "task_args": {
+                                        "model_config": {},
+                                        "model_type": "ChainLadder",
+                                    },
+                                },
+                            }
+                        ],
                     },
                     status_code=200,
                 )

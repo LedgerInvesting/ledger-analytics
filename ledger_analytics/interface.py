@@ -148,10 +148,11 @@ class ModelInterface(metaclass=ModelRegistry):
     def get(self, name: str | None = None, id: str | None = None):
         model_obj = self._get_details_from_id_name(name, id)
         endpoint = self.endpoint + f"/{model_obj['id']}"
-        return ModelRegistry.REGISTRY[self.model_class].get(
+        model_type = model_obj["modal_task_info"]["task_args"]["model_type"]
+        return ModelRegistry.REGISTRY[to_snake_case(model_type)].get(
             model_obj["id"],
             model_obj["name"],
-            model_obj["modal_task_info"]["task_args"]["model_type"],
+            model_type,
             model_obj["modal_task_info"]["task_args"]["model_config"],
             self.model_class,
             endpoint,

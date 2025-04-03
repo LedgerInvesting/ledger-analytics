@@ -70,6 +70,9 @@ def test_ledger_analytics_model_crud():
         name="test_chain_ladder",
         model_type="ChainLadder",
     )
+    development_model.predict("test_meyers_triangle")
+    client.development_model.predict("test_meyers_triangle", name="test_chain_ladder")
+
     tail_model = client.tail_model.create(
         triangle="test_meyers_triangle",
         name="test_bondy",
