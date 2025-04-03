@@ -14,7 +14,7 @@ Our Loss Ratio State Space Model (``LR_SSM``) can be viewed as a latent random w
         \mathrm{LR}_{i} &\sim \mathrm{Gamma}(\exp(\eta_{i}), \sigma_{i}^2)\\
         \eta_{i} &= (1 - \phi_{\text{reversion}}) \mathrm{LR}_{\text{target}} + \phi_{\text{reversion}} \eta_{i - 1} + \zeta_{i-1} + z_{i} \sqrt{\epsilon_{\text{latent}}}\\
         \zeta_{i} &= \gamma_{\text{momentum}} (\zeta_{i-1} + z_{i} \sqrt{\epsilon_{\text{latent}}})\\
-        \sigma_{i}^2 &= \exp(\sigma_{\text{base}})^2 + \exp(\sigma_{\text{obs}})^2 / \sqrt{UEP_i} \\
+        \sigma_{i}^2 &= \exp(\sigma_{\text{base}})^2 + \exp(\sigma_{\text{obs}})^2 / \sqrt{\mathrm{UEP}_i} \\
         \phi_{\text{reversion}} &= \mathrm{logit}^{-1}(\phi_{\text{reversion}}^{*}) \cdot 2 - 1\\
         \phi_{\text{reversion}}^{*} &\sim \mathrm{Normal}(\phi_{\text{reversion}, \text{loc}}, \phi_{\text{reversion}, \text{scale}})\\
         \gamma_{\text{momentum}} &= \mathrm{logit}^{-1}(\gamma_{\text{momentum}}^{*})\\
@@ -39,7 +39,7 @@ Our Loss Ratio State Space Model (``LR_SSM``) can be viewed as a latent random w
     \end{align*}
 
 where :math:`\mathrm{LR}_i` indicates the observed loss ratio for accident period :math:`i`, 
-:math:`\eta_i` is the latent log loss ratio for the same accident period, and :math:`UEP_i` is the 
+:math:`\eta_i` is the latent log loss ratio for the same accident period, and :math:`\mathrm{UEP}_i` is the 
 *used earned premium* for the same accident period (see details below). The state space component of 
 the model captures how the latent log loss ratio (:math:`\eta_i`) evolves over time. The
 evolution of :math:`\eta_i` is controlled by a reversion parameter (:math:`\phi_{\text{reversion}}`),
@@ -93,7 +93,7 @@ The ``LR_SSM`` model is fit using the following API call:
         }
     )
 
-The ``LR_SSM`` model accepts the following configuration parameters in ``model_config``:
+The ``LR_SSM`` model accepts the following configuration parameters in ``config``:
 
 - ``loss_definition``: Name of loss field to model in the underlying triangle (e.g., ``"reported"``, ``"paid"``, or ``"incurred"``). Defaults to ``"reported"``.
 - ``loss_family``: Outcome distribution family (e.g., ``"gamma"``, ``"lognormal"``, or ``""normal"``). Defaults to ``"gamma"``.

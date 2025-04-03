@@ -84,7 +84,7 @@ The ``Gmcl`` model is fit using the following API call:
         }
     )
 
-The ``Gmcl`` model accepts the following configuration parameters in ``model_config``:
+The ``Gmcl`` model accepts the following configuration parameters in ``config``:
 
 - ``loss_definition``: Pair of loss fields to model in the underlying triangle (e.g., ``"reported"``, ``"paid"``, or ``"incurred"``). Defaults to ``["paid", "reported"]``. Note that the ``Gmcl`` differs from other loss development models in that it requires two fields to be modeled simultaneously. Therefore, both specified fields must be present in the triangle. 
 - ``loss_family``: Outcome distribution family (e.g., ``"gamma"``, ``"lognormal"``, or ``""normal"``). Defaults to ``"gamma"``.
