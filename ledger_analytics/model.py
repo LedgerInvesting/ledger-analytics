@@ -13,8 +13,6 @@ from .types import ConfigDict
 
 
 class LedgerModel(ModelInterface):
-    FIT_CONFIG = None
-
     def __init__(
         self,
         id: str,
@@ -32,7 +30,7 @@ class LedgerModel(ModelInterface):
         self._id = id
         self._name = name
         self._model_type = model_type
-        self._config = config or {}
+        self._config = config
         self._model_class = model_class
         self._fit_response: Response | None = None
         self._predict_response: Response | None = None
@@ -102,7 +100,7 @@ class LedgerModel(ModelInterface):
             "triangle_name": triangle_name,
             "model_name": name,
             "model_type": model_type,
-            "model_config": cls.FIT_CONFIG(**(config or {})).__dict__,
+            "model_config": cls.Config(**(config or {})).__dict__,
         }
         fit_response = requester.post(endpoint, data=config)
         if not fit_response.ok:
@@ -120,7 +118,6 @@ class LedgerModel(ModelInterface):
         )
 
         self._fit_response = fit_response
-        breakpoint()
 
         if asynchronous:
             return self
@@ -146,7 +143,7 @@ class LedgerModel(ModelInterface):
         triangle_name = triangle if isinstance(triangle, str) else triangle.name
         config = {
             "triangle_name": triangle_name,
-            "predict_config": config or {},
+            "predict_config": self.PredictConfig(**(config or {})).__dict__,
         }
         if prediction_name:
             config["prediction_name"] = prediction_name
@@ -209,7 +206,7 @@ class LedgerModel(ModelInterface):
             task_id = self._fit_response.json()["modal_task"]["id"]
             return self._poll(task_id).json()
         except AttributeError:
-            return None
+            return {}
 
     def _poll(self, task_id: str) -> ConfigDict:
         endpoint = self.endpoint.replace(

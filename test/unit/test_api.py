@@ -5,6 +5,7 @@ from test.unit.mock_requester import (
     TriangleMockRequesterAfterDeletion,
 )
 
+import pydantic_core
 import pytest
 import requests
 from bermuda import Triangle as BermudaTriangle
@@ -96,3 +97,25 @@ def test_ledger_analytics_model_crud():
     client._requester = ModelMockRequesterAfterDeletion(API_KEY)
     with pytest.raises(requests.HTTPError):
         client.development_model.delete(name="test_chain_ladder")
+
+
+def test_ledger_analytics_model_configs():
+    client = AnalyticsClient(API_KEY, asynchronous=True)
+    client.host = TEST_HOST
+    client._requester = ModelMockRequester(API_KEY)
+
+    with pytest.raises(pydantic_core.ValidationError):
+        client.development_model.create(
+            triangle="test_meyers_triangle",
+            name="test_chain_ladder",
+            model_type="ChainLadder",
+            config={"foo": True},
+        )
+
+    with pytest.raises(pydantic_core.ValidationError):
+        client.development_model.create(
+            triangle="test_meyers_triangle",
+            name="meyers_crc",
+            model_type="MeyersCRC",
+            config={"foo": True},
+        )

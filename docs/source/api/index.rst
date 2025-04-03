@@ -8,3 +8,6 @@ API documentation
     triangle.rst
     model.rst
     interface.rst
+    development.rst
+    tail.rst
+    forecast.rst
