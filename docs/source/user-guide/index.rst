@@ -9,3 +9,4 @@ User Guide
    development.rst
    tail.rst
    forecast.rst
+   troubleshooting.rst
