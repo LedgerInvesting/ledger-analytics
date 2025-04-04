@@ -10,8 +10,8 @@ model type, which is expressed mathematically as:
 .. math:: 
     \begin{align*}
         \mathrm{LR}_{i} &\sim \mathrm{Gamma}(\eta_{i}, \sigma_{i}^2)\\
-        \eta_{i} &= (1 - \phi_{\text{reversion}}) \mathrm{LR}_{\text{target}} + \phi_{\text{reversion}} \log{(\mathrm{LR}_{i - 1})}\\
-        \sigma_{i}^2 &= \sigma_{\text{base}} + \sigma_{\text{obs}} / EP_i\\
+        \eta_{i} &= (1 - \phi_{\text{reversion}}) \mathrm{LR}_{\text{target}} + \phi_{\text{reversion}} \mathrm{LR}_{i - 1}\\
+        \sigma_{i}^2 &= \sigma_{\text{base}} + \sigma_{\text{obs}} / \mathrm{EP}_i\\
         \phi_{\text{reversion}} &= \mathrm{logit}^{-1}(\phi_{\text{reversion}}^{*}) \cdot 2 - 1\\
         \phi_{\text{reversion}}^{*} &\sim \mathrm{Normal}(\phi_{\text{reversion}, \text{loc}}, \phi_{\text{reversion}, \text{scale}})\\
         \log \mathrm{LR}_{\text{target}} &\sim \mathrm{Normal}(\mathrm{LR}_{\text{target}, \text{loc}}, \mathrm{LR}_{\text{target}, \text{scale}})\\
@@ -28,10 +28,10 @@ model type, which is expressed mathematically as:
     \end{align*}
 
 where :math:`\mathrm{LR}_i` indicates the observed loss ratio for accidenty year :math:`i`, and 
-:math:`EP_i` is the *earned premium* for the same accident period. The model is specified such that 
-:math:`\eta_i` is the expected loss ratio for each accident period, and the observed loss ratios are 
-then assumed to be Gamma distributed where :math:`\mathrm{Gamma(\eta_i, \sigma_{i}^2)}` is the 
-mean-variance parameterization of the Gamma distribution.  
+:math:`mathrm{EP}_i` is the *earned premium* for the same accident period. The model is specified 
+such that :math:`\eta_i` is the expected loss ratio for each accident period, and the observed loss 
+ratios are then assumed to be Gamma distributed where :math:`\mathrm{Gamma(\eta_i, \sigma_{i}^2)}` 
+is the mean-variance parameterization of the Gamma distribution.  
 
 Model Fit Configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -47,22 +47,13 @@ The ``AR1`` model is fit using the following API call:
         config={ # default model_config
             "loss_definition": "reported",
             "loss_family": "gamma",
-            "priors": {
-                "reversion__loc": 0.0,
-                "reversion__scale": 1.0,
-                "base_sigma__loc": -2.0,
-                "base_sigma__scale": 1.0,
-                "obs_sigma__loc": -2.0,
-                "obs_sigma__scale": 1.0,
-                "target_lr__loc": -0.5,
-                "target_lr__scale": 1.0,
-            },
+            "priors": None, # see defaults below
             "recency_decay": 1.0,
             "seed": None
         }
     )
 
-The ``AR1`` model accepts the following configuration parameters in ``model_config``:
+The ``AR1`` model accepts the following configuration parameters in ``config``:
 
 - ``loss_definition``: Name of loss field to model in the underlying triangle (e.g., ``"reported"``, ``"paid"``, or ``"incurred"``). Defaults to ``"reported"``.
 - ``loss_family``: Outcome distribution family (e.g., ``"gamma"``, ``"lognormal"``, or ``""normal"``). Defaults to ``"gamma"``.

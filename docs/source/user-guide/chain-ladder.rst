@@ -10,9 +10,9 @@ the base ``ChainLadder`` model is expressed as:
 
     \begin{align}
         \begin{split}
-            y_{ij} &\sim \mathrm{Gamma(\mu_{ij}, \sigma_{ij}^2)}\\
+            y_{ij} &\sim \mathrm{Gamma(\mu_{ij}, \sigma_{ij}^2)},  \quad{\forall j \in (1, \tau]}\\
             \mu_{ij} &= ATA_{j - 1} y_{ij-1}\\
-            \sigma_{ij}^2 &= \exp(\sigma_{\text{int}} + \sigma_{\text{slope}} j + \ln(y_{ij-1})),  \quad{\forall j \in (1, \tau]}\\
+            \sigma_{ij}^2 &= \exp(\sigma_{\text{int}} + \sigma_{\text{slope}} j + \log(y_{ij-1}))\\
             \log \bf{ATA}_{1:M - 1} &\sim \mathrm{Normal}(ATA_{\text{loc}}, ATA_{\text{scale}})\\
             \sigma_{\text{int}} &\sim \mathrm{Normal}(\sigma_{\text{int}, \text{loc}}, \sigma_{\text{int}, \text{scale}})\\
             \sigma_{\text{slope}} &\sim \mathrm{Normal}(\sigma_{\text{slope}, \text{loc}}, \sigma_{\text{slope}, \text{scale}})\\
@@ -50,21 +50,13 @@ The ``ChainLadder`` model is fit using the following API call:
             "use_multivariate": False,
             "line_of_business": None,
             "informed_priors_version": None,
-            "priors": {
-                "ata__loc": 0.0,
-                "ata__scale": 5.0,
-                "sigma_slope__loc": -0.6,
-                "sigma_slope__scale": 0.3,
-                "sigma_intercept__loc": 0.0,
-                "sigma_intercept__scale": 3.0,
-                "sigma_noise__sigma_scale": 0.5
-            },
+            "priors": None, # see defaults below
             "recency_decay": 1.0,
             "seed": None
         }
     )
 
-The ``ChainLadder`` model accepts the following configuration parameters in ``model_config``:
+The ``ChainLadder`` model accepts the following configuration parameters in ``config``:
 
 - ``loss_definition``: Name of loss field to model in the underlying triangle (e.g., ``"reported"``, ``"paid"``, or ``"incurred"``). Defaults to ``"reported"``.
 - ``loss_family``: Outcome distribution family (e.g., ``"gamma"``, ``"lognormal"``, or ``""normal"``). Defaults to ``"gamma"``.
@@ -111,7 +103,7 @@ The ``ChainLadder`` model accepts the following configuration parameters in ``mo
         "sigma_noise__sigma_scale": 0.5, # for use_linear_noise=False
     }
 
-- ``recency_decay``: Likelihood weight decay to down-weight data from older evaluation dates. Defaults to ``1.0``, which means no decay. If set to a value between ``0.0`` and ``1.0``, the likelihood of older experience periods will be downweighted by a geometric decay function with factor ``recency_decay``. See :ref:`geometric-decay` for more information.
+- ``recency_decay``: Likelihood weight decay to down-weight data from older evaluation dates. Defaults to ``1.0``, which means no decay. If set to a value between ``0.0`` and ``1.0``, the likelihood of older evaluation dates will be downweighted by a geometric decay function with factor ``recency_decay``. See :ref:`geometric-decay` for more information.
 - ``seed``: Random seed for model fitting.
 
 

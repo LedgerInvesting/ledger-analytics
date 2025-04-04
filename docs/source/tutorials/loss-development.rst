@@ -15,7 +15,7 @@ workflow using LedgerAnalytics.
     api_key = "..."
     client = AnalyticsClient(api_key)
 
-The bermuda library comes equiped with a sample triangle with paid loss
+The ``bermuda`` library comes equiped with a sample triangle with paid loss
 and earned premium. It's a squared triangle, so we'll clip off the 
 lower-right triangle leaving a typical triangle-shaped loss development
 triangle, and load it into the API.
@@ -37,7 +37,7 @@ Let's see which models are available to us for loss and tail development.
     client.development_model.list_model_types()
     client.tail_model.list_model_types()
 
-We'll start with body development models. We'll use the standard ChainLadder 
+We'll start with body development models. We'll use the standard ``ChainLadder`` 
 development model for now, but the data get's stale and thin after the 
 first few years, so we'll switch to a tail model after a development 
 lag of 84 months. We expect that new loss development is more predictive
@@ -57,7 +57,7 @@ based on the evaluation date.
     )
 
 Now we'll need to fit a tail model to account for lags after 72 months. For this we'll
-use a GeneralizedBondy model which is a generalization of the classic Bondy model.
+use a ``GeneralizedBondy`` model which is a generalization of the classic Bondy model.
 
 ..  code:: python
 
@@ -70,8 +70,8 @@ use a GeneralizedBondy model which is a generalization of the classic Bondy mode
         }
     )
 
-Now we can square this triangle using a combination of body development via the chain_ladder model and
-tail development using bondy. Note that by default the prediction triangle will be named "paid_body_meyers_triangle" based on the ``model_name`` and the triangle name. You have the option of passing in a different ``prediction_name`` to the ``predict`` method that will save the output triangle with a user-specified name.
+Now we can square this triangle using a combination of body development via the ``chain_ladder`` model and
+tail development using bondy. Note that by default the prediction triangle will be named ``"paid_body_meyers_triangle"`` based on the ``model_name`` and the triangle name. You have the option of passing in a different ``prediction_name`` to the ``predict`` method that will save the output triangle with a user-specified name.
 
 .. code:: python
 
