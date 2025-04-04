@@ -14,8 +14,18 @@ to development lag :math:`j = N - i + 1`, creating the triangular data structure
 triangles are named for. However, sometimes historic data will be available such that we have 
 a full *square*, in which case we indicate the development lag with :math:`j = 1, ..., M`.
 
+Some development models may use loss ratios as the target variable as opposed to cumulative losses. 
+In such cases we use :math:`\mathcal{LR}` to denote loss ratios, where 
+:math:`LR_{ij} = y_{ij} / EP_{i}` and :math:`EP_{i}` indicates the total earned premium for the 
+given accident period. In either case, predictions are always generated and returned to the user
+on the loss scale.
+
 .. toctree::
    :maxdepth: 2
    :caption: Available Models
 
    chain-ladder
+   gmcl
+   manual-ata
+   meyers-crc
+   Traditional Chain Ladder <trad-chain-ladder>

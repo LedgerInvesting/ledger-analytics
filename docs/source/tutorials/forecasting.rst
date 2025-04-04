@@ -31,8 +31,8 @@ Let's see which models are available to us for forecasting.
 
    client.forecast_model.list_model_types()
 
-Let's start with the TraditionalGcc model - which stands for Traditional Generalized Cape Cod. This
-model is essentially a moving average of the loss ratios from previous accident periods. 
+Let's start with the ``TraditionalGCC`` model - which stands for Traditional Generalized Cape Cod. 
+This model is essentially a moving average of the loss ratios from previous accident periods. 
 
 
 ..  code:: python
@@ -40,7 +40,7 @@ model is essentially a moving average of the loss ratios from previous accident 
    gcc_forecast = client.forecast_model.create(
        triangle="full_meyers",
        name="gcc_forecast",
-       model_type="TraditionalGcc",
+       model_type="TraditionalGCC",
        model_config={
            "loss_definition": "paid",
        }
@@ -72,22 +72,22 @@ It can be helpful to convert the prediction to bermuda to inspect the results
     gcc_loss_ratio = gcc_prediction_tri[0]['paid_loss'] / gcc_prediction_tri[0]['earned_premium']
     print(f"Ultimate loss ratio: {gcc_loss_ratio}")
 
-We can compare this to a more sophisticated model, like the LR_SSM model. This model is a bayesian state-space model that incorporates a mean-reverting latent loss ratio.
+We can compare this to a more sophisticated model, like the ``SSM`` model. This model is a bayesian state-space model that incorporates a mean-reverting latent loss ratio.
 
 ..  code:: python
 
-    lr_ssm_forecast = client.forecast_model.create(
+    ssm_forecast = client.forecast_model.create(
        triangle="full_meyers",
-       name="lr_ssm_forecast",
-       model_type="LR_SSM",
+       name="ssm_forecast",
+       model_type="SSM",
        model_config={
            "loss_definition": "paid",
        }
     )
-    lr_ssm_prediction = lr_ssm_forecast.predict("full_meyers", target_triangle=target)
-    lr_ssm_prediction_tri = lr_ssm_prediction.to_bermuda()
-    lr_ssm_loss_ratio = lr_ssm_prediction_tri[0]['paid_loss'] / lr_ssm_prediction_tri[0]['earned_premium']
+    ssm_prediction = ssm_forecast.predict("full_meyers", target_triangle=target)
+    ssm_prediction_tri = ssm_prediction.to_bermuda()
+    ssm_loss_ratio = ssm_prediction_tri[0]['paid_loss'] / ssm_prediction_tri[0]['earned_premium']
 
-Note that the lr_ssm_loss_ratio is a posterior distribution of 10,000 samples of the ultimate loss ratio unlike the GCC point estimate.
+Note that the ``ssm_loss_ratio`` is a posterior distribution of 10,000 samples of the ultimate loss ratio unlike the GCC point estimate.
 
 .. image:: loss_ratio_distribution.png
