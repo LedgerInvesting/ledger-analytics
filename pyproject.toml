@@ -13,6 +13,7 @@ dependencies = [
     "bermuda-ledger",
     "requests",
     "rich",
+    "pydantic",
 ]
 
 [tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
