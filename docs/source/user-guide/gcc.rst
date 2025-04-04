@@ -10,8 +10,8 @@ premium volume, leverage on ATA factors, and temporal distance from accident per
 
 .. math:: 
     \begin{align*}
-        \widehat{\mathrm{LR}}_i &= \frac{\sum_{k=1}^N mathrm{LR}_k \cdot UEP_k \cdot \beta^{\lvert k - i\rvert}}{\sum_{k=1}^N mathrm{UEP}_k \cdot \beta^{\lvert k - i\rvert}}\\
-        mathrm{UEP}_i &= mathrm{EP}_i \frac{mathrm{LR}_{\text{obs},i}}{mathrm{LR}_{i}}\\
+        \widehat{\mathrm{LR}}_i &= \frac{\sum_{k=1}^N \mathrm{LR}_k \cdot \mathrm{UEP}_k \cdot \beta^{\lvert k - i\rvert}}{\sum_{k=1}^N \mathrm{UEP}_k \cdot \beta^{\lvert k - i\rvert}}\\
+        \mathrm{UEP}_i &= \mathrm{EP}_i \frac{\mathrm{LR}_{\text{obs},i}}{\mathrm{LR}_{i}}\\
         \beta &= \text{user input} \in (0, 1]
     \end{align*}
 
