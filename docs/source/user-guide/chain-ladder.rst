@@ -50,15 +50,7 @@ The ``ChainLadder`` model is fit using the following API call:
             "use_multivariate": False,
             "line_of_business": None,
             "informed_priors_version": None,
-            "priors": {
-                "ata__loc": 0.0,
-                "ata__scale": 5.0,
-                "sigma_slope__loc": -0.6,
-                "sigma_slope__scale": 0.3,
-                "sigma_intercept__loc": 0.0,
-                "sigma_intercept__scale": 3.0,
-                "sigma_noise__sigma_scale": 0.5
-            },
+            "priors": None, # see defaults below
             "recency_decay": 1.0,
             "seed": None
         }

@@ -1,4 +1,4 @@
-Generalized Cape Cod Model (``TraditionalGcc``)
+Generalized Cape Cod Model (``TraditionalGCC``)
 -----------------------------------------------
 
 The Cape Cod method is a popoular deterministic method for forecasting ultimate losses use by 
@@ -6,7 +6,7 @@ actuaries when estimating loss reserves. Our Generalized Cape Cod model is based
 method, which assumes that the latent loss ratio for a given accident period is taken to be a 
 weighted mean of all other loss ratios (both past and future). The weight is determined by earned 
 premium volume, leverage on ATA factors, and temporal distance from accident period in question. Our 
-``TraditionalGcc`` model type implements the model, which is expressed mathematically as:
+``TraditionalGCC`` model type implements the model, which is expressed mathematically as:
 
 .. math:: 
     \begin{align*}
@@ -31,29 +31,29 @@ the predicted losses are simply the average of all accident period loss ratios. 
 Model Fit Configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``TraditionalGcc`` model is fit using the following API call: 
+The ``TraditionalGCC`` model is fit using the following API call: 
 
 .. code-block:: python
 
     model = client.forecast_model.create(
         triangle=...,
         name="example_name",
-        model_type="TraditionalGcc",
+        model_type="TraditionalGCC",
         config={ # default model_config
             "loss_definition": "incurred",
             "recency_decay": 0.9, # beta parameter above
         }
     )
 
-The ``TraditionalGcc`` model accepts the following configuration parameters in ``config``:
+The ``TraditionalGCC`` model accepts the following configuration parameters in ``config``:
 
 - ``loss_definition``: Name of loss field to model in the underlying triangle (e.g., ``"reported"``, ``"paid"``, or ``"incurred"``). Defaults to ``"incurred"``.
-- ``recency_decay``: For the ``TraditionalGcc`` model, ``recency_decay`` corresponds directly to the :math:`\beta` parameter in the mathematical expression above. Defaults to ``0.9``, which indicates that periods 1 year away get 90% weight, periods two years away would get 81% weight, and so forth.
+- ``recency_decay``: For the ``TraditionalGCC`` model, ``recency_decay`` corresponds directly to the :math:`\beta` parameter in the mathematical expression above. Defaults to ``0.9``, which indicates that periods 1 year away get 90% weight, periods two years away would get 81% weight, and so forth.
 
 Model Predict Configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``TraditionalGcc`` model is used to predict future losses using the following API call:
+The ``TraditionalGCC`` model is used to predict future losses using the following API call:
 
 .. code-block:: python
 

@@ -47,16 +47,7 @@ The ``AR1`` model is fit using the following API call:
         config={ # default model_config
             "loss_definition": "reported",
             "loss_family": "gamma",
-            "priors": {
-                "reversion__loc": 0.0,
-                "reversion__scale": 1.0,
-                "base_sigma__loc": -2.0,
-                "base_sigma__scale": 1.0,
-                "obs_sigma__loc": -2.0,
-                "obs_sigma__scale": 1.0,
-                "target_lr__loc": -0.5,
-                "target_lr__scale": 1.0,
-            },
+            "priors": None, # see defaults below
             "recency_decay": 1.0,
             "seed": None
         }

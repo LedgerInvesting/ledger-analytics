@@ -14,7 +14,7 @@ means that ultimate loss ratios for recent accident periods will actually be pre
 of the true ultimate loss ratios. In some cases, users may simply assume that the expected ultimate 
 loss ratio is the true loss ratio for these accident periods, but in other cases users may want to 
 explicitly account for measurement error or uncertainty in the ultimate loss ratio estimates. 
-Currently, our ``LR_SSM`` model is the only model that explicitly accounts for measurement error.
+Currently, our ``SSM`` model is the only model that explicitly accounts for measurement error.
 
 Note that despite our models being formulated to use ultimate loss ratios as the target variable,
 ultimate losses and earned premiums are used as input data to fit the models. All forecasting models
@@ -27,5 +27,5 @@ ultimate loss ratios).
    :caption: Available Models
 
    ar1
-   lr-ssm
+   ssm
    gcc

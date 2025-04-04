@@ -57,16 +57,7 @@ The ``Sherman`` model above is fit using the following API call:
         config={ # default model_config
             "loss_definition": "paid",
             "loss_family": "gamma",
-            "priors": {
-                "dev_intercept__loc": 0.0,   # ATA_int above
-                "dev_intercept__scale": 1.0, 
-                "sherman_exp__loc": 0.0,     # beta above
-                "sherman_exp__scale": 1.0,
-                "sigma_slope__loc": -0.6,
-                "sigma_slope__scale": 0.3,
-                "sigma_intercept__loc": 0.0,
-                "sigma_intercept__scale": 3.0,
-            },
+            "priors": None, # see defaults below
             "recency_decay": 1.0,
             "seed": None
         }

@@ -60,16 +60,7 @@ The ``GeneralizedBondy`` model above is fit using the following API call:
             "loss_family": "gamma",
             "line_of_business": None,
             "informed_priors_version": None,
-            "priors": {
-                "init_log_ata__loc": 0.0,
-                "init_log_ata__scale": 1.0,
-                "bondy_exp__loc": 0.0,   # beta location above
-                "bondy_exp__scale": 0.3, # beta scale above
-                "sigma_slope__loc": -0.6,
-                "sigma_slope__scale": 0.3,
-                "sigma_intercept__loc": 0.0,
-                "sigma_intercept__scale": 3.0,
-            },
+            "priors": None, # see defaults below
             "recency_decay": 1.0,
             "seed": None
         }

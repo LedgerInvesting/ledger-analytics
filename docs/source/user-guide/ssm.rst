@@ -1,5 +1,5 @@
-Loss Ratio State Space Model (``LR_SSM``)
------------------------------------------
+State Space Model (``SSM``)
+------------------------------
 
 State-space models are appealing for loss ratio forecasting because they allow separation of 
 observation noise from the *true* latent variability in the underlying ultimate loss ratios. The 
@@ -7,7 +7,9 @@ distinction is important, particularly in cases where the premium volume of a pr
 changes significantly over time, or when extending the model to capture effects that
 influence the latent (but not observation) process. 
 
-Our Loss Ratio State Space Model (``LR_SSM``) can be viewed as a latent random walk with noise, with an AR(1) and optional MA(1) component. By default, the model is an latent ARMA(1, 1). The ``LR_SSM`` is mathematically expressed as:
+Our State Space Model (``SSM``) can be viewed as a latent random walk with noise, with an AR(1) and 
+optional MA(1) component. By default, the model is an latent ARMA(1, 1). The ``SSM`` is 
+mathematically expressed as:
 
 .. math:: 
     \begin{align*}
@@ -49,7 +51,7 @@ ratio reverts to a target loss ratio (:math:`\mathrm{LR}_{\text{target}}`) each 
 parameter controls how much the latent log loss ratio is influenced by the previous period's latent 
 change, and the latent noise parameter controls how much latent change occurs each period. 
 
-The ``LR_SSM`` is specified such that :math:`\exp(\eta_i)` is the expected loss ratio for each 
+The ``SSM`` is specified such that :math:`\exp(\eta_i)` is the expected loss ratio for each 
 accident period, and the observed loss ratios are then assumed to be Gamma distributed where 
 :math:`\mathrm{Gamma(\exp(\eta_i), \sigma_{i}^2)}` is the mean-variance parameterization of the 
 Gamma distribution.  
@@ -57,14 +59,14 @@ Gamma distribution.
 Model Fit Configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``LR_SSM`` model is fit using the following API call: 
+The ``SSM`` model is fit using the following API call: 
 
 .. code-block:: python
 
     model = client.forecast_model.create(
         triangle=...,
         name="example_name",
-        model_type="LR_SSM",
+        model_type="SSM",
         config={ # default model_config
             "loss_definition": "reported",
             "loss_family": "gamma",
@@ -74,26 +76,13 @@ The ``LR_SSM`` model is fit using the following API call:
             "period_years": 1.0,
             "line_of_business": None,
             "informed_priors_version": None,
-            "priors": {
-                "target_log_lr_loc": -0.5,
-                "target_log_lr_scale": 1.0,
-                "reversion_logit_loc": 1.5,
-                "reversion_logit_scale": 1.0,
-                "latent_log_noise_loc": -2.0,
-                "latent_log_noise_scale": 1.0,
-                "obs_log_noise_loc": -1.0,
-                "obs_log_noise_scale": 1.0,
-                "base_log_noise_loc": -5.0,
-                "base_log_noise_scale": 1.0,
-                "momentum_logit_loc": -1.0,
-                "momentum_logit_scale": 1.0,
-            },
+            "priors": None, # see defaults below
             "recency_decay": 1.0,
             "seed": None
         }
     )
 
-The ``LR_SSM`` model accepts the following configuration parameters in ``config``:
+The ``SSM`` model accepts the following configuration parameters in ``config``:
 
 - ``loss_definition``: Name of loss field to model in the underlying triangle (e.g., ``"reported"``, ``"paid"``, or ``"incurred"``). Defaults to ``"reported"``.
 - ``loss_family``: Outcome distribution family (e.g., ``"gamma"``, ``"lognormal"``, or ``""normal"``). Defaults to ``"gamma"``.
@@ -143,7 +132,7 @@ The ``LR_SSM`` model accepts the following configuration parameters in ``config`
 Model Predict Configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``LR_SSM`` model is used to predict future losses using the following API call:
+The ``SSM`` model is used to predict future losses using the following API call:
 
 .. code-block:: python
 
@@ -160,7 +149,7 @@ is the triangle to make predictions on. For most use-cases, ``triangle`` will be
 that was used in model fitting, and ``target_triangle`` should be specified to include future 
 accident periods (including earned premium values) that forecasts should be made on.
 
-The ``LR_SSM`` prediction behavior can be further changed with configuration parameters in 
+The ``SSM`` prediction behavior can be further changed with configuration parameters in 
 ``config``:
 
 - ``include_process_noise``: Whether to include process noise in the predictions. Defaults to ``True``, which generates posterior predictions from the mathematical model as specified above. If set to ``False``, the model will generate predictions without adding process noise to the predicted losses. Referring to the mathematical expression above, this equates to obtaining the expectation :math:`\exp(\eta_{i})` as predictions as oppposed to :math:`\mathrm{LR}_{i}`.

@@ -54,18 +54,7 @@ The ``MeyersCRC`` model is fit using the following API call:
         config={ # default model_config
             "loss_definition": "paid",
             "loss_family": "gamma",
-            "priors": {
-                "logelr__loc": -0.4, # expected log loss ratio
-                "logelr__scale": np.sqrt(10),
-                "lag_factor__loc": 0.0,
-                "lag_factor__scale": np.sqrt(10),
-                "year_factor__loc": 0.0,
-                "year_factor__scale": np.sqrt(10),
-                "sigma_intercept__loc": 0.0,
-                "sigma_intercept__scale": 3.0,
-                "sigma_slope__loc": 1.0,
-                "sigma_slope__scale": 1.0
-            },
+            "priors": None, # see defaults below
             "recency_decay": 1.0,
             "seed": None
         }

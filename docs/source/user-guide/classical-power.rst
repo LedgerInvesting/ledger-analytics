@@ -1,10 +1,10 @@
-Classical Power Transform Model (``ClassicalPowerTransformTail``)
+Classical Power Transform Model (``ClassicalPowerTransform``)
 ----------------------------------------------------------------------
 
 The Classical Power Transform model (Shoun, in prep [1]_) is a parametric tail model akin to the 
 :doc:`GeneralizedBondy <./generalized-bondy>` and :doc:`Sherman <./sherman>` models that is designed 
 to arbitrate between an exponential decay model, Clark's square root model [2]_, and Sherman's 
-inverse power model [3]_ in a data-driven way. Our ``ClassicalPowerTransformTail`` model is 
+inverse power model [3]_ in a data-driven way. Our ``ClassicalPowerTransform`` model is 
 mathematically expressed as:
 
 .. math::
@@ -27,13 +27,13 @@ mathematically expressed as:
     \end{align}
 
 where :math:`\bf{ATA}` is a vector of *age-to-age factors* that capture how losses change across
-development. Unlike other loss development and tail models, the ``ClassicalPowerTransformTail``
+development. Unlike other loss development and tail models, the ``ClassicalPowerTransform``
 model is fitted directly to age-to-age factors in a two-stage fashion. When fitting the model, we
 first estimate :math:`\bf{ATA}` by fitting the :doc:`TraditionalChainLadder <./trad-chain-ladder>` 
 model first (with ``use_volume_weighting=True``). The estimated :math:`\bf{ATA}` are then extracted 
 and then fitted given the model specification above. 
 
-In the ``ClassicalPowerTransformTail`` model, the parameter :math:`\lambda` is a user-specified
+In the ``ClassicalPowerTransform`` model, the parameter :math:`\lambda` is a user-specified
 parameter that determines the shape of the tail curve. When :math:`\lambda = 1`, the model is 
 equivalent to an exponential decay model on the age-to-age factors. When :math:`\lambda = 0.5`, the 
 model is equavalent to Clark's square root decay model on age-to-age factors. Finally, when 
@@ -49,31 +49,24 @@ can be accomplished my mutating/clipping the triangle as a preprocessing step be
 Model Fit Configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``ClassicalPowerTransformTail`` model above is fit using the following API call:
+The ``ClassicalPowerTransform`` model above is fit using the following API call:
 
 .. code-block:: python
 
     model = client.tail_model.create(
         triangle=...,
         name="example_name",
-        model_type="ClassicalPowerTransformTail",
+        model_type="ClassicalPowerTransform",
         config={ # default model_config
             "loss_definition": "paid",
             "lambda_": 1.0, # defaults to exponential decay shape
-            "priors": {
-                "dev_intercept__loc": 0.0,     # beta_int above
-                "dev_intercept__scale": 100.0,
-                "dev_slope_offset__loc": 0.0,  # beta_slope above
-                "dev_slope_offset__scale": 10.0,
-                "sigma__loc": -4.0,
-                "sigma__scale": 5.0,
-            },
+            "priors": None, # see defaults below
             "recency_decay": 1.0,
             "seed": None
         }
     )
 
-The ``ClassicalPowerTransformTail`` model accepts the following configuration parameters in 
+The ``ClassicalPowerTransform`` model accepts the following configuration parameters in 
 ``config``:
 
 - ``loss_definition``: Name of loss field to model in the underlying triangle (e.g., ``"reported"``, ``"paid"``, or ``"incurred"``). Defaults to ``"paid"``.
@@ -96,7 +89,7 @@ The ``ClassicalPowerTransformTail`` model accepts the following configuration pa
 Model Predict Configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``ClassicalPowerTransformTail`` model is used to predict future losses using the following API 
+The ``ClassicalPowerTransform`` model is used to predict future losses using the following API 
 call:
 
 .. code-block:: python
@@ -110,12 +103,12 @@ call:
         target_triangle=None,
     )
 
-Note that although the ``ClassicalPowerTransformTail`` model is specified with age-to-age factors
+Note that although the ``ClassicalPowerTransform`` model is specified with age-to-age factors
 as the target variable, predictions are generated and returned to the user as losses. 
 
 Above, ``triangle`` is the triangle to use to start making predictions from and ``target_triangle`` is the triangle to make predictions on. For most use-cases, ``triangle`` will be the same triangle that was used in model fitting, and setting ``target_triangle=None`` will create a squared version of the modeled triangle. However, decoupling ``triangle`` and ``target_triangle`` means users could train the model on one triangle, and then make predictions starting from and/or on a different triangle. By default, predictions will be made out to the maximum development lag in ``triangle``, but users can also set ``max_dev_lag`` in the configuration directly. 
 
-The ``ClassicalPowerTransformTail`` prediction behavior can be further changed with configuration 
+The ``ClassicalPowerTransform`` prediction behavior can be further changed with configuration 
 parameters in ``config``:
 
 - ``max_dev_lag``: Maximum development lag to predict out to. If not specified, the model will predict out to the maximum development lag in ``triangle``. Note that ``GeneralizedBondy`` can be used to make predictions for development lags beyond the last development lag available in the training triangle, as there is a mechanism in the model to extrapolate out age-to-age beyond the training data.
