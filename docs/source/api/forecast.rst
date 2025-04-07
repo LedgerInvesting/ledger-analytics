@@ -7,3 +7,10 @@ Forecast model configurations
 .. autoclass:: ledger_analytics.AR1
    :members:
    :exclude-members: model_config
+
+``SSM``
+----------------------
+
+.. autoclass:: ledger_analytics.SSM
+   :members:
+   :exclude-members: model_config

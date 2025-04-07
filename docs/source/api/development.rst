@@ -8,6 +8,7 @@ Development model configurations
    :members: 
    :exclude-members: model_config
 
+
 ``MeyersCRC``
 ----------------------
 

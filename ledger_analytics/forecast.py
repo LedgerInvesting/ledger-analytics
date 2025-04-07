@@ -13,11 +13,10 @@ class AR1(ForecastModel):
 
     ..  math::
 
-        y_{i} &\sim \mathrm{Gamma}(\mu_{i}, \sigma_{i}^2) \\\\
-        \mu_{ij} &= \\alpha y_{i - 1} + (1 - \\alpha) \mu \\\\
-        \\sigma_{i}^2 &= \\sigma_{\mathrm{base}}^2 + \\frac{\\sigma_{obs}^2}{EP}
+        \mathrm{LR}_{i} &\sim \mathrm{Gamma}(\exp(eta_{i}), \sigma_{i}^2)\\\\
+        \eta_{i} &= (1 - \phi_{\mathrm{reversion}}) \mathrm{LR}_{\mathrm{target}} + \phi_{\mathrm{reversion}} \log{(\mathrm{LR}_{i - 1})}\\\\
+        \\sigma_{i}^2 &= \sigma_{\mathrm{base}} + \sigma_{\mathrm{obs}} / \mathrm{EP}_i
 
-    where :math:`y` represents loss ratios. 
     See the model-specific documentation in the User Guide for more details.
 
     The fit and predict configurations are controlled by :class:`Config` and
@@ -52,7 +51,7 @@ class AR1(ForecastModel):
                 in the User Guide). Defaults to 1.0 for no geometric decay.
                 Can be ``"lookup"`` to choose based on ``line_of_business``.
             priors: dictionary of priors. Defaults to ``None`` to use the default priors.
-                See the AR1DefaultPriors class for default (non line-of-business)
+                See the DefaultPriors class for default (non line-of-business)
                 priors.
             autofit_override: override the MCMC autofitting procedure arguments. See the documentation
                 for a fully description of options in the User Guide.
@@ -84,8 +83,8 @@ class AR1(ForecastModel):
         include_process_risk: bool = True
 
 
-class LR_SSM(ForecastModel):
-    """LR_SSM (Loss Ratio State Space Model).
+class SSM(ForecastModel):
+    """SSM (State Space Model).
 
     This model is a, by default, Bayesian state space model or
     Bayesian structural time series model similar to a local linear trend
@@ -95,12 +94,11 @@ class LR_SSM(ForecastModel):
 
     ..  math::
 
-        y_{i} &\sim \mathrm{Gamma}(\mu_{i}, \sigma_{i}^2) \\\\
-        \mu_{ij} &= \exp((1 - \phi) \mathrm{LR}_{\mathrm{target}} + \phi \mu_{i - 1} + \zeta_{i - 1} + \epsilon_{i})\\\\
-        \zeta_{i} &= \\gamma (\zeta_{i - 1} + \epsilon_{i})\\\\
-        \\sigma_{i}^2 &= \\sigma_{\mathrm{base}}^2 + \\frac{\\sigma_{obs}^2}{EP}
+        \mathrm{LR}_{i} &\sim \mathrm{Gamma}(\exp(\eta_{i}), \\sigma_{i}^2)\\\\
+        \eta_{i} &= (1 - \phi_{\mathrm{reversion}}) \mathrm{LR}_{\mathrm{target}} + \phi_{\mathrm{reversion}} \eta_{i - 1} + \zeta_{i-1} + z_{i} \sqrt{\epsilon_{\mathrm{latent}}}\\\\
+        \zeta_{i} &= \gamma_{\mathrm{momentum}} (\zeta_{i-1} + z_{i} \sqrt{\epsilon_{\mathrm{latent}}})\\\\
+        \\sigma_{i}^2 &= \exp(\\sigma_{\mathrm{base}})^2 + \exp(\\sigma_{\mathrm{obs}})^2 / \sqrt{\mathrm{EP}_i}
 
-    where :math:`y` represents loss ratios. 
     See the model-specific documentation in the User Guide for more details.
 
     The fit and predict configurations are controlled by :class:`Config` and
@@ -108,30 +106,28 @@ class LR_SSM(ForecastModel):
     """
 
     class DefaultPriors(Enum):
-        """Default priors for LR_SSM.
+        """Default priors for SSM.
 
         Attributes:
         """
 
-        target_log_lr_loc: float = -0.5
-        target_log_lr_scale: float = 1.0
-        reversion_logit_loc: float = 1.5
-        reversion_logit_scale: float = 1.0
-        latent_log_noise_loc: float = -2.0
-        latent_log_noise_scale: float = 1.0
-        obs_log_noise_loc: float = -1.0
-        obs_log_noise_scale: float = 1.0
-        base_log_noise_loc: float = -5.0
-        base_log_noise_scale: float = 1.0
-        momentum_logit_loc: float = -1.0
-        momentum_logit_scale: float = 1.0
-        target_log_lr_diff_scale: float = 1.0
-        reversion_logit_diff_scale: float = 1.0
-        latent_log_noise_diff_scale: float = 0.25
-        obs_log_noise_diff_scale: float = 1.0
+        target_log_lr__loc: float = -0.5
+        target_log_lr__scale: float = 1.0
+        reversion__loc: float = 1.5
+        reversion__scale: float = 1.0
+        latent_log_noise__loc: float = -2.0
+        latent_log_noise__scale: float = 1.0
+        obs_log_noise__loc: float = -1.0
+        obs_log_noise__scale: float = 1.0
+        base_log_noise__loc: float = -5.0
+        base_log_noise__scale: float = 1.0
+        momentum__loc: float = -1.0
+        momentum__scale: float = 1.0
+        eta__latent_mean_loc: float = -0.5
+        eta__latent_mean_scale: float = 1.0
 
     class Config(ValidationConfig):
-        """LR_SSM model configuration class.
+        """SSM model configuration class.
 
         Attributes:
             loss_family: the likelihood to use. One of ``"Gamma"``, ``"Lognormal"``,
@@ -160,7 +156,7 @@ class LR_SSM(ForecastModel):
             line_of_business: Line of business used to specify informed priors. Must be
                 provided if ``informed_priors_version`` is not ``None``.
             priors: dictionary of priors. Defaults to ``None`` to use the default priors.
-                See the LR_SSMDefaultPriors class for default (non line-of-business)
+                See the DefaultPriors class for default (non line-of-business)
                 priors.
             informed_priors_version: If ``line_of_business`` is set, the priors are based
                 on Ledger Investing's proprietary values derived from industry data.
@@ -192,7 +188,7 @@ class LR_SSM(ForecastModel):
         seed: int | None = None
 
     class PredictConfig(ValidationConfig):
-        """LR_SSM predict configuration class.
+        """SSM predict configuration class.
 
         Attributes:
             include_process_risk: should process risk or

@@ -10,7 +10,7 @@ model type, which is expressed mathematically as:
 .. math:: 
     \begin{align*}
         \mathrm{LR}_{i} &\sim \mathrm{Gamma}(\eta_{i}, \sigma_{i}^2)\\
-        \eta_{i} &= (1 - \phi_{\text{reversion}}) \mathrm{LR}_{\text{target}} + \phi_{\text{reversion}} \log{(\mathrm{LR}_{i - 1})}\\
+        \eta_{i} &= \exp((1 - \phi_{\text{reversion}}) \mathrm{LR}_{\text{target}} + \phi_{\text{reversion}} \log{(\mathrm{LR}_{i - 1})})\\
         \sigma_{i}^2 &= \sigma_{\text{base}} + \sigma_{\text{obs}} / \mathrm{EP}_i\\
         \phi_{\text{reversion}} &= \mathrm{logit}^{-1}(\phi_{\text{reversion}}^{*}) \cdot 2 - 1\\
         \phi_{\text{reversion}}^{*} &\sim \mathrm{Normal}(\phi_{\text{reversion}, \text{loc}}, \phi_{\text{reversion}, \text{scale}})\\

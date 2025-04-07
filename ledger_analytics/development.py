@@ -58,7 +58,7 @@ class ChainLadder(DevelopmentModel):
             line_of_business: Line of business used to specify informed priors. Must be
                 provided if ``informed_priors_version`` is not ``None``.
             priors: dictionary of priors. Defaults to ``None`` to use the default priors.
-                See the ChainLadderDefaultPriors class for default (non line-of-business)
+                See the DefaultPriors class for default (non line-of-business)
                 priors.
             informed_priors_version: If ``line_of_business`` is set, the priors are based
                 on Ledger Investing's proprietary values derived from industry data.
@@ -101,7 +101,7 @@ class ChainLadder(DevelopmentModel):
         include_process_risk: bool = True
 
 
-class TraditionalTraditionalChainLadder(DevelopmentModel):
+class TraditionalChainLadder(DevelopmentModel):
     """TraditionalChainLadder.
 
     This model implements, by default, a traditional chain ladder model
@@ -169,7 +169,7 @@ class TraditionalTraditionalChainLadder(DevelopmentModel):
         include_process_risk: bool = True
 
 
-class ManualAta(DevelopmentModel):
+class ManualATA(DevelopmentModel):
     """ManualAta.
 
     This model is different from other loss development models in that it uses
@@ -273,7 +273,7 @@ class MeyersCRC(DevelopmentModel):
                 in the User Guide). Defaults to 1.0 for no geometric decay.
                 Can be ``"lookup"`` to choose based on ``line_of_business``.
             priors: dictionary of priors. Defaults to ``None`` to use the default priors.
-                See the MeyersCRCDefaultPriors class for default (non line-of-business)
+                See the DefaultPriors class for default (non line-of-business)
                 priors.
             autofit_override: override the MCMC autofitting procedure arguments. See the documentation
                 for a fully description of options in the User Guide.
@@ -369,7 +369,7 @@ class GMCL(DevelopmentModel):
             line_of_business: Line of business used to specify informed priors. Must be
                 provided if ``informed_priors_version`` is not ``None``.
             priors: dictionary of priors. Defaults to ``None`` to use the default priors.
-                See the GMCLDefaultPriors class for default (non line-of-business)
+                See the DefaultPriors class for default (non line-of-business)
                 priors.
             informed_priors_version: If ``line_of_business`` is set, the priors are based
                 on Ledger Investing's proprietary values derived from industry data.

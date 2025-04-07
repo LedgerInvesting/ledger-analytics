@@ -82,7 +82,7 @@ class GeneralizedBondy(TailModel):
                 the Bondy exponent term. By default, this is 0.0, but can be set to a
                 suitable development lag (in months) to center the Bondy parameters.
             priors: dictionary of priors. Defaults to ``None`` to use the default priors.
-                See the ChainLadderDefaultPriors class for default (non line-of-business)
+                See the DefaultPriors class for default (non line-of-business)
                 priors.
             informed_priors_version: If ``line_of_business`` is set, the priors are based
                 on Ledger Investing's proprietary values derived from industry data.
@@ -174,7 +174,7 @@ class Sherman(TailModel):
                 the Bondy exponent term. By default, this is 0.0, but can be set to a
                 suitable development lag (in months) to center the Bondy parameters.
             priors: dictionary of priors. Defaults to ``None`` to use the default priors.
-                See the ChainLadderDefaultPriors class for default (non line-of-business)
+                See the DefaultPriors class for default (non line-of-business)
                 priors.
             autofit_override: override the MCMC autofitting procedure arguments. See the documentation
                 for a fully description of options in the User Guide.
@@ -255,7 +255,7 @@ class ClassicalPowerTransformTail(TailModel):
                 indicates that future losses should be strictly at least the prior period's
                 loss amount, avoiding negative development patterns.
             priors: dictionary of priors. Defaults to ``None`` to use the default priors.
-                See the ChainLadderDefaultPriors class for default (non line-of-business)
+                See the DefaultPriors class for default (non line-of-business)
                 priors.
             prior_only: should a prior predictive simulation be run?
             seed: Seed to use for model sampling. Defaults to ``None``, but it is highly recommended
