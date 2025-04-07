@@ -41,7 +41,7 @@ This model is essentially a moving average of the loss ratios from previous acci
        triangle="full_meyers",
        name="gcc_forecast",
        model_type="TraditionalGCC",
-       model_config={
+       config={
            "loss_definition": "paid",
        }
    )
@@ -49,6 +49,8 @@ This model is essentially a moving average of the loss ratios from previous acci
 Now we can predict future losses using this model. We'll create a triangle that includes which cells we want predictions for, called the "target triangle". This allows us to specify the periods of the forecast and the earned premium so the models can scale losses and volatility appropriately. Be sure the metadata of the forecast triangle matches the metadata of the training triangle.
 
 ..  code:: python
+
+    import bermuda as tri
 
     target_triangle = tri.Triangle(
         [
@@ -80,7 +82,7 @@ We can compare this to a more sophisticated model, like the ``SSM`` model. This 
        triangle="full_meyers",
        name="ssm_forecast",
        model_type="SSM",
-       model_config={
+       config={
            "loss_definition": "paid",
        }
     )
