@@ -18,14 +18,14 @@ def test_fit_predict():
         name=name,
         model_type="ChainLadder",
         config={
-            "autofit_override": {
-                "samples_per_chain": 10,
-                "max_samples_per_chain": 10,
-                "adapt_delta": 0.8,
-                "max_adapt_delta": 0.8,
-                "max_treedepth": 10,
-                "max_max_treedepth": 10,
-            }
+            "autofit_override": dict(
+                samples_per_chain=10,
+                max_samples_per_chain=10,
+                adapt_delta=0.8,
+                max_adapt_delta=0.8,
+                max_treedepth=10,
+                max_max_treedepth=10,
+            )
         },
     )
 

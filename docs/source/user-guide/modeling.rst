@@ -47,6 +47,18 @@ users can run prior predictive checks to check the implications
 of prior distributions by adding ``prior_only=True`` into the
 ``config`` dictionary.
 
+Autofit MCMC procedures
+------------------------------
+
+Bayesian modeling can take time when modelers need to adjust MCMC sampler
+parameters to seek convergence. Our MCMC procedure uses auto-convergence
+checking and parameter tuning to refit models that fail to meet certain
+convergence criteria. This removes work from the modeler, although we
+encourage users to understand why their model might fail convergence
+in the first place. You can read more about the autofit procedure
+on the `Autofit page <autofit.rst>`_.
+
+
 Loss likelihood distributions
 ------------------------------------
 

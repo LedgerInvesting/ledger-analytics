@@ -13,11 +13,12 @@ class ChainLadder(DevelopmentModel):
 
     ..  math::
 
-        y_{ij} &\sim \mathrm{Gamma}(\mu_{ij}, \sigma_{ij}^2) \\\\
-        \mu_{ij} &= \mathrm{ATA}_{j - 1} \cdot y_{ij-1} \\\\
-        \sigma_{ij}^2 &= \exp(\sigma_{\mathrm{int}} + \sigma_{\mathrm{noise}_{j}} + \sigma_{\mathrm{slope}} \cdot j) y_{ij-1}
+        y_{ij} &\sim \mathrm{Gamma(\mu_{ij}, \\sigma_{ij}^2)},  \quad{\\forall j \in (1, M]}\\\\
+        \mu_{ij} &= ATA_{j - 1} y_{ij-1}\\\\
+        \\sigma_{ij}^2 &= \exp(\\sigma_{\mathrm{int}} + \\sigma_{\mathrm{noise}_{j}} + \\sigma_{\mathrm{slope}} j + \log(y_{ij-1}))\\\\
 
-    where :math:`y` represents losses. The hierarchical variance parameter,
+    where :math:`y` represents losses and M is the total number of development lags. 
+    The hierarchical variance parameter,
     :math:`\sigma_{\mathrm{noise}_{j}}`, can be removed by setting the ``use_linear_noise`` argument
     to True. See the model-specific documentation in the User Guide for more details.
 
@@ -84,7 +85,7 @@ class ChainLadder(DevelopmentModel):
         priors: dict[str, list[float] | float] | None = None
         informed_priors_version: str | None = None
         use_multivariate: bool = False
-        autofit_override: dict[str, int | float | str] = None
+        autofit_override: dict[str, float | int | None] = None
         prior_only: bool = False
         seed: int | None = None
 
@@ -109,8 +110,9 @@ class TraditionalChainLadder(DevelopmentModel):
 
     ..  math::
 
-        y_{ij} &\sim \mathrm{Normal}(\mu_{ij}, \sigma^2 y_{ij-1}) \\\\
-        \mu_{ij} &= \mathrm{ATA}_{j - 1} \cdot y_{ij-1} \\\\
+        y_{ij} &\sim \mathrm{Normal(\mu_{ij}, \\sigma_{ij}^2)},  \quad{\\forall j \in (1, M]}\\\\
+        \mu_{ij} &= ATA_{j - 1} y_{ij-1}\\\\
+        \\sigma_{ij}^2 &= \\sigma^2 y_{ij-1}
 
     where :math:`y` represents losses. 
     The variance term implements volume-weighted averaging by weighting by the previous
@@ -175,6 +177,12 @@ class ManualATA(DevelopmentModel):
     This model is different from other loss development models in that it uses
     hard-coded age-to-age factors, rather than estimating them from the data.
 
+    ..  math::
+      
+        y_{ij} &= \mu_{ij}\\\\
+        \mu_{ij} &= ATA_{j - 1} y_{ij-1}\\\\
+        \\bf{ATA} &= \\text{user input}
+
     The primary intended use case of this model is for supporting workflows where
     age-to-age factors are selected or adjusted by hand, or age-to-age factors
     are provided by a bureau or other external source without any supporting
@@ -233,9 +241,9 @@ class MeyersCRC(DevelopmentModel):
 
     ..  math::
 
-        y_{ij} &\sim \mathrm{Gamma}(\mu_{ij}, \sigma_{ij}^2) \\\\
-        \mu_{ij} &= \exp(\mathrm{LogELR} + \\alpha_{i} + \\beta_{j}) \\\\
-        \sigma_{ij}^2 &= \exp(\sigma_{\mathrm{int}} + \sigma_{\mathrm{slope}} \cdot j - \log(EP))
+        \mathrm{LR}_{ij} &\sim \mathrm{Gamma}(\mu_{ij}, \\sigma_{ij}^2) \quad{\\forall j \in (1, M]}\\\\
+        \mu_{ij} &= \exp(\mathrm{LR}_{\\text{expected}} + \\beta_{\\text{lag},j} + \\beta_{\\text{year},i})\\\\
+        \\sigma_{ij}^2 &= \exp(\\sigma_{\text{int}} + \\sigma_{\text{slope}} j - \log(\mathrm{EP}_{i}))\\\\
 
     where :math:`y` is loss ratio.
     See the model-specific documentation and Glenn Meyer's monograph
@@ -288,7 +296,7 @@ class MeyersCRC(DevelopmentModel):
         loss_definition: Literal["paid", "reported", "incurred"] = "paid"
         recency_decay: str | float | None = None
         priors: dict[str, list[float] | float] | None = None
-        autofit_override: dict[str, int | float | str] = None
+        autofit_override: dict[str, float | int | None] = None
         prior_only: bool = False
         seed: int | None = None
 
@@ -322,12 +330,10 @@ class GMCL(DevelopmentModel):
 
     ..  math::
 
-        y_{\mathrm{paid}_{ij}} &\sim \mathrm{Gamma}(\mu_{\mathrm{paid}_{ij}}, \sigma_{\mathrm{paid}_{j}}^2) \\\\
-        y_{\mathrm{reported}_{ij}} &\sim \mathrm{Gamma}(\mu_{\mathrm{reported}_{ij}}, \sigma_{\mathrm{reported}_{j}}^2) \\\\
-        \mu_{\mathrm{paid}_{ij}} &= \mathrm{ATA}_{0_{j - 1}} \cdot y_{\mathrm{paid}_{ij-1}} \\\\
-        \mu_{\mathrm{reported}_{ij}} &= \mathrm{ATA}_{1_{j - 1}} \cdot y_{\mathrm{reported}_{ij-1}} \\\\
-        \log(\mathrm{ATA}} &\sim \mathrm{MVN}(\mathbf{\\eta}, \Sigma)\\\\
-        \log{\\sigma_j} &\sim \mathrm{MVN}(\mathbf{0}, \Omega)\\\\
+        y_{ijd} &\sim \\text{Gamma}(\mu_{ijd}, \\sigma_{jd}^2), \quad \\forall j\in (1, M], d \in \{1,2\} \\\\ 
+        \mu_{ijd} &= \\beta_{\\text{int},d} + ATA_{j - 1, d} \cdot y_{ij-1, d}\\\\
+        \log \mathbf{ATA}_{(1:M-1) \\times 2} &\sim \\text{MVN}(\mathbf{ATA}_{\\text{loc}}, \\boldsymbol{\Sigma}_{\\text{ATA}}) \\\\
+        \log \\boldsymbol{\sigma}_{(1:M-1) \\times 2} &\sim \\text{MVN}(\\boldsymbol{\sigma_{\\text{loc}}}, \\boldsymbol{\Sigma}_{\sigma})
 
     where :math:`y` represents losses. 
     See the model-specific documentation in the User Guide for more details.
@@ -395,7 +401,7 @@ class GMCL(DevelopmentModel):
         priors: dict[str, list[float] | float] | None = None
         informed_priors_version: str | None = None
         use_multivariate: bool = False
-        autofit_override: dict[str, int | float | str] = None
+        autofit_override: dict[str, float | int | None] = None
         prior_only: bool = False
         seed: int | None = None
 

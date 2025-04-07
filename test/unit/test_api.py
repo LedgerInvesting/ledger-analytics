@@ -69,6 +69,7 @@ def test_ledger_analytics_model_crud():
         triangle="test_meyers_triangle",
         name="test_chain_ladder",
         model_type="ChainLadder",
+        config={"autofit_override": {"samples_per_chain": 1000}},
     )
     development_model.predict("test_meyers_triangle")
     client.development_model.predict("test_meyers_triangle", name="test_chain_ladder")

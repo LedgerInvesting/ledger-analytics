@@ -6,6 +6,7 @@ from requests import Response
 from requests.exceptions import HTTPError
 from rich.console import Console
 
+from .autofit import AutofitControl
 from .interface import ModelInterface, TriangleInterface
 from .requester import Requester
 from .triangle import Triangle
@@ -96,11 +97,17 @@ class LedgerModel(ModelInterface):
         `create` and `fit` API endpoints.
         """
 
+        config = config or {}
+
+        if "autofit_override" in config:
+            autofit = config["autofit_override"] or {}
+            config["autofit_override"] = AutofitControl(**autofit).__dict__
+
         config = {
             "triangle_name": triangle_name,
             "model_name": name,
             "model_type": model_type,
-            "model_config": cls.Config(**(config or {})).__dict__,
+            "model_config": cls.Config(**config).__dict__,
         }
         fit_response = requester.post(endpoint, data=config)
         if not fit_response.ok:

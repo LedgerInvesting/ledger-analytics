@@ -66,7 +66,7 @@ class AR1(ForecastModel):
         loss_definition: Literal["paid", "reported", "incurred"] = "paid"
         recency_decay: str | float | None = None
         priors: dict[str, list[float] | float] | None = None
-        autofit_override: dict[str, int | float | str] = None
+        autofit_override: dict[str, float | int | None] = None
         prior_only: bool = False
         seed: int | None = None
 
@@ -183,7 +183,7 @@ class SSM(ForecastModel):
         line_of_business: str | None = None
         priors: dict[str, list[float] | float] | None = None
         informed_priors_version: str | None = None
-        autofit_override: dict[str, int | float | str] = None
+        autofit_override: dict[str, float | int | None] = None
         prior_only: bool = False
         seed: int | None = None
 
