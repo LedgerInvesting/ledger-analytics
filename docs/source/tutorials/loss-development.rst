@@ -50,7 +50,7 @@ based on the evaluation date.
         triangle="meyers_triangle",
         name="paid_body_development",
         model_type="ChainLadder",
-        model_config={
+        config={
             "loss_definition": "paid",
             "recency_decay": 0.8
         }
@@ -65,7 +65,7 @@ use a ``GeneralizedBondy`` model which is a generalization of the classic Bondy 
         triangle="meyers_triangle",
         name="paid_bondy",
         model_type="GeneralizedBondy",
-        model_config={
+        config={
             "loss_definition": "paid",
         }
     )
