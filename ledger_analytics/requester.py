@@ -11,7 +11,7 @@ def _get_stream_chunks(**kwargs):
         response.raise_for_status()
 
         content = []
-        for chunk in response.iter_content(chunk_size=8192):
+        for chunk in response.iter_content(chunk_size=1024):
             if chunk:
                 content.append(chunk)
 

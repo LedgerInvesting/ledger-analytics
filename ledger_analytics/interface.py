@@ -183,7 +183,7 @@ class ModelInterface(metaclass=ModelRegistry):
         return model.delete()
 
     def list(self) -> list[ConfigDict]:
-        return self._requester.get(self.endpoint).json()
+        return self._requester.get(self.endpoint, stream=True).json()
 
     def list_model_types(self) -> list[ConfigDict]:
         url = self.endpoint + "-type"

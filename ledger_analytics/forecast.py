@@ -15,7 +15,7 @@ class AR1(ForecastModel):
 
         \mathrm{LR}_{i} &\sim \mathrm{Gamma}(\exp(eta_{i}), \sigma_{i}^2)\\\\
         \eta_{i} &= (1 - \phi_{\mathrm{reversion}}) \mathrm{LR}_{\mathrm{target}} + \phi_{\mathrm{reversion}} \log{(\mathrm{LR}_{i - 1})}\\\\
-        \\sigma_{i}^2 &= \sigma_{\mathrm{base}} + \sigma_{\mathrm{obs}} / \mathrm{EP}_i
+        \\sigma_{i}^2 &= \\sigma_{\mathrm{base}} + \\sigma_{\mathrm{obs}} / \mathrm{EP}_i
 
     See the model-specific documentation in the User Guide for more details.
 
@@ -189,6 +189,58 @@ class SSM(ForecastModel):
 
     class PredictConfig(ValidationConfig):
         """SSM predict configuration class.
+
+        Attributes:
+            include_process_risk: should process risk or
+                aleatoric uncertainty be included in the predictions.
+                Defaults to ``True``. If ``False``, predictions are
+                based on the mean function, only.
+        """
+
+        include_process_risk: bool = True
+
+
+class TraditionalGCC(ForecastModel):
+    """TraditionalGCC.
+
+    This model implements the Generalized Cape Cod model
+    with the form:
+
+    ..  math::
+
+        \widehat{\mathrm{LR}}_i &= \\frac{\sum_{k=1}^N \mathrm{LR}_k \cdot \mathrm{UEP}_k \cdot \\beta^{\lvert k - i\\rvert}}{\sum_{k=1}^N \mathrm{UEP}_k \cdot \\beta^{\lvert k - i\\rvert}}\\\\
+        \mathrm{UEP}_i &= \mathrm{EP}_i \\frac{\mathrm{LR}_{\\text{obs},i}}{\mathrm{LR}_{i}}\\\\
+        \\beta &= \\text{user input} \in (0, 1]
+
+    See the model-specific documentation in the User Guide for more details.
+
+    The fit and predict configurations are controlled by :class:`Config` and
+    :class:`PredictConfig` classes, respectively.
+    """
+
+    class DefaultPriors(Enum):
+        """Default priors for TraditionalGCC.
+
+        Attributes:
+        """
+
+    class Config(ValidationConfig):
+        """TraditionalGCC model configuration class.
+
+        Attributes:
+            loss_definition: the field to model in the triangle. One of
+                ``"paid"`` ``"reported"`` or ``"incurred"``.
+            recency_decay: geometric decay parameter to downweight earlier
+                diagonals (see `Modeling rationale...` section
+                in the User Guide). Defaults to 1.0 for no geometric decay.
+                Can be ``"lookup"`` to choose based on ``line_of_business``.
+        """
+
+        loss_definition: Literal["paid", "reported", "incurred"] = "paid"
+        recency_decay: str | float | None = None
+
+    class PredictConfig(ValidationConfig):
+        """TraditionalGCC predict configuration class.
 
         Attributes:
             include_process_risk: should process risk or

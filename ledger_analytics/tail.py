@@ -33,12 +33,11 @@ class GeneralizedBondy(TailModel):
 
     ..  math::
 
-        y_{ij} &\sim \mathrm{Gamma}(\mu_{ij}, \sigma_{ij}^2) \\\\
-        \mu_{ij} &= \mathrm{ATA}_{j - 1} \cdot y_{ij-1} \\\\
-        \mathrm{ATA}_{j - 1} &= \exp(\mathrm{LogInitATA} \\beta^{j - \\delta}) \\\\
-        \\sigma_{ij}^2 &= \exp(\sigma_{\mathrm{int}} + \sigma_{\mathrm{slope}} \cdot (j - \\delta) - \log(EP))
+        \mathrm{LR}_{ij} &\sim \mathrm{Gamma(\mu_{ij}, \\sigma_{ij}^2)}\\\\
+        \mu_{ij} &= ATA_{j} y_{ij - 1}\\\\
+        ATA_{j} &= \exp( ATA_{\\text{init}} \\beta^{j} )\\\\
+        \\sigma_{ij}^2 &= \exp(\\sigma_{\\text{int}} + \sigma_{\\text{slope}} j - \log(\mathrm{EP}_{i})), \quad{\\forall j \in [1, M]}
 
-    where :math:`y` represents loss ratios. 
     See the model-specific documentation in the User Guide for more details.
 
     The fit and predict configurations are controlled by :class:`Config` and
@@ -127,12 +126,11 @@ class Sherman(TailModel):
 
     ..  math::
 
-        y_{ij} &\sim \mathrm{Gamma}(\mu_{ij}, \sigma_{ij}^2) \\\\
-        \mu_{ij} &= \mathrm{ATA}_{j - 1} \cdot y_{ij-1} \\\\
-        \mathrm{ATA}_{j - 1} &= 1 + \exp(\mathrm{intercept} - \\beta \cdot (j - \\delta)) \\\\
-        \\sigma_{ij}^2 &= \exp(\sigma_{\mathrm{int}} + \sigma_{\mathrm{slope}} \cdot (j - \\delta) - \log(EP))
+        \mathrm{LR}_{ij} &\sim \mathrm{Gamma(\mu_{ij}, \sigma_{ij}^2)}\\\\
+        \mu_{ij} &= ATA_{ij} y_{ij - 1}\\\\
+        ATA_{j} &= 1 + \exp( ATA_{\\text{int}} - \\beta  \log(j) )\\\\
+        \\sigma_{ij}^2 &= \exp(\\sigma_{\\text{int}} + \sigma_{\\text{slope}} j - \log(\mathrm{EP}_{i})), \quad{\\forall j \in [1, M]}
 
-    where :math:`y` represents loss ratios. 
     See the model-specific documentation in the User Guide for more details.
 
     The fit and predict configurations are controlled by :class:`Config` and
@@ -210,10 +208,12 @@ class ClassicalPowerTransformTail(TailModel):
 
     ..  math::
 
-        y_{ij} &\sim \mathrm{Normal}(\mu_{ij}, \sigma_{ij}^2) \\\\
-        \mu_{ij} &= 1 + \exp(\\beta_{0} + \\beta_{1} \cdot \frac{d^{\\lambda - 1}}{\\lambda}), \quad \lambda != 0 \\\\ 
+        \log ATA_{j} &\sim \mathrm{Normal(\mu_{j}, \sigma^2)}\\\\
+        \mu_{j} &= \\beta_{\\text{int}} + \\beta_{j} \\text{L}_j\\\\
+        \\beta_{j} &= \lambda - 1 - \\beta_{\\text{slope}}\\\\
+        \\text{L}_j &= j^{\lambda-1} / \lambda
 
-    where :math:`y` represents ATAs, and :math:`\\lambda`` is a Box-Cox transformation
+    where :math:`\log ATA` represents log-scale ATAs, and :math:`\\lambda`` is a Box-Cox transformation
     parameter. The latter can be set to switch between exponential decay, Sherman and Clark square-root tail
     models.
     See the model-specific documentation in the User Guide for more details.

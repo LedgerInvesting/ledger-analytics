@@ -14,3 +14,10 @@ Forecast model configurations
 .. autoclass:: ledger_analytics.SSM
    :members:
    :exclude-members: model_config
+
+``TraditionalGCC``
+----------------------
+
+.. autoclass:: ledger_analytics.TraditionalGCC
+   :members:
+   :exclude-members: model_config

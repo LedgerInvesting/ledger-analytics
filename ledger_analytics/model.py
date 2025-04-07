@@ -63,7 +63,7 @@ class LedgerModel(ModelInterface):
         console = Console()
         with console.status("Retrieving...", spinner="bouncingBar") as _:
             console.log(f"Getting model '{name}' with ID '{id}'")
-            get_response = requester.get(endpoint)
+            get_response = requester.get(endpoint, stream=True)
 
         self = cls(
             id,

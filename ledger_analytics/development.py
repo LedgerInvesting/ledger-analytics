@@ -241,7 +241,7 @@ class MeyersCRC(DevelopmentModel):
 
     ..  math::
 
-        \mathrm{LR}_{ij} &\sim \mathrm{Gamma}(\mu_{ij}, \\sigma_{ij}^2) \quad{\\forall j \in (1, M]}\\\\
+        y_{ij} &\sim \mathrm{Gamma}(\mu_{ij}, \\sigma_{ij}^2) \quad{\\forall j \in (1, M]}\\\\
         \mu_{ij} &= \exp(\mathrm{LR}_{\\text{expected}} + \\beta_{\\text{lag},j} + \\beta_{\\text{year},i})\\\\
         \\sigma_{ij}^2 &= \exp(\\sigma_{\text{int}} + \\sigma_{\text{slope}} j - \log(\mathrm{EP}_{i}))\\\\
 
