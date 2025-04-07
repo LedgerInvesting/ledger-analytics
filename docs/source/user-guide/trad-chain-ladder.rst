@@ -53,7 +53,7 @@ The ``TraditionalChainLadder`` model is fit using the following API call:
 
 The ``TraditionalChainLadder`` model accepts the following configuration parameters in ``config``:
 
-- ``loss_definition``: Name of loss field to model in the underlying triangle (e.g., ``"reported"``, 
+- ``loss_definition``: Name of loss field to model in the underlying triangle (e.g., ``"reported"``, ``"paid"``, or ``"incurred"``). Defaults to ``"paid"``.
 - ``use_volume_weighting``: Whether to compute ATA factors as volume-weighted averages of observed link ratios, as opposed to straight averages. Defaults to ``True``, which performs MLE on the model as specified above. If set to ``False``, the variance term is set instead to :math:`\sigma_{ij}^2 &= \sigma^2`, and the resulting age-to-age factor estimates are not impacted by the loss volume.
 - ``priors``: Dictionary of prior distributions to use for model fitting. Default priors are: 
 
