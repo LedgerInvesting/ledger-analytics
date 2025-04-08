@@ -93,12 +93,15 @@ class ChainLadder(DevelopmentModel):
         """ChainLadder predict configuration class.
 
         Attributes:
+            max_dev_lag: the maximum development lag to predict to.
+                Defaults to the maximum in the training data.
             include_process_risk: should process risk or
                 aleatoric uncertainty be included in the predictions.
                 Defaults to ``True``. If ``False``, predictions are
                 based on the mean function, only.
         """
 
+        max_dev_lag: int | None = None
         include_process_risk: bool = True
 
 
@@ -137,37 +140,42 @@ class TraditionalChainLadder(DevelopmentModel):
         """TraditionalChainLadder model configuration class.
 
         Attributes:
-            loss_family: the loss family to use. One of ``"Gamma"``, ``"Lognormal"``,
-                ``"Normal"`` or ``"InverseGaussian"``. Defaults to ``"Gamma"``.
             loss_definition: the field to model in the triangle. One of
                 ``"paid"`` ``"reported"`` or ``"incurred"``.
-            use_linear_noise: Set to True to turn off the hierarchical
-                variance parameter in TraditionalChainLadder.
-            recency_decay: geometric decay parameter to downweight earlier
+            use_volume_weighting: whether to compute ATA factors as volume-weighted
+                averages of observed link ratios, as opposed to straight averages.
+            recency_decay: geometric decay parameter to down-weight earlier
                 diagonals (see `Modeling rationale...` section
                 in the User Guide). Defaults to 1.0 for no geometric decay.
                 Can be ``"lookup"`` to choose based on ``line_of_business``.
             line_of_business: Line of business used for decay weighting. Must be
-                provided if ``recency_decay`` is ``"lookup"``.
+                provided if ``recency_decay`` is ``"lookup"``. These weights
+                are derived from historical industry data and are current proprietary.
+            autofit_override: override the MCMC autofitting procedure arguments.
+                See the documentation
             prior_only: should a prior predictive simulation be run?
         """
 
         loss_definition: Literal["paid", "reported", "incurred"] = "paid"
-        use_volume_weighting: bool = (True,)
+        use_volume_weighting: bool = True
         recency_decay: str | float | None = None
         line_of_business: str | None = None
+        autofit_override: dict[str, float | int | None] = None
         prior_only: bool = False
 
     class PredictConfig(ValidationConfig):
         """TraditionalChainLadder predict configuration class.
 
         Attributes:
+            max_dev_lag: the maximum development lag to predict to.
+                Defaults to the maximum in the training data.
             include_process_risk: should process risk or
                 aleatoric uncertainty be included in the predictions.
                 Defaults to ``True``. If ``False``, predictions are
                 based on the mean function, only.
         """
 
+        max_dev_lag: int | None = None
         include_process_risk: bool = True
 
 
@@ -304,12 +312,15 @@ class MeyersCRC(DevelopmentModel):
         """MeyersCRC predict configuration class.
 
         Attributes:
+            max_dev_lag: the maximum development lag to predict to.
+                Defaults to the maximum in the training data.
             include_process_risk: should process risk or
                 aleatoric uncertainty be included in the predictions.
                 Defaults to ``True``. If ``False``, predictions are
                 based on the mean function, only.
         """
 
+        max_dev_lag: int | None = None
         include_process_risk: bool = True
 
 
@@ -364,28 +375,17 @@ class GMCL(DevelopmentModel):
         Attributes:
             loss_family: the loss family to use. One of ``"Gamma"``, ``"Lognormal"``,
                 ``"Normal"`` or ``"InverseGaussian"``. Defaults to ``"Gamma"``.
-            loss_definition: the field to model in the triangle. One of
-                ``"paid"`` ``"reported"`` or ``"incurred"``.
-            use_linear_noise: Set to True to turn off the hierarchical
-                variance parameter in GMCL.
+            is_general: should the general MCL model be used?
+            include_intercepts: should intercepts be included in the mean function?
             recency_decay: geometric decay parameter to downweight earlier
                 diagonals (see `Modeling rationale...` section
                 in the User Guide). Defaults to 1.0 for no geometric decay.
                 Can be ``"lookup"`` to choose based on ``line_of_business``.
-            line_of_business: Line of business used to specify informed priors. Must be
-                provided if ``informed_priors_version`` is not ``None``.
             priors: dictionary of priors. Defaults to ``None`` to use the default priors.
                 See the DefaultPriors class for default (non line-of-business)
                 priors.
-            informed_priors_version: If ``line_of_business`` is set, the priors are based
-                on Ledger Investing's proprietary values derived from industry data.
-                ``"latest"`` uses priors derived from the most recent industry data.
-                Defaults to ``None``.
-            use_multivariate: Boolean indicating whether to use a correlated prior
-                on age-to-age factors. The correlated prior needs to be combined with
-                industry-informed priors for best results.
-            autofit_override: override the MCMC autofitting procedure arguments. See the documentation
-                for a fully description of options in the User Guide.
+            autofit_override: override the MCMC autofitting procedure arguments.
+                See the documentation for a fully description of options in the User Guide.
             prior_only: should a prior predictive simulation be run?
             seed: Seed to use for model sampling. Defaults to ``None``, but it is highly recommended
                 to set.
@@ -394,13 +394,10 @@ class GMCL(DevelopmentModel):
         loss_family: Literal["Gamma", "Lognormal", "Normal", "InverseGaussian"] = (
             "Gamma"
         )
-        loss_definition: Literal["paid", "reported", "incurred"] = "paid"
-        use_linear_noise: bool = False
+        is_general: bool = False
+        include_intercepts: bool = False
         recency_decay: str | float | None = None
-        line_of_business: str | None = None
         priors: dict[str, list[float] | float] | None = None
-        informed_priors_version: str | None = None
-        use_multivariate: bool = False
         autofit_override: dict[str, float | int | None] = None
         prior_only: bool = False
         seed: int | None = None
@@ -409,10 +406,12 @@ class GMCL(DevelopmentModel):
         """GMCL predict configuration class.
 
         Attributes:
+            max_dev_lag: the maximum development lag to predict to.
             include_process_risk: should process risk or
                 aleatoric uncertainty be included in the predictions.
                 Defaults to ``True``. If ``False``, predictions are
                 based on the mean function, only.
         """
 
+        max_dev_lag: int | None = None
         include_process_risk: bool = True

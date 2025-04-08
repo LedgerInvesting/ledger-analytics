@@ -8,13 +8,15 @@ class AutofitControl(ValidationConfig):
 
     The class holds the parameters users can tune in the autofit procedure.
     Only use this class if you feel confident with HMC tuning parameters.
+    When creating models, the intention is that users pass the autofit
+    parameters as a Python dict, not use this class.
 
     If you want to turn off the autofitting procedure completely,
     you can use a configuration such as:
 
     ..  code:: python
 
-        AutofitMCMC(
+        AutofitControl(
             samples_per_chain: 1000,
             max_samples_per_chain: 1000,
             max_adapt_delta: 0.8,

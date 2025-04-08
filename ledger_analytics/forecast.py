@@ -13,8 +13,8 @@ class AR1(ForecastModel):
 
     ..  math::
 
-        \mathrm{LR}_{i} &\sim \mathrm{Gamma}(\exp(eta_{i}), \sigma_{i}^2)\\\\
-        \eta_{i} &= (1 - \phi_{\mathrm{reversion}}) \mathrm{LR}_{\mathrm{target}} + \phi_{\mathrm{reversion}} \log{(\mathrm{LR}_{i - 1})}\\\\
+        \mathrm{LR}_{i} &\sim \mathrm{Gamma}(eta_{i}, \sigma_{i}^2)\\\\
+        \eta_{i} &= (1 - \phi_{\mathrm{reversion}}) \mathrm{LR}_{\mathrm{target}} + \phi_{\mathrm{reversion}} \mathrm{LR}_{i - 1}\\\\
         \\sigma_{i}^2 &= \\sigma_{\mathrm{base}} + \\sigma_{\mathrm{obs}} / \mathrm{EP}_i
 
     See the model-specific documentation in the User Guide for more details.
@@ -63,7 +63,7 @@ class AR1(ForecastModel):
         loss_family: Literal["Gamma", "Lognormal", "Normal", "InverseGaussian"] = (
             "Gamma"
         )
-        loss_definition: Literal["paid", "reported", "incurred"] = "paid"
+        loss_definition: Literal["paid", "reported", "incurred"] = "reported"
         recency_decay: str | float | None = None
         priors: dict[str, list[float] | float] | None = None
         autofit_override: dict[str, float | int | None] = None
@@ -97,9 +97,10 @@ class SSM(ForecastModel):
         \mathrm{LR}_{i} &\sim \mathrm{Gamma}(\exp(\eta_{i}), \\sigma_{i}^2)\\\\
         \eta_{i} &= (1 - \phi_{\mathrm{reversion}}) \mathrm{LR}_{\mathrm{target}} + \phi_{\mathrm{reversion}} \eta_{i - 1} + \zeta_{i-1} + z_{i} \sqrt{\epsilon_{\mathrm{latent}}}\\\\
         \zeta_{i} &= \gamma_{\mathrm{momentum}} (\zeta_{i-1} + z_{i} \sqrt{\epsilon_{\mathrm{latent}}})\\\\
-        \\sigma_{i}^2 &= \exp(\\sigma_{\mathrm{base}})^2 + \exp(\\sigma_{\mathrm{obs}})^2 / \sqrt{\mathrm{EP}_i}
+        \\sigma_{i}^2 &= \exp(\\sigma_{\mathrm{base}})^2 + \exp(\\sigma_{\mathrm{obs}})^2 / \sqrt{\mathrm{UEP}_i}
 
-    See the model-specific documentation in the User Guide for more details.
+    where :math:`\mathrm{UEP}` is used earned premium as, by default, the Cape Cod
+    method is used. See the model-specific documentation in the User Guide for more details.
 
     The fit and predict configurations are controlled by :class:`Config` and
     :class:`PredictConfig` classes, respectively.
@@ -134,12 +135,6 @@ class SSM(ForecastModel):
                 ``"Normal"`` or ``"InverseGaussian"``. Defaults to ``"Gamma"``.
             loss_definition: the field to model in the triangle. One of
                 ``"paid"`` ``"reported"`` or ``"incurred"``.
-            hierarchical: One of [``"full"``, ``"semi"``]. With semi-hierarchical modeling, the
-                ``target_log_lr`` is partially pooled across slices. Fully hierarchical
-                modeling includes partial pooling of reversion
-                and noise parameters as well. Setting to ``None`` disables all hierarchical modeling.
-                For convenience, if fitting to just a single triangle, this value will
-                automatically be set to None.
             include_mean_reversion: whether to include mean reversion on the latent loss ratios (AR1).
             include_momentum: whether to include momentum on the latent loss ratios (MA1).
             use_cape_cod: Whether to use the Cape Cod method for down-weighting more
@@ -172,8 +167,7 @@ class SSM(ForecastModel):
         loss_family: Literal["Gamma", "Lognormal", "Normal", "InverseGaussian"] = (
             "Gamma"
         )
-        loss_definition: Literal["paid", "reported", "incurred"] = "paid"
-        hierarchical: Literal["full", "semi"] = None
+        loss_definition: Literal["paid", "reported", "incurred"] = "reported"
         include_mean_reversion: bool = True
         include_momentum: bool = True
         use_cape_cod: bool = True
@@ -236,7 +230,7 @@ class TraditionalGCC(ForecastModel):
                 Can be ``"lookup"`` to choose based on ``line_of_business``.
         """
 
-        loss_definition: Literal["paid", "reported", "incurred"] = "paid"
+        loss_definition: Literal["paid", "reported", "incurred"] = "reported"
         recency_decay: str | float | None = None
 
     class PredictConfig(ValidationConfig):

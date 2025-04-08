@@ -190,7 +190,6 @@ class Sherman(TailModel):
         min_rel_pred: float = 0.0
         dev_lag_intercept: float = 0.0
         priors: dict[str, list[float] | float] | None = None
-        informed_priors_verison: str | None = None
         autofit_override: dict[str, float | int | None] = None
         prior_only: bool = False
         seed: int | None = None

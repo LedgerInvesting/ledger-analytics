@@ -56,7 +56,7 @@ The ``GeneralizedBondy`` model above is fit using the following API call:
         name="example_name",
         model_type="GeneralizedBondy",
         config={ # default model_config
-            "loss_definition": "reported",
+            "loss_definition": "paid",
             "loss_family": "gamma",
             "line_of_business": None,
             "informed_priors_version": None,
