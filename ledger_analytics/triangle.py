@@ -7,9 +7,9 @@ from requests import HTTPError, Response
 from requests.exceptions import ChunkedEncodingError
 from rich.console import Console
 
+from .config import JSONDict
 from .interface import TriangleInterface
 from .requester import Requester
-from .types import ConfigDict
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ class Triangle(TriangleInterface):
         self,
         id: str,
         name: str,
-        data: ConfigDict,
+        data: JSONDict,
         endpoint: str,
         requester: Requester,
     ) -> None:
@@ -27,7 +27,7 @@ class Triangle(TriangleInterface):
         self._requester = requester
         self._id: str = id
         self._name: str = name
-        self._data: ConfigDict = data
+        self._data: JSONDict = data
         self._get_response: Response | None = None
         self._delete_response: Response | None = None
 

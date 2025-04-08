@@ -6,10 +6,11 @@ from requests import Response
 from requests.exceptions import HTTPError
 from rich.console import Console
 
+from .autofit import AutofitControl
+from .config import JSONDict
 from .interface import ModelInterface, TriangleInterface
 from .requester import Requester
 from .triangle import Triangle
-from .types import ConfigDict
 
 
 class LedgerModel(ModelInterface):
@@ -18,7 +19,7 @@ class LedgerModel(ModelInterface):
         id: str,
         name: str,
         model_type: str,
-        config: ConfigDict | None,
+        config: JSONDict | None,
         model_class: str,
         endpoint: str,
         requester: Requester,
@@ -30,7 +31,7 @@ class LedgerModel(ModelInterface):
         self._id = id
         self._name = name
         self._model_type = model_type
-        self._config = config or {}
+        self._config = config
         self._model_class = model_class
         self._fit_response: Response | None = None
         self._predict_response: Response | None = None
@@ -53,7 +54,7 @@ class LedgerModel(ModelInterface):
         id: str,
         name: str,
         model_type: str,
-        config: ConfigDict,
+        config: JSONDict,
         model_class: str,
         endpoint: str,
         requester: Requester,
@@ -62,7 +63,7 @@ class LedgerModel(ModelInterface):
         console = Console()
         with console.status("Retrieving...", spinner="bouncingBar") as _:
             console.log(f"Getting model '{name}' with ID '{id}'")
-            get_response = requester.get(endpoint)
+            get_response = requester.get(endpoint, stream=True)
 
         self = cls(
             id,
@@ -83,7 +84,7 @@ class LedgerModel(ModelInterface):
         triangle_name: str,
         name: str,
         model_type: str,
-        config: ConfigDict | None,
+        config: JSONDict | None,
         model_class: str,
         endpoint: str,
         requester: Requester,
@@ -96,11 +97,17 @@ class LedgerModel(ModelInterface):
         `create` and `fit` API endpoints.
         """
 
+        config = config or {}
+
+        if "autofit_override" in config:
+            autofit = config["autofit_override"] or {}
+            config["autofit_override"] = AutofitControl(**autofit).__dict__
+
         config = {
             "triangle_name": triangle_name,
             "model_name": name,
             "model_type": model_type,
-            "model_config": config or {},
+            "model_config": cls.Config(**config).__dict__,
         }
         fit_response = requester.post(endpoint, data=config)
         if not fit_response.ok:
@@ -135,7 +142,7 @@ class LedgerModel(ModelInterface):
     def predict(
         self,
         triangle: str | Triangle,
-        config: ConfigDict | None = None,
+        config: JSONDict | None = None,
         target_triangle: Triangle | str | None = None,
         prediction_name: str | None = None,
         timeout: int = 300,
@@ -143,7 +150,7 @@ class LedgerModel(ModelInterface):
         triangle_name = triangle if isinstance(triangle, str) else triangle.name
         config = {
             "triangle_name": triangle_name,
-            "predict_config": config or {},
+            "predict_config": self.PredictConfig(**(config or {})).__dict__,
         }
         if prediction_name:
             config["prediction_name"] = prediction_name
@@ -206,9 +213,9 @@ class LedgerModel(ModelInterface):
             task_id = self._fit_response.json()["modal_task"]["id"]
             return self._poll(task_id).json()
         except AttributeError:
-            return None
+            return {}
 
-    def _poll(self, task_id: str) -> ConfigDict:
+    def _poll(self, task_id: str) -> JSONDict:
         endpoint = self.endpoint.replace(
             f"{self.model_class_slug}/{self.id}", f"tasks/{task_id}"
         )

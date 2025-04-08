@@ -1,6 +1,6 @@
 import requests
 
-from .types import ConfigDict, HTTPMethods
+from .config import HTTPMethods, JSONDict
 
 
 def _get_stream_chunks(**kwargs):
@@ -11,7 +11,7 @@ def _get_stream_chunks(**kwargs):
         response.raise_for_status()
 
         content = []
-        for chunk in response.iter_content(chunk_size=8192):
+        for chunk in response.iter_content(chunk_size=1024):
             if chunk:
                 content.append(chunk)
 
@@ -23,17 +23,17 @@ class Requester(object):
     def __init__(self, api_key: str) -> None:
         self.headers = {"Authorization": f"Api-Key {api_key}"}
 
-    def post(self, url: str, data: ConfigDict):
+    def post(self, url: str, data: JSONDict):
         return self._factory("post", url, data)
 
-    def get(self, url: str, data: ConfigDict | None = None, stream: bool = False):
+    def get(self, url: str, data: JSONDict | None = None, stream: bool = False):
         return self._factory("get", url, data, stream)
 
-    def delete(self, url: str, data: ConfigDict | None = None):
+    def delete(self, url: str, data: JSONDict | None = None):
         return self._factory("delete", url, data)
 
     def _factory(
-        self, method: HTTPMethods, url: str, data: ConfigDict, stream: bool = False
+        self, method: HTTPMethods, url: str, data: JSONDict, stream: bool = False
     ):
         if method.lower() == "post":
             request = requests.post

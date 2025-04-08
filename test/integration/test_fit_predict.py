@@ -7,7 +7,7 @@ from requests import HTTPError
 from ledger_analytics import AnalyticsClient, DevelopmentModel
 
 
-def test_fit_predict():
+def test_chain_ladder_fit_predict():
     client = AnalyticsClient()
     clipped = meyers_tri.clip(max_eval=max(meyers_tri.periods)[-1])
     triangle = client.triangle.create(name="__test_tri", data=clipped)
@@ -17,6 +17,17 @@ def test_fit_predict():
         triangle=triangle,
         name=name,
         model_type="ChainLadder",
+        config={
+            "loss_family": "gamma",
+            "autofit_override": dict(
+                samples_per_chain=10,
+                max_samples_per_chain=10,
+                adapt_delta=0.8,
+                max_adapt_delta=0.8,
+                max_treedepth=10,
+                max_max_treedepth=10,
+            ),
+        },
     )
 
     model_from_client = client.development_model.get(name=name)
@@ -29,7 +40,7 @@ def test_fit_predict():
         triangle=triangle,
         name=name,
     )
-    assert predictions.to_bermuda().extract("paid_loss").shape == (45, 10e3)
+    assert predictions.to_bermuda().extract("paid_loss").shape == (45, 40)
     assert predictions.to_bermuda() == predictions2.to_bermuda()
 
     assert chain_ladder.terminate() == chain_ladder

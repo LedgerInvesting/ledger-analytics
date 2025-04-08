@@ -6,6 +6,7 @@ User Guide
 
    overview.rst
    modeling.rst
+   autofit.rst
    development.rst
    tail.rst
    forecast.rst
