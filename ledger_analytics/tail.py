@@ -63,7 +63,7 @@ class GeneralizedBondy(TailModel):
         """GeneralizedBondy model configuration class.
 
         Attributes:
-            loss_family: the loss family to use. One of ``"Gamma"``, ``"Lognormal"``,
+            loss_family: the likelihood family to use. One of ``"Gamma"``, ``"Lognormal"``,
                 ``"Normal"`` or ``"InverseGaussian"``. Defaults to ``"Gamma"``.
                 See the ``LossFamily`` type hint class in ``ledger_analytics.config``.
             loss_definition: the field to model in the triangle. One of
@@ -155,7 +155,7 @@ class Sherman(TailModel):
         """Sherman model configuration class.
 
         Attributes:
-            loss_family: the loss family to use. One of ``"Gamma"``, ``"Lognormal"``,
+            loss_family: the likelihood family to use. One of ``"Gamma"``, ``"Lognormal"``,
                 ``"Normal"`` or ``"InverseGaussian"``. Defaults to ``"Gamma"``.
                 See the ``LossFamily`` type hint class in ``ledger_analytics.config``.
             loss_definition: the field to model in the triangle. One of
