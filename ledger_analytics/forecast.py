@@ -13,7 +13,7 @@ class AR1(ForecastModel):
 
     ..  math::
 
-        \mathrm{LR}_{i} &\sim \mathrm{Gamma}(eta_{i}, \sigma_{i}^2)\\\\
+        \mathrm{LR}_{i} &\sim \mathrm{Gamma}(\eta_{i}, \sigma_{i}^2)\\\\
         \eta_{i} &= (1 - \phi_{\mathrm{reversion}}) \mathrm{LR}_{\mathrm{target}} + \phi_{\mathrm{reversion}} \mathrm{LR}_{i - 1}\\\\
         \\sigma_{i}^2 &= \\sigma_{\mathrm{base}} + \\sigma_{\mathrm{obs}} / \mathrm{EP}_i
 
