@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Annotated, Literal
+from typing import Literal
 
 from .config import LossFamily, ValidationConfig
 from .model import DevelopmentModel
@@ -13,7 +13,7 @@ class ChainLadder(DevelopmentModel):
 
     ..  math::
 
-        y_{ij} &\sim \mathrm{Gamma(\mu_{ij}, \\sigma_{ij}^2)},  \quad{\\forall j \in (1, M]}\\\\
+        y_{ij} &\\sim \mathrm{Gamma(\mu_{ij}, \\sigma_{ij}^2)},  \quad{\\forall j \in (1, M]}\\\\
         \mu_{ij} &= ATA_{j - 1} y_{ij-1}\\\\
         \\sigma_{ij}^2 &= \exp(\\sigma_{\mathrm{int}} + \\sigma_{\mathrm{noise}_{j}} + \\sigma_{\mathrm{slope}} j + \log(y_{ij-1}))\\\\
 
