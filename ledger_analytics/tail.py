@@ -2,7 +2,7 @@ from datetime import date
 from enum import Enum
 from typing import Literal
 
-from .config import ValidationConfig
+from .config import LossFamily, ValidationConfig
 from .model import TailModel
 
 
@@ -65,6 +65,7 @@ class GeneralizedBondy(TailModel):
         Attributes:
             loss_family: the loss family to use. One of ``"Gamma"``, ``"Lognormal"``,
                 ``"Normal"`` or ``"InverseGaussian"``. Defaults to ``"Gamma"``.
+                See the ``LossFamily`` type hint class in ``ledger_analytics.config``.
             loss_definition: the field to model in the triangle. One of
                 ``"paid"`` ``"reported"`` or ``"incurred"``.
             recency_decay: geometric decay parameter to downweight earlier
@@ -94,9 +95,7 @@ class GeneralizedBondy(TailModel):
                 to set.
         """
 
-        loss_family: Literal["Gamma", "Lognormal", "Normal", "InverseGaussian"] = (
-            "Gamma"
-        )
+        loss_family: LossFamily = "Gamma"
         loss_definition: Literal["paid", "reported", "incurred"] = "paid"
         recency_decay: str | float | None = None
         line_of_business: str | None = None
@@ -158,6 +157,7 @@ class Sherman(TailModel):
         Attributes:
             loss_family: the loss family to use. One of ``"Gamma"``, ``"Lognormal"``,
                 ``"Normal"`` or ``"InverseGaussian"``. Defaults to ``"Gamma"``.
+                See the ``LossFamily`` type hint class in ``ledger_analytics.config``.
             loss_definition: the field to model in the triangle. One of
                 ``"paid"`` ``"reported"`` or ``"incurred"``.
             recency_decay: geometric decay parameter to downweight earlier
@@ -181,9 +181,7 @@ class Sherman(TailModel):
                 to set.
         """
 
-        loss_family: Literal["Gamma", "Lognormal", "Normal", "InverseGaussian"] = (
-            "Gamma"
-        )
+        loss_family: LossFamily = "Gamma"
         loss_definition: Literal["paid", "reported", "incurred"] = "paid"
         recency_decay: str | float | None = None
         line_of_business: str | None = None

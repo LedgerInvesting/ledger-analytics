@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Literal
 
-from .config import ValidationConfig
+from .config import LossFamily, ValidationConfig
 from .model import ForecastModel
 
 
@@ -42,8 +42,9 @@ class AR1(ForecastModel):
         """AR1 model configuration class.
 
         Attributes:
-            loss_family: the likelihood family to use. One of ``"Gamma"``, ``"Lognormal"``,
+            loss_family: the loss family to use. One of ``"Gamma"``, ``"Lognormal"``,
                 ``"Normal"`` or ``"InverseGaussian"``. Defaults to ``"Gamma"``.
+                See the ``LossFamily`` type hint class in ``ledger_analytics.config``.
             loss_definition: the field to model in the triangle. One of
                 ``"paid"`` ``"reported"`` or ``"incurred"``.
             recency_decay: geometric decay parameter to downweight earlier
@@ -60,9 +61,7 @@ class AR1(ForecastModel):
                 to set.
         """
 
-        loss_family: Literal["Gamma", "Lognormal", "Normal", "InverseGaussian"] = (
-            "Gamma"
-        )
+        loss_family: LossFamily = "Gamma"
         loss_definition: Literal["paid", "reported", "incurred"] = "reported"
         recency_decay: str | float | None = None
         priors: dict[str, list[float] | float] | None = None
@@ -131,8 +130,9 @@ class SSM(ForecastModel):
         """SSM model configuration class.
 
         Attributes:
-            loss_family: the likelihood to use. One of ``"Gamma"``, ``"Lognormal"``,
+            loss_family: the loss family to use. One of ``"Gamma"``, ``"Lognormal"``,
                 ``"Normal"`` or ``"InverseGaussian"``. Defaults to ``"Gamma"``.
+                See the ``LossFamily`` type hint class in ``ledger_analytics.config``.
             loss_definition: the field to model in the triangle. One of
                 ``"paid"`` ``"reported"`` or ``"incurred"``.
             include_mean_reversion: whether to include mean reversion on the latent loss ratios (AR1).
@@ -164,9 +164,7 @@ class SSM(ForecastModel):
                 to set.
         """
 
-        loss_family: Literal["Gamma", "Lognormal", "Normal", "InverseGaussian"] = (
-            "Gamma"
-        )
+        loss_family: LossFamily = "Gamma"
         loss_definition: Literal["paid", "reported", "incurred"] = "reported"
         include_mean_reversion: bool = True
         include_momentum: bool = True

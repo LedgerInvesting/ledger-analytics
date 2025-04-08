@@ -7,10 +7,10 @@ from requests.exceptions import HTTPError
 from rich.console import Console
 
 from .autofit import AutofitControl
+from .config import JSONDict
 from .interface import ModelInterface, TriangleInterface
 from .requester import Requester
 from .triangle import Triangle
-from .types import ConfigDict
 
 
 class LedgerModel(ModelInterface):
@@ -19,7 +19,7 @@ class LedgerModel(ModelInterface):
         id: str,
         name: str,
         model_type: str,
-        config: ConfigDict | None,
+        config: JSONDict | None,
         model_class: str,
         endpoint: str,
         requester: Requester,
@@ -54,7 +54,7 @@ class LedgerModel(ModelInterface):
         id: str,
         name: str,
         model_type: str,
-        config: ConfigDict,
+        config: JSONDict,
         model_class: str,
         endpoint: str,
         requester: Requester,
@@ -84,7 +84,7 @@ class LedgerModel(ModelInterface):
         triangle_name: str,
         name: str,
         model_type: str,
-        config: ConfigDict | None,
+        config: JSONDict | None,
         model_class: str,
         endpoint: str,
         requester: Requester,
@@ -142,7 +142,7 @@ class LedgerModel(ModelInterface):
     def predict(
         self,
         triangle: str | Triangle,
-        config: ConfigDict | None = None,
+        config: JSONDict | None = None,
         target_triangle: Triangle | str | None = None,
         prediction_name: str | None = None,
         timeout: int = 300,
@@ -215,7 +215,7 @@ class LedgerModel(ModelInterface):
         except AttributeError:
             return {}
 
-    def _poll(self, task_id: str) -> ConfigDict:
+    def _poll(self, task_id: str) -> JSONDict:
         endpoint = self.endpoint.replace(
             f"{self.model_class_slug}/{self.id}", f"tasks/{task_id}"
         )

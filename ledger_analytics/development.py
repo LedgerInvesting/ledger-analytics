@@ -1,7 +1,7 @@
 from enum import Enum
-from typing import Literal
+from typing import Annotated, Literal
 
-from .config import ValidationConfig
+from .config import LossFamily, ValidationConfig
 from .model import DevelopmentModel
 
 
@@ -48,6 +48,7 @@ class ChainLadder(DevelopmentModel):
         Attributes:
             loss_family: the loss family to use. One of ``"Gamma"``, ``"Lognormal"``,
                 ``"Normal"`` or ``"InverseGaussian"``. Defaults to ``"Gamma"``.
+                See the ``LossFamily`` type hint class in ``ledger_analytics.config``.
             loss_definition: the field to model in the triangle. One of
                 ``"paid"`` ``"reported"`` or ``"incurred"``.
             use_linear_noise: Set to True to turn off the hierarchical
@@ -75,9 +76,7 @@ class ChainLadder(DevelopmentModel):
                 to set.
         """
 
-        loss_family: Literal["Gamma", "Lognormal", "Normal", "InverseGaussian"] = (
-            "Gamma"
-        )
+        loss_family: LossFamily = "Gamma"
         loss_definition: Literal["paid", "reported", "incurred"] = "paid"
         use_linear_noise: bool = False
         recency_decay: str | float | None = None
@@ -282,6 +281,7 @@ class MeyersCRC(DevelopmentModel):
         Attributes:
             loss_family: the loss family to use. One of ``"Gamma"``, ``"Lognormal"``,
                 ``"Normal"`` or ``"InverseGaussian"``. Defaults to ``"Gamma"``.
+                See the ``LossFamily`` type hint class in ``ledger_analytics.config``.
             loss_definition: the field to model in the triangle. One of
                 ``"paid"`` ``"reported"`` or ``"incurred"``.
             recency_decay: geometric decay parameter to downweight earlier
@@ -298,9 +298,7 @@ class MeyersCRC(DevelopmentModel):
                 to set.
         """
 
-        loss_family: Literal["Gamma", "Lognormal", "Normal", "InverseGaussian"] = (
-            "Gamma"
-        )
+        loss_family: LossFamily = "Gamma"
         loss_definition: Literal["paid", "reported", "incurred"] = "paid"
         recency_decay: str | float | None = None
         priors: dict[str, list[float] | float] | None = None
@@ -375,6 +373,7 @@ class GMCL(DevelopmentModel):
         Attributes:
             loss_family: the loss family to use. One of ``"Gamma"``, ``"Lognormal"``,
                 ``"Normal"`` or ``"InverseGaussian"``. Defaults to ``"Gamma"``.
+                See the ``LossFamily`` type hint class in ``ledger_analytics.config``.
             is_general: should the general MCL model be used?
             include_intercepts: should intercepts be included in the mean function?
             recency_decay: geometric decay parameter to downweight earlier
@@ -391,9 +390,7 @@ class GMCL(DevelopmentModel):
                 to set.
         """
 
-        loss_family: Literal["Gamma", "Lognormal", "Normal", "InverseGaussian"] = (
-            "Gamma"
-        )
+        loss_family: LossFamily = "Gamma"
         is_general: bool = False
         include_intercepts: bool = False
         recency_decay: str | float | None = None

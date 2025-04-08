@@ -4,8 +4,8 @@ import logging
 
 from bermuda import Triangle as BermudaTriangle
 
+from .config import JSONDict
 from .requester import Requester
-from .types import ConfigDict
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class TriangleInterface(metaclass=TriangleRegistry):
         self._requester = requester
         self.asynchronous = asynchronous
 
-    def create(self, name: str, data: ConfigDict):
+    def create(self, name: str, data: JSONDict):
         if isinstance(data, BermudaTriangle):
             data = data.to_dict()
 
@@ -98,7 +98,7 @@ class TriangleInterface(metaclass=TriangleRegistry):
             raise ValueError(f"No triangle found with {name_or_id}.")
         return triangles[0]
 
-    def list(self) -> list[ConfigDict]:
+    def list(self) -> list[JSONDict]:
         response = self._requester.get(self.endpoint)
         if not response.ok:
             response.raise_for_status()
@@ -129,7 +129,7 @@ class ModelInterface(metaclass=ModelRegistry):
         triangle: str | Triangle,
         name: str,
         model_type: str,
-        config: ConfigDict | None = None,
+        config: JSONDict | None = None,
         timeout: int = 300,
     ):
         triangle_name = triangle if isinstance(triangle, str) else triangle.name
@@ -163,7 +163,7 @@ class ModelInterface(metaclass=ModelRegistry):
     def predict(
         self,
         triangle: str | Triangle,
-        config: ConfigDict | None = None,
+        config: JSONDict | None = None,
         target_triangle: str | Triangle | None = None,
         timeout: int = 300,
         name: str | None = None,
@@ -182,10 +182,10 @@ class ModelInterface(metaclass=ModelRegistry):
         model = self.get(name, id)
         return model.delete()
 
-    def list(self) -> list[ConfigDict]:
+    def list(self) -> list[JSONDict]:
         return self._requester.get(self.endpoint, stream=True).json()
 
-    def list_model_types(self) -> list[ConfigDict]:
+    def list_model_types(self) -> list[JSONDict]:
         url = self.endpoint + "-type"
         return self._requester.get(url).json()
 

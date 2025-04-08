@@ -3,12 +3,12 @@ from bermuda import meyers_tri
 from requests_mock import Mocker
 
 from ledger_analytics import Requester
-from ledger_analytics.types import ConfigDict, HTTPMethods
+from ledger_analytics.config import HTTPMethods, JSONDict
 
 
 class TriangleMockRequester(Requester):
     def _factory(
-        self, method: HTTPMethods, url: str, data: ConfigDict, stream: bool = False
+        self, method: HTTPMethods, url: str, data: JSONDict, stream: bool = False
     ):
         with Mocker() as mocker:
             if method.lower() == "post":
@@ -42,7 +42,7 @@ class TriangleMockRequester(Requester):
 
 class TriangleMockRequesterAfterDeletion(Requester):
     def _factory(
-        self, method: HTTPMethods, url: str, data: ConfigDict, stream: bool = False
+        self, method: HTTPMethods, url: str, data: JSONDict, stream: bool = False
     ):
         with Mocker() as mocker:
             if method.lower() == "post":
@@ -63,7 +63,7 @@ class TriangleMockRequesterAfterDeletion(Requester):
 
 class ModelMockRequester(Requester):
     def _factory(
-        self, method: HTTPMethods, url: str, data: ConfigDict, stream: bool = False
+        self, method: HTTPMethods, url: str, data: JSONDict, stream: bool = False
     ):
         with Mocker() as mocker:
             if method.lower() == "post" and "predict" not in url:
@@ -110,7 +110,7 @@ class ModelMockRequester(Requester):
 
 class ModelMockRequesterAfterDeletion(Requester):
     def _factory(
-        self, method: HTTPMethods, url: str, data: ConfigDict, stream: bool = False
+        self, method: HTTPMethods, url: str, data: JSONDict, stream: bool = False
     ):
         with Mocker() as mocker:
             if method.lower() == "get":
