@@ -1,7 +1,7 @@
 Our Software
 =====================
 
-`Ledger Investing <ledgerinvesting.com>`_ is open-sourcing and releasing
+`Ledger Investing <https://ledgerinvesting.com>`_ is open-sourcing and releasing
 our state-of-the-art analytics infrastructure to insurance data scientists
 and actuaries.
 
