@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 
 from bermuda import Triangle as BermudaTriangle
-from model import DevelopmentModel, TailModel
 
 from .config import JSONDict
 from .requester import Requester
@@ -222,6 +221,7 @@ class CashflowInterface(metaclass=ModelRegistry):
         asynchronous: bool = False,
     ) -> None:
         self._model_class = model_class
+        self._host = host
         self._endpoint = host + self.model_class_slug
         self._requester = requester
         self._asynchronous = asynchronous
@@ -250,18 +250,19 @@ class CashflowInterface(metaclass=ModelRegistry):
     def get(self, name: str | None = None, id: str | None = None):
         model_obj = self._get_details_from_id_name(name, id)
         endpoint = self.endpoint + f"/{model_obj['id']}"
-        dev_model_id = model_obj["development_model"]
-        tail_model_id = model_obj["tail_model"]
-        # psuedocode - what's the easiest way to do this?
-        dev_model_name = DevelopmentModel.get(dev_model_id)["name"]
-        tail_model_name = TailModel.get(tail_model_id)["name"]
-        # end
+        dev_interface = ModelInterface(
+            "development-model", self._host, self._requester, self._asynchronous
+        )
+        dev_model_name = dev_interface.get(id=model_obj["development_model"]).name
+        tail_interface = ModelInterface(
+            "tail-model", self._host, self._requester, self._asynchronous
+        )
+        tail_model_name = tail_interface.get(id=model_obj["tail_model"]).name
         return ModelRegistry.REGISTRY["cashflow_model"].get(
             id=model_obj["id"],
             name=model_obj["name"],
             dev_model_name=dev_model_name,
             tail_model_name=tail_model_name,
-            config=model_obj["model_config"],
             model_class=self.model_class,
             endpoint=endpoint,
             requester=self._requester,
