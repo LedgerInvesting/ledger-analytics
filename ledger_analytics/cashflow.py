@@ -3,9 +3,10 @@ from __future__ import annotations
 import time
 from typing import Dict, Optional
 
+from requests import Response
 from rich.console import Console
 
-from .config import ValidationConfig
+from .config import JSONDict, ValidationConfig
 from .interface import CashflowInterface, TriangleInterface
 from .requester import Requester
 from .triangle import Triangle
