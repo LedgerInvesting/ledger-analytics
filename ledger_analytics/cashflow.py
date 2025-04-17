@@ -86,7 +86,7 @@ class CashflowModel(CashflowInterface):
         endpoint: str,
         requester: Requester,
         asynchronous: bool = False,
-    ) -> LedgerModel:
+    ) -> CashflowModel:
         """This method fits a new model and constructs a CashflowModel instance.
         It's intended to be used from the `ModelInterface` class mainly,
         and in the future will likely be superseded by having separate
@@ -162,7 +162,7 @@ class CashflowModel(CashflowInterface):
         ).get(id=triangle_id)
         return triangle
 
-    def delete(self) -> LedgerModel:
+    def delete(self) -> CashflowModel:
         self._delete_response = self._requester.delete(self.endpoint)
         return self
 
