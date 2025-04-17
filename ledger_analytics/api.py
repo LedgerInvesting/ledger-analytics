@@ -4,7 +4,7 @@ import os
 from abc import ABC
 from collections import namedtuple
 
-from .interface import ModelInterface, TriangleInterface
+from .interface import CashflowInterface, ModelInterface, TriangleInterface
 from .requester import Requester
 
 DEFAULT_HOST = "https://api.ldgr.app/analytics/"
@@ -76,6 +76,11 @@ class AnalyticsClient(BaseClient):
     forecast_model = property(
         lambda self: ModelInterface(
             "forecast_model", self.host, self._requester, self.asynchronous
+        )
+    )
+    cashflow_model = property(
+        lambda self: CashflowInterface(
+            "cashflow_model", self.host, self._requester, self.asynchronous
         )
     )
 
