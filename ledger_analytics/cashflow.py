@@ -1,25 +1,24 @@
 from __future__ import annotations
 
 import time
+from typing import Dict
 
 from requests import Response
-from requests.exceptions import HTTPError
 from rich.console import Console
 
-from .autofit import AutofitControl
-from .config import JSONDict
-from .interface import ModelInterface, TriangleInterface
+from .config import JSONDict, ValidationConfig
+from .interface import CashflowInterface, TriangleInterface
 from .requester import Requester
 from .triangle import Triangle
 
 
-class LedgerModel(ModelInterface):
+class CashflowModel(CashflowInterface):
     def __init__(
         self,
         id: str,
         name: str,
-        model_type: str,
-        config: JSONDict | None,
+        dev_model_name: str,
+        tail_model_name: str,
         model_class: str,
         endpoint: str,
         requester: Requester,
@@ -30,8 +29,8 @@ class LedgerModel(ModelInterface):
         self._endpoint = endpoint
         self._id = id
         self._name = name
-        self._model_type = model_type
-        self._config = config
+        self._dev_model_name = dev_model_name
+        self._tail_model_name = tail_model_name
         self._model_class = model_class
         self._fit_response: Response | None = None
         self._predict_response: Response | None = None
@@ -39,8 +38,8 @@ class LedgerModel(ModelInterface):
 
     id = property(lambda self: self._id)
     name = property(lambda self: self._name)
-    model_type = property(lambda self: self._model_type)
-    config = property(lambda self: self._config)
+    dev_model_name = property(lambda self: self._dev_model_name)
+    tail_model_name = property(lambda self: self._tail_model_name)
     model_class = property(lambda self: self._model_class)
     endpoint = property(lambda self: self._endpoint)
     fit_response = property(lambda self: self._fit_response)
@@ -53,13 +52,13 @@ class LedgerModel(ModelInterface):
         cls,
         id: str,
         name: str,
-        model_type: str,
-        config: JSONDict,
+        dev_model_name: str,
+        tail_model_name: str,
         model_class: str,
         endpoint: str,
         requester: Requester,
         asynchronous: bool = False,
-    ) -> LedgerModel:
+    ) -> CashflowModel:
         console = Console()
         with console.status("Retrieving...", spinner="bouncingBar") as _:
             console.log(f"Getting model '{name}' with ID '{id}'")
@@ -68,8 +67,8 @@ class LedgerModel(ModelInterface):
         self = cls(
             id,
             name,
-            model_type,
-            config,
+            dev_model_name,
+            tail_model_name,
             model_class,
             endpoint,
             requester,
@@ -81,41 +80,33 @@ class LedgerModel(ModelInterface):
     @classmethod
     def fit_from_interface(
         cls,
-        triangle_name: str,
         name: str,
-        model_type: str,
-        config: JSONDict | None,
+        dev_model_name: str,
+        tail_model_name: str,
         model_class: str,
         endpoint: str,
         requester: Requester,
         asynchronous: bool = False,
-        timeout: int = 300,
-    ) -> LedgerModel:
-        """This method fits a new model and constructs a LedgerModel instance.
+    ) -> CashflowModel:
+        """This method fits a new model and constructs a CashflowModel instance.
         It's intended to be used from the `ModelInterface` class mainly,
         and in the future will likely be superseded by having separate
         `create` and `fit` API endpoints.
         """
 
-        config = config or {}
-
-        if "autofit_override" in config:
-            autofit = config["autofit_override"] or {}
-            config["autofit_override"] = AutofitControl(**autofit).__dict__
-
-        config = {
-            "triangle_name": triangle_name,
-            "model_name": name,
-            "model_type": model_type,
-            "model_config": cls.Config(**config).__dict__,
+        post_data = {
+            "development_model_name": dev_model_name,
+            "tail_model_name": tail_model_name,
+            "name": name,
+            "model_config": {},
         }
-        fit_response = requester.post(endpoint, data=config)
+        fit_response = requester.post(endpoint, data=post_data)
         id = fit_response.json()["model"]["id"]
         self = cls(
             id=id,
             name=name,
-            model_type=model_type,
-            config=config,
+            dev_model_name=dev_model_name,
+            tail_model_name=tail_model_name,
             model_class=model_class,
             endpoint=endpoint + f"/{id}",
             requester=requester,
@@ -124,24 +115,13 @@ class LedgerModel(ModelInterface):
 
         self._fit_response = fit_response
 
-        if asynchronous:
-            return self
-
-        task_id = self.fit_response.json()["modal_task"]["id"]
-        task_response = self._poll_remote_task(
-            task_id,
-            task_name=f"Fitting model '{self.name}' on triangle '{triangle_name}'",
-            timeout=timeout,
-        )
-        if task_response.get("status") != "success":
-            raise ValueError(f"Task failed: {task_response['error']}")
         return self
 
     def predict(
         self,
         triangle: str | Triangle,
         config: JSONDict | None = None,
-        target_triangle: Triangle | str | None = None,
+        initial_loss_triangle: Triangle | str | None = None,
         prediction_name: str | None = None,
         timeout: int = 300,
     ) -> Triangle:
@@ -153,10 +133,10 @@ class LedgerModel(ModelInterface):
         if prediction_name:
             config["prediction_name"] = prediction_name
 
-        if isinstance(target_triangle, Triangle):
-            config["predict_config"]["target_triangle"] = target_triangle.name
-        elif isinstance(target_triangle, str):
-            config["predict_config"]["target_triangle"] = target_triangle
+        if isinstance(initial_loss_triangle, Triangle):
+            config["predict_config"]["initial_loss_name"] = initial_loss_triangle.name
+        elif isinstance(initial_loss_triangle, str):
+            config["predict_config"]["initial_loss_name"] = initial_loss_triangle
 
         url = self.endpoint + "/predict"
         self._predict_response = self._requester.post(url, data=config)
@@ -179,37 +159,9 @@ class LedgerModel(ModelInterface):
         ).get(id=triangle_id)
         return triangle
 
-    def delete(self) -> LedgerModel:
+    def delete(self) -> CashflowModel:
         self._delete_response = self._requester.delete(self.endpoint)
         return self
-
-    def terminate(self) -> LedgerModel:
-        status = self.poll().get("status")
-
-        if status.lower() not in ["created", "pending"]:
-            return self
-
-        console = Console()
-        timeout = 60
-        start = time.time()
-        with console.status("Terminating...", spinner="bouncingBar") as _:
-            console.log(f"Terminating model {self.name} with ID {self.id}.")
-            while status.lower() != "terminated" and time.time() - start < timeout:
-                try:
-                    self._requester.post(self.endpoint + "/terminate", data={})
-                    status = self.poll().get("status")
-                except HTTPError:
-                    continue
-                if status.lower() == "terminated":
-                    return self
-            raise TimeoutError(f"Could not terminate within {timeout} seconds.")
-
-    def poll(self):
-        try:
-            task_id = self._fit_response.json()["modal_task"]["id"]
-            return self._poll(task_id).json()
-        except AttributeError:
-            return {}
 
     def _poll(self, task_id: str) -> JSONDict:
         endpoint = self.endpoint.replace(
@@ -236,14 +188,21 @@ class LedgerModel(ModelInterface):
                     return task["task_response"]
             raise TimeoutError(f"Task '{task}' timed out")
 
+    class PredictConfig(ValidationConfig):
+        """Cashflow model configuration class.
 
-class DevelopmentModel(LedgerModel):
-    pass
+        Attributes:
+            use_bf: Whether or not to use Bornhuetter-Ferguson method to adjust reserve estimates.
+            use_reverse_bf: Whether or not to use the Reverse B-F method to adjust reserve
+                estimates.
+            gamma: Gamma parameter in the Reverse B-F method.
+            min_reserve: Minimum reserve amounts as a function of development lag.
+            seed: Seed to use for model sampling. Defaults to ``None``, but it is highly recommended
+                to set.
+        """
 
-
-class TailModel(LedgerModel):
-    pass
-
-
-class ForecastModel(LedgerModel):
-    pass
+        use_bf: bool = True
+        use_reverse_bf: bool = True
+        gamma: float = 0.7
+        min_reserve: Dict[float, float] | None
+        seed: int | None = None

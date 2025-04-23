@@ -207,3 +207,111 @@ class ModelInterface(metaclass=ModelRegistry):
             )
             raise ValueError(f"No model found with {name_or_id}.")
         return models[0]
+
+
+class CashflowInterface(metaclass=ModelRegistry):
+    """The CashflowInterface class allows basic CRUD operations
+    on for Cashflow endpoints and objects."""
+
+    def __init__(
+        self,
+        model_class: str,
+        host: str,
+        requester: Requester,
+        asynchronous: bool = False,
+    ) -> None:
+        self._model_class = model_class
+        self._host = host
+        self._endpoint = host + self.model_class_slug
+        self._requester = requester
+        self._asynchronous = asynchronous
+
+    model_class = property(lambda self: self._model_class)
+    endpoint = property(lambda self: self._endpoint)
+
+    def create(
+        self,
+        dev_model: str | "DevelopmentModel",
+        tail_model: str | "TailModel",
+        name: str,
+    ):
+        dev_model_name = dev_model if isinstance(dev_model, str) else dev_model.name
+        tail_model_name = tail_model if isinstance(tail_model, str) else tail_model.name
+        return ModelRegistry.REGISTRY["cashflow_model"].fit_from_interface(
+            name=name,
+            dev_model_name=dev_model_name,
+            tail_model_name=tail_model_name,
+            model_class=self.model_class,
+            endpoint=self.endpoint,
+            requester=self._requester,
+            asynchronous=self._asynchronous,
+        )
+
+    def get(self, name: str | None = None, id: str | None = None):
+        model_obj = self._get_details_from_id_name(name, id)
+        endpoint = self.endpoint + f"/{model_obj['id']}"
+        dev_interface = ModelInterface(
+            "development-model", self._host, self._requester, self._asynchronous
+        )
+        dev_model_name = dev_interface.get(id=model_obj["development_model"]).name
+        tail_interface = ModelInterface(
+            "tail-model", self._host, self._requester, self._asynchronous
+        )
+        tail_model_name = tail_interface.get(id=model_obj["tail_model"]).name
+        return ModelRegistry.REGISTRY["cashflow_model"].get(
+            id=model_obj["id"],
+            name=model_obj["name"],
+            dev_model_name=dev_model_name,
+            tail_model_name=tail_model_name,
+            model_class=self.model_class,
+            endpoint=endpoint,
+            requester=self._requester,
+            asynchronous=self._asynchronous,
+        )
+
+    def predict(
+        self,
+        triangle: str | Triangle,
+        config: JSONDict | None = None,
+        initial_loss_triangle: str | Triangle | None = None,
+        timeout: int = 300,
+        name: str | None = None,
+        id: str | None = None,
+    ):
+        model = self.get(name, id)
+        return model.predict(
+            triangle,
+            config=config,
+            initial_loss_triangle=initial_loss_triangle,
+            timeout=timeout,
+        )
+
+    def delete(self, name: str | None = None, id: str | None = None) -> None:
+        model = self.get(name, id)
+        return model.delete()
+
+    def list(self) -> list[JSONDict]:
+        return self._requester.get(self.endpoint, stream=True).json()
+
+    def list_model_types(self) -> list[JSONDict]:
+        url = self.endpoint + "-type"
+        return self._requester.get(url).json()
+
+    @property
+    def model_class_slug(self):
+        return self.model_class.replace("_", "-")
+
+    def _get_details_from_id_name(
+        self, model_name: str | None = None, model_id: str | None = None
+    ) -> str:
+        models = [
+            result
+            for result in self.list().get("results")
+            if result.get("name") == model_name or result.get("id") == model_id
+        ]
+        if not len(models):
+            name_or_id = (
+                f"name '{model_name}'" if model_id is None else f"ID '{model_id}'"
+            )
+            raise ValueError(f"No model found with {name_or_id}.")
+        return models[0]

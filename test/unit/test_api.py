@@ -13,6 +13,8 @@ from bermuda import meyers_tri
 
 from ledger_analytics import (
     AnalyticsClient,
+    CashflowInterface,
+    CashflowModel,
     DevelopmentModel,
     ForecastModel,
     ModelInterface,
@@ -38,6 +40,7 @@ def test_ledger_analytics_models():
     assert isinstance(client.development_model, ModelInterface)
     assert isinstance(client.tail_model, ModelInterface)
     assert isinstance(client.forecast_model, ModelInterface)
+    assert isinstance(client.cashflow_model, CashflowInterface)
 
 
 def test_ledger_analytics_triangle_crud():
@@ -87,10 +90,16 @@ def test_ledger_analytics_model_crud():
         name="test_ar1",
         model_type="AR1",
     )
+    cashflow_model = client.cashflow_model.create(
+        dev_model="test_chain_ladder",
+        tail_model="test_bondy",
+        name="test_cashflows",
+    )
 
     assert isinstance(development_model, DevelopmentModel)
     assert isinstance(tail_model, TailModel)
     assert isinstance(forecast_model, ForecastModel)
+    assert isinstance(cashflow_model, CashflowModel)
 
     assert development_model.fit_response.status_code == 201
     assert development_model.fit_response.json()["model"]["id"] == "model_abc"
@@ -124,5 +133,16 @@ def test_ledger_analytics_model_configs():
             triangle="test_meyers_triangle",
             name="meyers_crc",
             model_type="MeyersCRC",
+            config={"foo": True},
+        )
+
+    with pytest.raises(pydantic_core.ValidationError):
+        cash_model = client.cashflow_model.create(
+            dev_model="test_chain_ladder",
+            tail_model="test_bondy",
+            name="test_cashflows",
+        )
+        cash_model.predict(
+            triangle="test_meyers_triangle",
             config={"foo": True},
         )
