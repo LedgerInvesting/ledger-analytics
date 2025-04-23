@@ -110,8 +110,6 @@ class LedgerModel(ModelInterface):
             "model_config": cls.Config(**config).__dict__,
         }
         fit_response = requester.post(endpoint, data=config)
-        if not fit_response.ok:
-            fit_response.raise_for_status()
         id = fit_response.json()["model"]["id"]
         self = cls(
             id=id,
@@ -162,8 +160,6 @@ class LedgerModel(ModelInterface):
 
         url = self.endpoint + "/predict"
         self._predict_response = self._requester.post(url, data=config)
-        if not self._predict_response.ok:
-            self._predict_response.raise_for_status()
 
         if self._asynchronous:
             return self

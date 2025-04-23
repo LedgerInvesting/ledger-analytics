@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import time
-from typing import Dict, Optional
+from typing import Dict
 
 from requests import Response
 from rich.console import Console
@@ -101,8 +101,6 @@ class CashflowModel(CashflowInterface):
             "model_config": {},
         }
         fit_response = requester.post(endpoint, data=post_data)
-        if not fit_response.ok:
-            fit_response.raise_for_status()
         id = fit_response.json()["model"]["id"]
         self = cls(
             id=id,
@@ -142,8 +140,6 @@ class CashflowModel(CashflowInterface):
 
         url = self.endpoint + "/predict"
         self._predict_response = self._requester.post(url, data=config)
-        if not self._predict_response.ok:
-            self._predict_response.raise_for_status()
 
         if self._asynchronous:
             return self
@@ -201,12 +197,12 @@ class CashflowModel(CashflowInterface):
                 estimates.
             gamma: Gamma parameter in the Reverse B-F method.
             min_reserve: Minimum reserve amounts as a function of development lag.
-                seed: Seed to use for model sampling. Defaults to ``None``, but it is highly recommended
-                    to set.
+            seed: Seed to use for model sampling. Defaults to ``None``, but it is highly recommended
+                to set.
         """
 
         use_bf: bool = True
         use_reverse_bf: bool = True
         gamma: float = 0.7
-        min_reserve: Optional[Dict[float, float]] = None
+        min_reserve: Dict[float, float] | None
         seed: int | None = None

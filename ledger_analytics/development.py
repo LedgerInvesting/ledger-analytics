@@ -71,6 +71,8 @@ class ChainLadder(DevelopmentModel):
                 industry-informed priors for best results.
             autofit_override: override the MCMC autofitting procedure arguments. See the documentation
                 for a fully description of options in the User Guide.
+            sigma_volume: Boolean indicating whether to use a volume parameter in the variance
+                function.
             prior_only: should a prior predictive simulation be run?
             seed: Seed to use for model sampling. Defaults to ``None``, but it is highly recommended
                 to set.
@@ -85,6 +87,7 @@ class ChainLadder(DevelopmentModel):
         informed_priors_version: str | None = None
         use_multivariate: bool = False
         autofit_override: dict[str, float | int | None] = None
+        sigma_volume: bool = False
         prior_only: bool = False
         seed: int | None = None
 
