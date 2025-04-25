@@ -7,5 +7,13 @@ from .forecast import AR1, SSM, TraditionalGCC
 from .interface import CashflowInterface, ModelInterface, TriangleInterface
 from .model import DevelopmentModel, ForecastModel, TailModel
 from .requester import Requester
-from .tail import ClassicalPowerTransformTail, GeneralizedBondy, Sherman
+from .tail import (
+    ClarkExponential,
+    ClassicalPowerTransformTail,
+    ExponentialTail,
+    GeneralizedBondy,
+    LinearExponential,
+    LogExponential,
+    Sherman,
+)
 from .triangle import Triangle
