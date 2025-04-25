@@ -10,10 +10,83 @@ from ledger_analytics import AnalyticsClient, DevelopmentModel
 def test_chain_ladder_fit_predict():
     client = AnalyticsClient()
     clipped = meyers_tri.clip(max_eval=max(meyers_tri.periods)[-1])
-    triangle = client.triangle.create(name="__test_tri", data=clipped)
+    triangle = client.triangle.get_or_create(name="__test_tri_clipped", data=clipped)
 
     name = "__test_chain_ladder"
+    old_test = client.development_model.get(name=name)
+    old_test.delete()
     chain_ladder = client.development_model.create(
+        triangle=triangle,
+        name=name,
+        model_type="ChainLadder",
+        config={
+            "loss_family": "gamma",
+            "autofit_override": dict(
+                samples_per_chain=10,
+                max_samples_per_chain=10,
+                adapt_delta=0.8,
+                max_adapt_delta=0.8,
+                max_treedepth=10,
+                max_max_treedepth=10,
+            ),
+        },
+    )
+
+    # Recreating the same model should fail since it already exists with that name
+    with pytest.raises(HTTPError):
+        chain_ladder = client.development_model.create(
+            triangle=triangle,
+            name=name,
+            model_type="ChainLadder",
+            config={
+                "loss_family": "gamma",
+                "autofit_override": dict(
+                    samples_per_chain=11,
+                    max_samples_per_chain=10,
+                    adapt_delta=0.8,
+                    max_adapt_delta=0.8,
+                    max_treedepth=10,
+                    max_max_treedepth=10,
+                ),
+            },
+        )
+    # Get or create should return the existing model
+    chain_ladder_got = client.development_model.get_or_create(
+        triangle=triangle,
+        name=name,
+        model_type="ChainLadder",
+        config={
+            "loss_family": "gamma",
+            "autofit_override": dict(
+                samples_per_chain=11,
+                max_samples_per_chain=10,
+                adapt_delta=0.8,
+                max_adapt_delta=0.8,
+                max_treedepth=10,
+                max_max_treedepth=10,
+            ),
+        },
+    )
+    # Get or create should fail since args have changed
+    with pytest.raises(ValueError):
+        chain_ladder_break = client.development_model.get_or_create(
+            triangle=triangle,
+            name=name,
+            model_type="ChainLadder",
+            config={
+                "loss_family": "gamma",
+                "autofit_override": dict(
+                    samples_per_chain=10,
+                    max_samples_per_chain=10,
+                    adapt_delta=0.8,
+                    max_adapt_delta=0.8,
+                    max_treedepth=10,
+                    max_max_treedepth=10,
+                ),
+            },
+        )
+    # get or update should work and replace the model
+    chain_ladder_update = client.development_model.get_or_update(
         triangle=triangle,
         name=name,
         model_type="ChainLadder",
@@ -63,7 +136,7 @@ def test_chain_ladder_fit_predict():
 def test_fit_termination():
     client = AnalyticsClient(asynchronous=True)
     clipped = meyers_tri.clip(max_eval=max(meyers_tri.periods)[-1])
-    triangle = client.triangle.create(name="__test_tri", data=clipped)
+    triangle = client.triangle.get_or_create(name="__test_tri_clipped", data=clipped)
 
     name = "__test_chain_ladder"
     chain_ladder = client.development_model.create(

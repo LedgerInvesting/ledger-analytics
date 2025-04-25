@@ -88,6 +88,7 @@ class LedgerModel(ModelInterface):
         model_class: str,
         endpoint: str,
         requester: Requester,
+        overwrite: bool = False,
         asynchronous: bool = False,
         timeout: int = 300,
     ) -> LedgerModel:
@@ -106,6 +107,7 @@ class LedgerModel(ModelInterface):
         config = {
             "triangle_name": triangle_name,
             "model_name": name,
+            "overwrite": overwrite,
             "model_type": model_type,
             "model_config": cls.Config(**config).__dict__,
         }
