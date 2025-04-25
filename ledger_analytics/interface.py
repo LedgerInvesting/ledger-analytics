@@ -145,34 +145,6 @@ class ModelInterface(metaclass=ModelRegistry):
             timeout=timeout,
         )
 
-    def get_or_create(
-        self,
-        triangle: str | Triangle,
-        name: str,
-        model_type: str,
-        config: JSONDict | None = None,
-        timeout: int = 300,
-    ):
-        """Get's a model if it exists with the same config, otherwise creates a new one."""
-        try:
-            model = self.get(name=name)
-            existing_triangle_name = (
-                model.get_response.json().get("triangle", {"name": None}).get("name")
-            )
-            assert config == model.config
-            triangle_name = triangle if isinstance(triangle, str) else triangle.name
-            # we really need the IDs to match not just the name
-            assert existing_triangle_name == triangle_name
-            return model
-        except:
-            return self.create(
-                triangle=triangle,
-                name=name,
-                model_type=model_type,
-                config=config,
-                timeout=timeout,
-            )
-
     def get(self, name: str | None = None, id: str | None = None):
         model_obj = self._get_details_from_id_name(name, id)
         endpoint = self.endpoint + f"/{model_obj['id']}"
