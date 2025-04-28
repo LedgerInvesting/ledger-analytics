@@ -208,7 +208,7 @@ class ClassicalPowerTransformTail(TailModel):
         \log ATA_{j} &\sim \mathrm{Normal(\mu_{j}, \sigma^2)}\\\\
         \mu_{j} &= \\beta_{\\text{int}} + \\beta_{j} \\text{L}_j\\\\
         \\beta_{j} &= \lambda - 1 - \\beta_{\\text{slope}}\\\\
-        \\text{L}_j &= j^{\lambda-1} / \lambda
+        \\text{L}_j &= (j^\lambda-1) / \lambda
 
     where :math:`\log ATA` represents log-scale ATAs, and :math:`\\lambda`` is a Box-Cox transformation
     parameter. The latter can be set to switch between exponential decay, Sherman and Clark square-root tail
@@ -263,6 +263,260 @@ class ClassicalPowerTransformTail(TailModel):
         lambda_: float = 1.0
         recency_decay: str | float | None = None
         min_rel_pred: float = 0.0
+        priors: dict[str, list[float] | float] | None = None
+        prior_only: bool = False
+        seed: int | None = None
+
+    class PredictConfig(TailDefaultPredictConfig):
+        pass
+
+
+class ExponentialTail(TailModel):
+    """Tail Exponential model.
+
+    This model implements a generalized exponential model.
+    This is different from the classical power transform implementation because it
+    can be fit directly to the loss triangle, rather than the age-to-age factors.
+
+    ..  math::
+
+        \\text{Loss}_{j} &\sim \mathrm{Normal(\mu_{j}, \sigma^2)}\\\\
+        \mu_{j} &= \\text{Loss}_{j-1} * (1 + \\exp(\\beta_{\\text{int}} + \\beta_{\\text{slope}} \\text{L}_j))\\\\
+        \\beta_{j} &= \lambda - 1 - \\beta_{\\text{slope}}\\\\
+        \\beta_{\\text{slope}} &= \lambda - 1.1 - \\beta_{\\text{slope_offset}}\\\\
+        \\text{L}_j &= (j^\lambda-1) / \lambda\\\\
+        \\sigma^2 &= \exp(\\sigma_{\\text{int}} + \\sigma_{\\text{age}} j + \\sigma_{\\text{volume}} \\log(\\text{Loss}_{j-1}))\\\\
+
+    The fit and predict configurations are controlled by :class:`Config` and
+    :class:`PredictConfig` classes, respectively.
+    """
+
+    class DefaultPriors(Enum):
+        """Default priors for Clark Exponential.
+
+        Attributes:
+        """
+
+        sigma_age__loc: float = -0.6
+        sigma_age__scale: float = 0.1
+        sigma_volume__loc: float = 1.8
+        sigma_volume__scale: float = 0.2
+        sigma_intercept__loc: float = 2
+        sigma_intercept__scale: float = 0.5
+
+    class Config(ValidationConfig):
+        """ExponentialTail model configuration class.
+
+        Attributes:
+            lambda_: Box-Cox transformation parameter applied to development lags.
+            loss_definition: Loss definition to fit development factors to. One of "paid",
+                "reported", or "incurred".
+            loss_family: Distribution to assume for likelihood.
+            seed: Seed to use for model sampling.
+            line_of_business: Line of business used to specify informed priors.
+            informed_priors_version: Version of informed priors to use if available.
+                Options can be found in carnac/priors/<model_prior_slug>/. Defaults to `None`.
+                Specify as "latest" to use the most recent version.
+            recency_decay: Optional annaul evaluation factor to use for decay weighting.
+            min_rel_pred: Minimum relative prediction for each step of the Mack-equivalent
+                formulation of the Bondy model.
+            priors: Dictionary of prior-value pairs to override default priors.
+            prior_only: should a prior predictive simulation be run?
+            seed: Seed to use for model sampling. Defaults to ``None``, but it is highly recommended
+                to set.
+        """
+
+        lambda_: float
+        loss_definition: Literal["paid", "reported", "incurred"] = "paid"
+        loss_family: LossFamily = "Gamma"
+        recency_decay: str | float | None = None
+        min_rel_pred: float = 0.0
+        line_of_business: str | None = None
+        informed_priors_version: str | None = None
+        priors: dict[str, list[float] | float] | None = None
+        prior_only: bool = False
+        seed: int | None = None
+
+    class PredictConfig(TailDefaultPredictConfig):
+        pass
+
+
+class ClarkExponential(TailModel):
+    """Clark Exponential model.
+
+    This model implements a specific exponential tail model where the value
+    of lambda is fixed at 0.5. This is equivalent to the Clark square-root tail model.
+    This is different from the classical power transform implementation because it
+    can be fit directly to the loss triangle, rather than the age-to-age factors.
+
+
+    The fit and predict configurations are controlled by :class:`Config` and
+    :class:`PredictConfig` classes, respectively.
+    """
+
+    class DefaultPriors(Enum):
+        """Default priors for Clark Exponential.
+
+        Attributes:
+        """
+
+        sigma_age__loc: float = -0.6
+        sigma_age__scale: float = 0.1
+        sigma_volume__loc: float = 1.8
+        sigma_volume__scale: float = 0.2
+        sigma_intercept__loc: float = 2
+        sigma_intercept__scale: float = 0.5
+
+    class Config(ValidationConfig):
+        """ClarkExponential model configuration class.
+
+        Attributes:
+            loss_definition: Loss definition to fit development factors to. One of "paid",
+                "reported", or "incurred".
+            loss_family: Distribution to assume for likelihood.
+            seed: Seed to use for model sampling.
+            line_of_business: Line of business used to specify informed priors.
+            informed_priors_version: Version of informed priors to use if available.
+                Options can be found in carnac/priors/<model_prior_slug>/. Defaults to `None`.
+                Specify as "latest" to use the most recent version.
+            recency_decay: Optional annaul evaluation factor to use for decay weighting.
+            min_rel_pred: Minimum relative prediction for each step of the Mack-equivalent
+                formulation of the Bondy model.
+            priors: Dictionary of prior-value pairs to override default priors.
+            prior_only: should a prior predictive simulation be run?
+            seed: Seed to use for model sampling. Defaults to ``None``, but it is highly recommended
+                to set.
+        """
+
+        loss_definition: Literal["paid", "reported", "incurred"] = "paid"
+        loss_family: LossFamily = "Gamma"
+        recency_decay: str | float | None = None
+        min_rel_pred: float = 0.0
+        line_of_business: str | None = None
+        informed_priors_version: str | None = None
+        priors: dict[str, list[float] | float] | None = None
+        prior_only: bool = False
+        seed: int | None = None
+
+    class PredictConfig(TailDefaultPredictConfig):
+        pass
+
+
+class LogExponential(TailModel):
+    """Log Exponential model.
+
+    This model implements a specific exponential tail model where the value
+    of lambda is fixed at 0. This is equivalent to the log exponential model.
+    When lambda is 0 the bccox transformation is equivalent to the log transformation.
+    This is different from the classical power transform implementation because it
+    can be fit directly to the loss triangle, rather than the age-to-age factors.
+
+
+    The fit and predict configurations are controlled by :class:`Config` and
+    :class:`PredictConfig` classes, respectively.
+    """
+
+    class DefaultPriors(Enum):
+        """Default priors for Log Exponential.
+
+        Attributes:
+        """
+
+        sigma_age__loc: float = -0.6
+        sigma_age__scale: float = 0.1
+        sigma_volume__loc: float = 1.8
+        sigma_volume__scale: float = 0.2
+        sigma_intercept__loc: float = 2
+        sigma_intercept__scale: float = 0.5
+
+    class Config(ValidationConfig):
+        """LogExponential model configuration class.
+
+        Attributes:
+            loss_definition: Loss definition to fit development factors to. One of "paid",
+                "reported", or "incurred".
+            loss_family: Distribution to assume for likelihood.
+            seed: Seed to use for model sampling.
+            line_of_business: Line of business used to specify informed priors.
+            informed_priors_version: Version of informed priors to use if available.
+                Options can be found in carnac/priors/<model_prior_slug>/. Defaults to `None`.
+                Specify as "latest" to use the most recent version.
+            recency_decay: Optional annaul evaluation factor to use for decay weighting.
+            min_rel_pred: Minimum relative prediction for each step of the Mack-equivalent
+                formulation of the Bondy model.
+            priors: Dictionary of prior-value pairs to override default priors.
+            prior_only: should a prior predictive simulation be run?
+            seed: Seed to use for model sampling. Defaults to ``None``, but it is highly recommended
+                to set.
+        """
+
+        loss_definition: Literal["paid", "reported", "incurred"] = "paid"
+        loss_family: LossFamily = "Gamma"
+        recency_decay: str | float | None = None
+        min_rel_pred: float = 0.0
+        line_of_business: str | None = None
+        informed_priors_version: str | None = None
+        priors: dict[str, list[float] | float] | None = None
+        prior_only: bool = False
+        seed: int | None = None
+
+    class PredictConfig(TailDefaultPredictConfig):
+        pass
+
+
+class LinearExponential(TailModel):
+    """Linear Exponential model.
+
+    This model implements a specific exponential tail model where the value
+    of lambda is fixed at 1. This is equivalent to the linear square-root tail model.
+    This is different from the classical power transform implementation because it
+    can be fit directly to the loss triangle, rather than the age-to-age factors.
+
+
+    The fit and predict configurations are controlled by :class:`Config` and
+    :class:`PredictConfig` classes, respectively.
+    """
+
+    class DefaultPriors(Enum):
+        """Default priors for Linear Exponential.
+
+        Attributes:
+        """
+
+        sigma_age__loc: float = -0.6
+        sigma_age__scale: float = 0.1
+        sigma_volume__loc: float = 1.8
+        sigma_volume__scale: float = 0.2
+        sigma_intercept__loc: float = 2
+        sigma_intercept__scale: float = 0.5
+
+    class Config(ValidationConfig):
+        """LinearExponential model configuration class.
+
+        Attributes:
+            loss_definition: Loss definition to fit development factors to. One of "paid",
+                "reported", or "incurred".
+            loss_family: Distribution to assume for likelihood.
+            seed: Seed to use for model sampling.
+            line_of_business: Line of business used to specify informed priors.
+            informed_priors_version: Version of informed priors to use if available.
+                Options can be found in carnac/priors/<model_prior_slug>/. Defaults to `None`.
+                Specify as "latest" to use the most recent version.
+            recency_decay: Optional annaul evaluation factor to use for decay weighting.
+            min_rel_pred: Minimum relative prediction for each step of the Mack-equivalent
+                formulation of the Bondy model.
+            priors: Dictionary of prior-value pairs to override default priors.
+            prior_only: should a prior predictive simulation be run?
+            seed: Seed to use for model sampling. Defaults to ``None``, but it is highly recommended
+                to set.
+        """
+
+        loss_definition: Literal["paid", "reported", "incurred"] = "paid"
+        loss_family: LossFamily = "Gamma"
+        recency_decay: str | float | None = None
+        min_rel_pred: float = 0.0
+        line_of_business: str | None = None
+        informed_priors_version: str | None = None
         priors: dict[str, list[float] | float] | None = None
         prior_only: bool = False
         seed: int | None = None
