@@ -211,15 +211,25 @@ class ModelInterface(metaclass=ModelRegistry):
         overwriting the existing model."""
         try:
             model = self.get(name=name)
+        except ValueError:
+            return self.create(
+                triangle=triangle,
+                name=name,
+                model_type=model_type,
+                config=config,
+                timeout=timeout,
+                overwrite=True,
+            )
+        try:
             existing_triangle_name = (
                 model.get_response.json().get("triangle", {"name": None}).get("name")
             )
-            assert config == model.config
+            assert self.check_config_consistency(config, model.config)
             triangle_name = triangle if isinstance(triangle, str) else triangle.name
             # we really need the IDs to match not just the name
             assert existing_triangle_name == triangle_name
             return model
-        except:
+        except AssertionError:
             return self.create(
                 triangle=triangle,
                 name=name,
