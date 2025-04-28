@@ -93,15 +93,13 @@ class TriangleInterface(metaclass=TriangleRegistry):
             triangle = self.get(name=name)
         except ValueError:
             return self.create(name=name, data=data, overwrite=True)
-        try:
-            existing_data = triangle.data
-            data = data.to_dict() if isinstance(data, BermudaTriangle) else data
-            assert existing_data == data
-            return triangle
-        except AssertionError:
+        existing_data = triangle.data
+        data = data.to_dict() if isinstance(data, BermudaTriangle) else data
+        if existing_data != data:
             raise ValueError(
                 f"Triangle with name '{name}' already exists with different data. "
             )
+        return triangle
 
     def get_or_update(self, name: str, data: JSONDict):
         """
@@ -112,6 +110,7 @@ class TriangleInterface(metaclass=TriangleRegistry):
             triangle = self.get(name=name)
         except ValueError:
             return self.create(name=name, data=data, overwrite=True)
+        data = data.to_dict() if isinstance(data, BermudaTriangle) else data
         existing_data = triangle.data
         if existing_data == data:
             return triangle
@@ -220,16 +219,10 @@ class ModelInterface(metaclass=ModelRegistry):
                 timeout=timeout,
                 overwrite=True,
             )
-        try:
-            existing_triangle_name = (
-                model.get_response.json().get("triangle", {"name": None}).get("name")
-            )
-            assert self.check_config_consistency(config, model.config)
-            triangle_name = triangle if isinstance(triangle, str) else triangle.name
-            # we really need the IDs to match not just the name
-            assert existing_triangle_name == triangle_name
-            return model
-        except AssertionError:
+        existing_triangle_name = (
+            model.get_response.json().get("triangle", {"name": None}).get("name")
+        )
+        if not self.check_config_consistency(config, model.config):
             return self.create(
                 triangle=triangle,
                 name=name,
@@ -238,6 +231,17 @@ class ModelInterface(metaclass=ModelRegistry):
                 timeout=timeout,
                 overwrite=True,
             )
+        triangle_name = triangle if isinstance(triangle, str) else triangle.name
+        if existing_triangle_name != triangle_name:
+            return self.create(
+                triangle=triangle,
+                name=name,
+                model_type=model_type,
+                config=config,
+                timeout=timeout,
+                overwrite=True,
+            )
+        return model
 
     def get_or_create(
         self,
@@ -260,16 +264,19 @@ class ModelInterface(metaclass=ModelRegistry):
                 timeout=timeout,
                 overwrite=True,
             )
-        try:
-            existing_triangle_name = (
-                model.get_response.json().get("triangle", {"name": None}).get("name")
+        existing_triangle_name = (
+            model.get_response.json().get("triangle", {"name": None}).get("name")
+        )
+        # Check config consistency (model.config will have defaults inserted so we can't
+        # just compare the dicts)
+        if not self.check_config_consistency(config, model.config):
+            raise ValueError(
+                f"Model with name '{name}' already exists with different config. "
+                f"Existing config: {model.config}. New config: {config}"
+                f"Existing triangle name: {existing_triangle_name}. "
             )
-            # Check config consistency (model.config will have defaults inserted so we can't
-            # just compare the dicts)
-            assert self.check_config_consistency(config, model.config)
-            triangle_name = triangle if isinstance(triangle, str) else triangle.name
-            assert existing_triangle_name == triangle_name
-        except AssertionError:
+        triangle_name = triangle if isinstance(triangle, str) else triangle.name
+        if existing_triangle_name != triangle_name:
             raise ValueError(
                 f"Model with name '{name}' already exists with different config. "
                 f"Existing config: {model.config}. New config: {config}"
