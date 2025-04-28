@@ -11,7 +11,7 @@ def client():
 
 
 def test_triangle_create_delete(client):
-    name = "__test_tri"
+    name = "__test_tri_meyers"
     test_tri = client.triangle.get_or_create(name=name, data=meyers_tri.to_dict())
 
     assert test_tri.to_bermuda() == meyers_tri

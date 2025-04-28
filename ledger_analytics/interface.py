@@ -235,8 +235,8 @@ class ModelInterface(metaclass=ModelRegistry):
         config: JSONDict | None = None,
         timeout: int = 300,
     ):
-        """Gets a model if it exists with the same configuration, errors if it exists with a
-        different configuration. Creates a new model if none with the same name exists."""
+        """Gets a model if it exists with the same configuration, errors if it exists with an
+        inconsistent configuration. Creates a new model if none with the same name exists."""
         try:
             model = self.get(name=name)
         except ValueError:
@@ -252,7 +252,9 @@ class ModelInterface(metaclass=ModelRegistry):
             existing_triangle_name = (
                 model.get_response.json().get("triangle", {"name": None}).get("name")
             )
-            assert config == model.config
+            # Check config consistency (model.config will have defaults inserted so we can't
+            # just compare the dicts)
+            assert self.check_config_consistency(config, model.config)
             triangle_name = triangle if isinstance(triangle, str) else triangle.name
             assert existing_triangle_name == triangle_name
         except AssertionError:
@@ -263,18 +265,45 @@ class ModelInterface(metaclass=ModelRegistry):
             )
         return model
 
+    def check_config_consistency(self, dict1, dict2):
+        """
+        Recursively checks items present in dict1 are consistent with items in
+        dict2, meaning that the non-dictionary values are equal.
+        """
+        for k, v in dict1.items():
+            if isinstance(v, dict):
+                if k not in dict2:
+                    return False
+                if not self.check_config_consistency(v, dict2[k]):
+                    return False
+            else:
+                if k not in dict2:
+                    return False
+                elif isinstance(v, str):
+                    if v.lower() != dict2[k].lower():
+                        return False
+                else:
+                    if v != dict2[k]:
+                        return False
+        return True
+
     def predict(
         self,
         triangle: str | Triangle,
         config: JSONDict | None = None,
         target_triangle: str | Triangle | None = None,
+        prediction_name: str | None = None,
         timeout: int = 300,
         name: str | None = None,
         id: str | None = None,
     ):
         model = self.get(name, id)
         return model.predict(
-            triangle, config=config, target_triangle=target_triangle, timeout=timeout
+            triangle,
+            config=config,
+            target_triangle=target_triangle,
+            prediction_name=prediction_name,
+            timeout=timeout,
         )
 
     def terminate(self, name: str | None = None, id: str | None = None):

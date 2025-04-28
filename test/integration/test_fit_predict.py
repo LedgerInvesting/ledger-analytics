@@ -34,7 +34,7 @@ def test_chain_ladder_fit_predict():
 
     # Recreating the same model should fail since it already exists with that name
     with pytest.raises(HTTPError):
-        chain_ladder = client.development_model.create(
+        chain_ladder_bad = client.development_model.create(
             triangle=triangle,
             name=name,
             model_type="ChainLadder",
@@ -58,7 +58,7 @@ def test_chain_ladder_fit_predict():
         config={
             "loss_family": "gamma",
             "autofit_override": dict(
-                samples_per_chain=11,
+                samples_per_chain=10,
                 max_samples_per_chain=10,
                 adapt_delta=0.8,
                 max_adapt_delta=0.8,
@@ -76,7 +76,7 @@ def test_chain_ladder_fit_predict():
             config={
                 "loss_family": "gamma",
                 "autofit_override": dict(
-                    samples_per_chain=10,
+                    samples_per_chain=11,
                     max_samples_per_chain=10,
                     adapt_delta=0.8,
                     max_adapt_delta=0.8,
@@ -108,24 +108,30 @@ def test_chain_ladder_fit_predict():
     assert model_from_client.get_response.status_code == 200
     assert model_from_client.get_response.json()["name"] == name
 
-    predictions = chain_ladder.predict(triangle=triangle)
+    try:
+        client.triangle.delete(name="__test_chain_ladder___test_tri_clipped")
+    except ValueError:
+        pass
+    try:
+        client.triangle.delete(name="__test_chain_ladder___test_tri_clipped2")
+    except ValueError:
+        pass
+    predictions = chain_ladder_update.predict(triangle=triangle)
     predictions2 = client.development_model.predict(
         triangle=triangle,
         name=name,
+        prediction_name="__test_chain_ladder___test_tri_clipped2",
     )
     assert predictions.to_bermuda().extract("paid_loss").shape == (45, 40)
     assert predictions.to_bermuda() == predictions2.to_bermuda()
 
-    assert chain_ladder.terminate() == chain_ladder
+    assert chain_ladder_update.terminate() == chain_ladder_update
 
-    chain_ladder.delete()
+    chain_ladder_update.delete()
     with pytest.raises(ValueError):
         client.development_model.get(name=name)
 
-    with pytest.raises(HTTPError):
-        # Overwrote above, can't delete
-        predictions.delete()
-
+    predictions.delete()
     predictions2.delete()
     with pytest.raises(ValueError):
         client.development_model.get(name=name)
