@@ -19,7 +19,7 @@ def test_chain_ladder_fit_predict():
     except ValueError:
         pass
 
-    chain_ladder = client.development_model.create(
+    chain_ladder = client.development_model.create(  # noqa: F841
         triangle=triangle,
         name=name,
         model_type="ChainLadder",
@@ -38,7 +38,7 @@ def test_chain_ladder_fit_predict():
 
     # Recreating the same model should fail since it already exists with that name
     with pytest.raises(HTTPError):
-        chain_ladder_bad = client.development_model.create(
+        chain_ladder_bad = client.development_model.create(  # noqa: F841
             triangle=triangle,
             name=name,
             model_type="ChainLadder",
@@ -55,7 +55,7 @@ def test_chain_ladder_fit_predict():
             },
         )
     # Get or create should return the existing model
-    chain_ladder_got = client.development_model.get_or_create(
+    chain_ladder_got = client.development_model.get_or_create(  # noqa: F841
         triangle=triangle,
         name=name,
         model_type="ChainLadder",
@@ -73,7 +73,7 @@ def test_chain_ladder_fit_predict():
     )
     # Get or create should fail since args have changed
     with pytest.raises(ValueError):
-        chain_ladder_break = client.development_model.get_or_create(
+        chain_ladder_break = client.development_model.get_or_create(  # noqa: F841
             triangle=triangle,
             name=name,
             model_type="ChainLadder",
