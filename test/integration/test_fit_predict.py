@@ -13,8 +13,12 @@ def test_chain_ladder_fit_predict():
     triangle = client.triangle.get_or_create(name="__test_tri_clipped", data=clipped)
 
     name = "__test_chain_ladder"
-    old_test = client.development_model.get(name=name)
-    old_test.delete()
+    try:
+        old_test = client.development_model.get(name=name)
+        old_test.delete()
+    except ValueError:
+        pass
+
     chain_ladder = client.development_model.create(
         triangle=triangle,
         name=name,

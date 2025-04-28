@@ -110,10 +110,12 @@ class TriangleInterface(metaclass=TriangleRegistry):
         """
         try:
             triangle = self.get(name=name)
-            existing_data = triangle.data
-            assert existing_data == data
-            return triangle
         except ValueError:
+            return self.create(name=name, data=data, overwrite=True)
+        existing_data = triangle.data
+        if existing_data == data:
+            return triangle
+        else:
             return self.create(name=name, data=data, overwrite=True)
 
     def delete(self, name: str | None = None, id: str | None = None) -> None:
