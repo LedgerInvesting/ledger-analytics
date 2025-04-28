@@ -48,13 +48,16 @@ class TriangleInterface(metaclass=TriangleRegistry):
         self._requester = requester
         self.asynchronous = asynchronous
 
-    def create(self, name: str, data: JSONDict):
+    def create(
+        self, name: str, data: JSONDict | BermudaTriangle, overwrite: bool = False
+    ):
         if isinstance(data, BermudaTriangle):
             data = data.to_dict()
 
         config = {
             "triangle_name": name,
             "triangle_data": data,
+            "overwrite": overwrite,
         }
 
         post_response = self._requester.post(self.endpoint, data=config)
@@ -80,6 +83,39 @@ class TriangleInterface(metaclass=TriangleRegistry):
             self.endpoint + f"/{obj['id']}",
             self._requester,
         )
+
+    def get_or_create(self, name: str, data: JSONDict | BermudaTriangle):
+        """
+        Gets a triangle if it exists with the same data, otherwise creates a new one. Will
+        not overwrite an existing triangle with different data.
+        """
+        try:
+            triangle = self.get(name=name)
+        except ValueError:
+            return self.create(name=name, data=data, overwrite=True)
+        existing_data = triangle.data
+        data = data.to_dict() if isinstance(data, BermudaTriangle) else data
+        if existing_data != data:
+            raise ValueError(
+                f"Triangle with name '{name}' already exists with different data. "
+            )
+        return triangle
+
+    def get_or_update(self, name: str, data: JSONDict | BermudaTriangle):
+        """
+        Gets a triangle if it exists with the same data, otherwise creates a new one. Will
+        overwrite an existing triangle with different data.
+        """
+        try:
+            triangle = self.get(name=name)
+        except ValueError:
+            return self.create(name=name, data=data, overwrite=True)
+        data = data.to_dict() if isinstance(data, BermudaTriangle) else data
+        existing_data = triangle.data
+        if existing_data == data:
+            return triangle
+        else:
+            return self.create(name=name, data=data, overwrite=True)
 
     def delete(self, name: str | None = None, id: str | None = None) -> None:
         triangle = self.get(name, id)
@@ -129,6 +165,7 @@ class ModelInterface(metaclass=ModelRegistry):
         triangle: str | Triangle,
         name: str,
         model_type: str,
+        overwrite: bool = False,
         config: JSONDict | None = None,
         timeout: int = 300,
     ):
@@ -141,7 +178,8 @@ class ModelInterface(metaclass=ModelRegistry):
             self.model_class,
             self.endpoint,
             self._requester,
-            self._asynchronous,
+            overwrite=overwrite,
+            asynchronous=self._asynchronous,
             timeout=timeout,
         )
 
@@ -160,18 +198,131 @@ class ModelInterface(metaclass=ModelRegistry):
             self._asynchronous,
         )
 
+    def get_or_update(
+        self,
+        triangle: str | Triangle,
+        name: str,
+        model_type: str,
+        config: JSONDict | None = None,
+        timeout: int = 300,
+    ):
+        """Model Upsert. Gets a model if it exists with the same config, otherwise creates a new one,
+        overwriting the existing model."""
+        try:
+            model = self.get(name=name)
+        except ValueError:
+            return self.create(
+                triangle=triangle,
+                name=name,
+                model_type=model_type,
+                config=config,
+                timeout=timeout,
+                overwrite=True,
+            )
+        existing_triangle_name = (
+            model.get_response.json().get("triangle", {"name": None}).get("name")
+        )
+        if not self.check_config_consistency(config, model.config):
+            return self.create(
+                triangle=triangle,
+                name=name,
+                model_type=model_type,
+                config=config,
+                timeout=timeout,
+                overwrite=True,
+            )
+        triangle_name = triangle if isinstance(triangle, str) else triangle.name
+        if existing_triangle_name != triangle_name:
+            return self.create(
+                triangle=triangle,
+                name=name,
+                model_type=model_type,
+                config=config,
+                timeout=timeout,
+                overwrite=True,
+            )
+        return model
+
+    def get_or_create(
+        self,
+        triangle: str | Triangle,
+        name: str,
+        model_type: str,
+        config: JSONDict | None = None,
+        timeout: int = 300,
+    ):
+        """Gets a model if it exists with the same configuration, errors if it exists with an
+        inconsistent configuration. Creates a new model if none with the same name exists."""
+        try:
+            model = self.get(name=name)
+        except ValueError:
+            return self.create(
+                triangle=triangle,
+                name=name,
+                model_type=model_type,
+                config=config,
+                timeout=timeout,
+                overwrite=True,
+            )
+        existing_triangle_name = (
+            model.get_response.json().get("triangle", {"name": None}).get("name")
+        )
+        # Check config consistency (model.config will have defaults inserted so we can't
+        # just compare the dicts)
+        if not self.check_config_consistency(config, model.config):
+            raise ValueError(
+                f"Model with name '{name}' already exists with different config. "
+                f"Existing config: {model.config}. New config: {config}"
+                f"Existing triangle name: {existing_triangle_name}. "
+            )
+        triangle_name = triangle if isinstance(triangle, str) else triangle.name
+        if existing_triangle_name != triangle_name:
+            raise ValueError(
+                f"Model with name '{name}' already exists with different config. "
+                f"Existing config: {model.config}. New config: {config}"
+                f"Existing triangle name: {existing_triangle_name}. "
+            )
+        return model
+
+    def check_config_consistency(self, dict1, dict2):
+        """
+        Recursively checks items present in dict1 are consistent with items in
+        dict2, meaning that the non-dictionary values are equal.
+        """
+        for k, v in dict1.items():
+            if isinstance(v, dict):
+                if k not in dict2:
+                    return False
+                if not self.check_config_consistency(v, dict2[k]):
+                    return False
+            else:
+                if k not in dict2:
+                    return False
+                elif isinstance(v, str):
+                    if v.lower() != dict2[k].lower():
+                        return False
+                else:
+                    if v != dict2[k]:
+                        return False
+        return True
+
     def predict(
         self,
         triangle: str | Triangle,
         config: JSONDict | None = None,
         target_triangle: str | Triangle | None = None,
+        prediction_name: str | None = None,
         timeout: int = 300,
         name: str | None = None,
         id: str | None = None,
     ):
         model = self.get(name, id)
         return model.predict(
-            triangle, config=config, target_triangle=target_triangle, timeout=timeout
+            triangle,
+            config=config,
+            target_triangle=target_triangle,
+            prediction_name=prediction_name,
+            timeout=timeout,
         )
 
     def terminate(self, name: str | None = None, id: str | None = None):
