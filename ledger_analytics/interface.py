@@ -84,7 +84,7 @@ class TriangleInterface(metaclass=TriangleRegistry):
             self._requester,
         )
 
-    def get_or_create(self, name: str, data: JSONDict):
+    def get_or_create(self, name: str, data: JSONDict | BermudaTriangle):
         """
         Gets a triangle if it exists with the same data, otherwise creates a new one. Will
         not overwrite an existing triangle with different data.
@@ -101,7 +101,7 @@ class TriangleInterface(metaclass=TriangleRegistry):
             )
         return triangle
 
-    def get_or_update(self, name: str, data: JSONDict):
+    def get_or_update(self, name: str, data: JSONDict | BermudaTriangle):
         """
         Gets a triangle if it exists with the same data, otherwise creates a new one. Will
         overwrite an existing triangle with different data.
