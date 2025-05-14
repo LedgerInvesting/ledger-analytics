@@ -31,14 +31,14 @@ class Triangle(TriangleInterface):
         self._data: JSONDict = data
         self._get_response: Response | None = None
         self._delete_response: Response | None = None
-        self._captured_console: str = ""
+        self._captured_stdout: str = ""
 
     id = property(lambda self: self._id)
     name = property(lambda self: self._name)
     data = property(lambda self: self._data)
     get_response = property(lambda self: self._get_response)
     delete_response = property(lambda self: self._delete_response)
-    captured_console = property(lambda self: self._captured_console)
+    captured_stdout = property(lambda self: self._captured_stdout)
 
     def to_bermuda(self):
         return BermudaTriangle.from_dict(self.data)
@@ -68,7 +68,7 @@ class Triangle(TriangleInterface):
             requester,
         )
         self._get_response = get_response
-        self._captured_console += console.get_captured()
+        self._captured_stdout += console.get_stdout()
         return self
 
     def delete(self) -> Triangle:

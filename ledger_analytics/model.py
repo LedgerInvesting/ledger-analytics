@@ -36,7 +36,7 @@ class LedgerModel(ModelInterface):
         self._fit_response: Response | None = None
         self._predict_response: Response | None = None
         self._get_response: Response | None = None
-        self._captured_console: str = ""
+        self._captured_stdout: str = ""
 
     id = property(lambda self: self._id)
     name = property(lambda self: self._name)
@@ -48,7 +48,7 @@ class LedgerModel(ModelInterface):
     predict_response = property(lambda self: self._predict_response)
     get_response = property(lambda self: self._get_response)
     delete_response = property(lambda self: self._delete_response)
-    capture_console = property(lambda self: self._captured_console)
+    captured_stdout = property(lambda self: self._captured_stdout)
 
     @classmethod
     def get(
@@ -78,7 +78,7 @@ class LedgerModel(ModelInterface):
             asynchronous,
         )
         self._get_response = get_response
-        self._captured_console += console.get_captured()
+        self._captured_stdout += console.get_stdout()
         return self
 
     @classmethod
@@ -210,7 +210,7 @@ class LedgerModel(ModelInterface):
                         return self
                 raise TimeoutError(f"Could not terminate within {timeout} seconds.")
         finally:
-            self._captured_console += console.get_captured()
+            self._captured_stdout += console.get_stdout()
 
     def poll(self):
         try:
@@ -245,7 +245,7 @@ class LedgerModel(ModelInterface):
                         return task["task_response"]
                 raise TimeoutError(f"Task '{task}' timed out")
         finally:
-            self._captured_console += console.get_captured()
+            self._captured_stdout += console.get_stdout()
 
 
 class DevelopmentModel(LedgerModel):
