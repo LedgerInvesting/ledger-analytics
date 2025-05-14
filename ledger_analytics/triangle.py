@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import logging
+from typing import Optional
 
 from bermuda import Triangle as BermudaTriangle
-from requests import HTTPError, Response
+from requests import Response
 from requests.exceptions import ChunkedEncodingError
-from rich.console import Console
 
 from .config import JSONDict
+from .console import RichConsole
 from .interface import TriangleInterface
 from .requester import Requester
 
@@ -30,19 +31,21 @@ class Triangle(TriangleInterface):
         self._data: JSONDict = data
         self._get_response: Response | None = None
         self._delete_response: Response | None = None
+        self._captured_stdout: str = ""
 
     id = property(lambda self: self._id)
     name = property(lambda self: self._name)
     data = property(lambda self: self._data)
     get_response = property(lambda self: self._get_response)
     delete_response = property(lambda self: self._delete_response)
+    captured_stdout = property(lambda self: self._captured_stdout)
 
     def to_bermuda(self):
         return BermudaTriangle.from_dict(self.data)
 
     @classmethod
     def get(cls, id: str, name: str, endpoint: str, requester: Requester) -> Triangle:
-        console = Console()
+        console = RichConsole()
         with console.status("Retrieving...", spinner="bouncingBar") as _:
             console.log(f"Getting triangle '{name}' with ID '{id}'")
             get_response = None
@@ -65,6 +68,7 @@ class Triangle(TriangleInterface):
             requester,
         )
         self._get_response = get_response
+        self._captured_stdout += console.get_stdout()
         return self
 
     def delete(self) -> Triangle:
