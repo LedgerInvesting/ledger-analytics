@@ -178,21 +178,19 @@ class CashflowModel(CashflowInterface):
         start = time.time()
         status = ["CREATED"]
         console = RichConsole()
-        try:
-            with console.status("Working...", spinner="bouncingBar") as _:
-                while time.time() - start < timeout:
-                    task = self._poll(task_id).json()
-                    modal_status = (
-                        "FINISHED" if task["task_response"] is not None else "PENDING"
-                    )
-                    status.append(modal_status)
-                    if status[-1] != status[-2]:
-                        console.log(f"{task_name}: {status[-1]}")
-                    if status[-1].lower() == "finished":
-                        return task["task_response"]
-                raise TimeoutError(f"Task '{task}' timed out")
-        finally:
-            self._captured_stdout += console.get_stdout()
+        with console.status("Working...", spinner="bouncingBar") as _:
+            while time.time() - start < timeout:
+                task = self._poll(task_id).json()
+                modal_status = (
+                    "FINISHED" if task["task_response"] is not None else "PENDING"
+                )
+                status.append(modal_status)
+                if status[-1] != status[-2]:
+                    console.log(f"{task_name}: {status[-1]}")
+                if status[-1].lower() == "finished":
+                    self._captured_stdout += console.get_stdout()
+                    return task["task_response"]
+            raise TimeoutError(f"Task '{task}' timed out")
 
     class PredictConfig(ValidationConfig):
         """Cashflow model configuration class.

@@ -197,20 +197,18 @@ class LedgerModel(ModelInterface):
         console = RichConsole()
         timeout = 60
         start = time.time()
-        try:
-            with console.status("Terminating...", spinner="bouncingBar") as _:
-                console.log(f"Terminating model {self.name} with ID {self.id}.")
-                while status.lower() != "terminated" and time.time() - start < timeout:
-                    try:
-                        self._requester.post(self.endpoint + "/terminate", data={})
-                        status = self.poll().get("status")
-                    except HTTPError:
-                        continue
-                    if status.lower() == "terminated":
-                        return self
-                raise TimeoutError(f"Could not terminate within {timeout} seconds.")
-        finally:
-            self._captured_stdout += console.get_stdout()
+        with console.status("Terminating...", spinner="bouncingBar") as _:
+            console.log(f"Terminating model {self.name} with ID {self.id}.")
+            while status.lower() != "terminated" and time.time() - start < timeout:
+                try:
+                    self._requester.post(self.endpoint + "/terminate", data={})
+                    status = self.poll().get("status")
+                except HTTPError:
+                    continue
+                if status.lower() == "terminated":
+                    self._captured_stdout += console.get_stdout()
+                    return self
+            raise TimeoutError(f"Could not terminate within {timeout} seconds.")
 
     def poll(self):
         try:
@@ -231,21 +229,19 @@ class LedgerModel(ModelInterface):
         start = time.time()
         status = ["CREATED"]
         console = RichConsole()
-        try:
-            with console.status("Working...", spinner="bouncingBar") as _:
-                while time.time() - start < timeout:
-                    task = self._poll(task_id).json()
-                    modal_status = (
-                        "FINISHED" if task["task_response"] is not None else "PENDING"
-                    )
-                    status.append(modal_status)
-                    if status[-1] != status[-2]:
-                        console.log(f"{task_name}: {status[-1]}")
-                    if status[-1].lower() == "finished":
-                        return task["task_response"]
-                raise TimeoutError(f"Task '{task}' timed out")
-        finally:
-            self._captured_stdout += console.get_stdout()
+        with console.status("Working...", spinner="bouncingBar") as _:
+            while time.time() - start < timeout:
+                task = self._poll(task_id).json()
+                modal_status = (
+                    "FINISHED" if task["task_response"] is not None else "PENDING"
+                )
+                status.append(modal_status)
+                if status[-1] != status[-2]:
+                    console.log(f"{task_name}: {status[-1]}")
+                if status[-1].lower() == "finished":
+                    self._captured_stdout += console.get_stdout()
+                    return task["task_response"]
+            raise TimeoutError(f"Task '{task}' timed out")
 
 
 class DevelopmentModel(LedgerModel):
