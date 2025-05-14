@@ -5,9 +5,10 @@ from rich.console import Console
 
 
 class RichConsole(Console):
-    _capture = os.getenv("LEDGER_ANALYTICS_API_CAPTURE", False)
-
     def __init__(self, *args, **kwargs):
+        self._capture = (
+            os.getenv("LEDGER_ANALYTICS_API_CAPTURE", "false").lower() == "true"
+        )
         if self._capture:
             kwargs["file"] = StringIO()
         super().__init__(*args, **kwargs)

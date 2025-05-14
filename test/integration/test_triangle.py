@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from bermuda import meyers_tri
 from requests import HTTPError
@@ -28,3 +30,17 @@ def test_triangle_create_delete(client):
 
     with pytest.raises(ValueError):
         client.triangle.delete(name)
+
+
+def test_triangle_captured_output(client):
+    os.environ["LEDGER_ANALYTICS_API_CAPTURE"] = "true"
+    name = "__test_tri_meyers"
+    test_tri = client.triangle.get_or_create(name=name, data=meyers_tri.to_dict())
+    assert test_tri.captured_console
+    test_tri.delete()
+
+    os.environ["LEDGER_ANALYTICS_API_CAPTURE"] = "false"
+    name = "__test_tri_meyers"
+    test_tri = client.triangle.get_or_create(name=name, data=meyers_tri.to_dict())
+    assert not test_tri.captured_console
+    test_tri.delete()
