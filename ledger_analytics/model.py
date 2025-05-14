@@ -199,7 +199,7 @@ class LedgerModel(ModelInterface):
                 self._requester.post(self.endpoint + "/terminate", data={})
                 status = self.poll().get("status")
             except HTTPError:
-                logger.debug(f"HTTP error while terminating, retrying...")
+                logger.debug("HTTP error while terminating, retrying...")
                 continue
             if status.lower() == "terminated":
                 logger.info(f"Model {self.name} successfully terminated.")
