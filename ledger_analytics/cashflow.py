@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+import logging
 import time
 from typing import Dict
 
 from requests import Response
-from rich.console import Console
 
 from .config import JSONDict, ValidationConfig
 from .interface import CashflowInterface, TriangleInterface
 from .requester import Requester
 from .triangle import Triangle
+
+logger = logging.getLogger(__name__)
 
 
 class CashflowModel(CashflowInterface):
@@ -59,10 +61,8 @@ class CashflowModel(CashflowInterface):
         requester: Requester,
         asynchronous: bool = False,
     ) -> CashflowModel:
-        console = Console()
-        with console.status("Retrieving...", spinner="bouncingBar") as _:
-            console.log(f"Getting model '{name}' with ID '{id}'")
-            get_response = requester.get(endpoint, stream=True)
+        logger.info(f"Getting model '{name}' with ID '{id}'")
+        get_response = requester.get(endpoint, stream=True)
 
         self = cls(
             id,
@@ -174,19 +174,17 @@ class CashflowModel(CashflowInterface):
     ) -> dict:
         start = time.time()
         status = ["CREATED"]
-        console = Console()
-        with console.status("Working...", spinner="bouncingBar") as _:
-            while time.time() - start < timeout:
-                task = self._poll(task_id).json()
-                modal_status = (
-                    "FINISHED" if task["task_response"] is not None else "PENDING"
-                )
-                status.append(modal_status)
-                if status[-1] != status[-2]:
-                    console.log(f"{task_name}: {status[-1]}")
-                if status[-1].lower() == "finished":
-                    return task["task_response"]
-            raise TimeoutError(f"Task '{task}' timed out")
+        while time.time() - start < timeout:
+            task = self._poll(task_id).json()
+            modal_status = (
+                "FINISHED" if task["task_response"] is not None else "PENDING"
+            )
+            status.append(modal_status)
+            if status[-1] != status[-2]:
+                logger.info(f"{task_name}: {status[-1]}")
+            if status[-1].lower() == "finished":
+                return task["task_response"]
+        raise TimeoutError(f"Task '{task}' timed out")
 
     class PredictConfig(ValidationConfig):
         """Cashflow model configuration class.

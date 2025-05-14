@@ -5,7 +5,6 @@ import logging
 from bermuda import Triangle as BermudaTriangle
 from requests import HTTPError, Response
 from requests.exceptions import ChunkedEncodingError
-from rich.console import Console
 
 from .config import JSONDict
 from .interface import TriangleInterface
@@ -42,20 +41,19 @@ class Triangle(TriangleInterface):
 
     @classmethod
     def get(cls, id: str, name: str, endpoint: str, requester: Requester) -> Triangle:
-        console = Console()
-        with console.status("Retrieving...", spinner="bouncingBar") as _:
-            console.log(f"Getting triangle '{name}' with ID '{id}'")
-            get_response = None
-            retries = 0
-            max_retries = 5
-            stream = False
-            while get_response is None and retries < max_retries:
-                try:
-                    retries += 1
-                    get_response = requester.get(endpoint, stream=stream)
-                except ChunkedEncodingError:
-                    stream = True
-                    continue
+        logger.info(f"Getting triangle '{name}' with ID '{id}'")
+        get_response = None
+        retries = 0
+        max_retries = 5
+        stream = False
+        while get_response is None and retries < max_retries:
+            try:
+                retries += 1
+                get_response = requester.get(endpoint, stream=stream)
+            except ChunkedEncodingError:
+                stream = True
+                logger.debug(f"ChunkedEncodingError, retrying with stream={stream} (attempt {retries}/{max_retries})")
+                continue
 
         self = cls(
             id,

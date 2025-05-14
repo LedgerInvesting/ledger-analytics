@@ -1,16 +1,18 @@
 from __future__ import annotations
 
+import logging
 import time
 
 from requests import Response
 from requests.exceptions import HTTPError
-from rich.console import Console
 
 from .autofit import AutofitControl
 from .config import JSONDict
 from .interface import ModelInterface, TriangleInterface
 from .requester import Requester
 from .triangle import Triangle
+
+logger = logging.getLogger(__name__)
 
 
 class LedgerModel(ModelInterface):
@@ -60,10 +62,8 @@ class LedgerModel(ModelInterface):
         requester: Requester,
         asynchronous: bool = False,
     ) -> LedgerModel:
-        console = Console()
-        with console.status("Retrieving...", spinner="bouncingBar") as _:
-            console.log(f"Getting model '{name}' with ID '{id}'")
-            get_response = requester.get(endpoint, stream=True)
+        logger.info(f"Getting model '{name}' with ID '{id}'")
+        get_response = requester.get(endpoint, stream=True)
 
         self = cls(
             id,
@@ -191,20 +191,20 @@ class LedgerModel(ModelInterface):
         if status.lower() not in ["created", "pending"]:
             return self
 
-        console = Console()
+        logger.info(f"Terminating model {self.name} with ID {self.id}.")
         timeout = 60
         start = time.time()
-        with console.status("Terminating...", spinner="bouncingBar") as _:
-            console.log(f"Terminating model {self.name} with ID {self.id}.")
-            while status.lower() != "terminated" and time.time() - start < timeout:
-                try:
-                    self._requester.post(self.endpoint + "/terminate", data={})
-                    status = self.poll().get("status")
-                except HTTPError:
-                    continue
-                if status.lower() == "terminated":
-                    return self
-            raise TimeoutError(f"Could not terminate within {timeout} seconds.")
+        while status.lower() != "terminated" and time.time() - start < timeout:
+            try:
+                self._requester.post(self.endpoint + "/terminate", data={})
+                status = self.poll().get("status")
+            except HTTPError:
+                logger.debug(f"HTTP error while terminating, retrying...")
+                continue
+            if status.lower() == "terminated":
+                logger.info(f"Model {self.name} successfully terminated.")
+                return self
+        raise TimeoutError(f"Could not terminate within {timeout} seconds.")
 
     def poll(self):
         try:
@@ -224,19 +224,17 @@ class LedgerModel(ModelInterface):
     ) -> dict:
         start = time.time()
         status = ["CREATED"]
-        console = Console()
-        with console.status("Working...", spinner="bouncingBar") as _:
-            while time.time() - start < timeout:
-                task = self._poll(task_id).json()
-                modal_status = (
-                    "FINISHED" if task["task_response"] is not None else "PENDING"
-                )
-                status.append(modal_status)
-                if status[-1] != status[-2]:
-                    console.log(f"{task_name}: {status[-1]}")
-                if status[-1].lower() == "finished":
-                    return task["task_response"]
-            raise TimeoutError(f"Task '{task}' timed out")
+        while time.time() - start < timeout:
+            task = self._poll(task_id).json()
+            modal_status = (
+                "FINISHED" if task["task_response"] is not None else "PENDING"
+            )
+            status.append(modal_status)
+            if status[-1] != status[-2]:
+                logger.info(f"{task_name}: {status[-1]}")
+            if status[-1].lower() == "finished":
+                return task["task_response"]
+        raise TimeoutError(f"Task '{task}' timed out")
 
 
 class DevelopmentModel(LedgerModel):
