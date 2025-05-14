@@ -4,9 +4,9 @@ import time
 from typing import Dict
 
 from requests import Response
-from rich.console import Console
 
 from .config import JSONDict, ValidationConfig
+from .console import RichConsole
 from .interface import CashflowInterface, TriangleInterface
 from .requester import Requester
 from .triangle import Triangle
@@ -35,6 +35,7 @@ class CashflowModel(CashflowInterface):
         self._fit_response: Response | None = None
         self._predict_response: Response | None = None
         self._get_response: Response | None = None
+        self._captured_console: str = ""
 
     id = property(lambda self: self._id)
     name = property(lambda self: self._name)
@@ -46,6 +47,7 @@ class CashflowModel(CashflowInterface):
     predict_response = property(lambda self: self._predict_response)
     get_response = property(lambda self: self._get_response)
     delete_response = property(lambda self: self._delete_response)
+    capture_console = property(lambda self: self._captured_console)
 
     @classmethod
     def get(
@@ -59,7 +61,7 @@ class CashflowModel(CashflowInterface):
         requester: Requester,
         asynchronous: bool = False,
     ) -> CashflowModel:
-        console = Console()
+        console = RichConsole()
         with console.status("Retrieving...", spinner="bouncingBar") as _:
             console.log(f"Getting model '{name}' with ID '{id}'")
             get_response = requester.get(endpoint, stream=True)
@@ -75,6 +77,7 @@ class CashflowModel(CashflowInterface):
             asynchronous,
         )
         self._get_response = get_response
+        self._captured_console += console.get_captured()
         return self
 
     @classmethod
@@ -174,19 +177,22 @@ class CashflowModel(CashflowInterface):
     ) -> dict:
         start = time.time()
         status = ["CREATED"]
-        console = Console()
-        with console.status("Working...", spinner="bouncingBar") as _:
-            while time.time() - start < timeout:
-                task = self._poll(task_id).json()
-                modal_status = (
-                    "FINISHED" if task["task_response"] is not None else "PENDING"
-                )
-                status.append(modal_status)
-                if status[-1] != status[-2]:
-                    console.log(f"{task_name}: {status[-1]}")
-                if status[-1].lower() == "finished":
-                    return task["task_response"]
-            raise TimeoutError(f"Task '{task}' timed out")
+        console = RichConsole()
+        try:
+            with console.status("Working...", spinner="bouncingBar") as _:
+                while time.time() - start < timeout:
+                    task = self._poll(task_id).json()
+                    modal_status = (
+                        "FINISHED" if task["task_response"] is not None else "PENDING"
+                    )
+                    status.append(modal_status)
+                    if status[-1] != status[-2]:
+                        console.log(f"{task_name}: {status[-1]}")
+                    if status[-1].lower() == "finished":
+                        return task["task_response"]
+                raise TimeoutError(f"Task '{task}' timed out")
+        finally:
+            self._captured_console += console.get_captured()
 
     class PredictConfig(ValidationConfig):
         """Cashflow model configuration class.

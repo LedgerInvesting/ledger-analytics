@@ -4,10 +4,10 @@ import time
 
 from requests import Response
 from requests.exceptions import HTTPError
-from rich.console import Console
 
 from .autofit import AutofitControl
 from .config import JSONDict
+from .console import RichConsole
 from .interface import ModelInterface, TriangleInterface
 from .requester import Requester
 from .triangle import Triangle
@@ -36,6 +36,7 @@ class LedgerModel(ModelInterface):
         self._fit_response: Response | None = None
         self._predict_response: Response | None = None
         self._get_response: Response | None = None
+        self._captured_console: str = ""
 
     id = property(lambda self: self._id)
     name = property(lambda self: self._name)
@@ -47,6 +48,7 @@ class LedgerModel(ModelInterface):
     predict_response = property(lambda self: self._predict_response)
     get_response = property(lambda self: self._get_response)
     delete_response = property(lambda self: self._delete_response)
+    capture_console = property(lambda self: self._captured_console)
 
     @classmethod
     def get(
@@ -60,7 +62,7 @@ class LedgerModel(ModelInterface):
         requester: Requester,
         asynchronous: bool = False,
     ) -> LedgerModel:
-        console = Console()
+        console = RichConsole()
         with console.status("Retrieving...", spinner="bouncingBar") as _:
             console.log(f"Getting model '{name}' with ID '{id}'")
             get_response = requester.get(endpoint, stream=True)
@@ -76,6 +78,7 @@ class LedgerModel(ModelInterface):
             asynchronous,
         )
         self._get_response = get_response
+        self._captured_console += console.get_captured()
         return self
 
     @classmethod
@@ -188,23 +191,26 @@ class LedgerModel(ModelInterface):
     def terminate(self) -> LedgerModel:
         status = self.poll().get("status")
 
-        if status.lower() not in ["created", "pending"]:
+        if status is None or status.lower() not in ["created", "pending"]:
             return self
 
-        console = Console()
+        console = RichConsole()
         timeout = 60
         start = time.time()
-        with console.status("Terminating...", spinner="bouncingBar") as _:
-            console.log(f"Terminating model {self.name} with ID {self.id}.")
-            while status.lower() != "terminated" and time.time() - start < timeout:
-                try:
-                    self._requester.post(self.endpoint + "/terminate", data={})
-                    status = self.poll().get("status")
-                except HTTPError:
-                    continue
-                if status.lower() == "terminated":
-                    return self
-            raise TimeoutError(f"Could not terminate within {timeout} seconds.")
+        try:
+            with console.status("Terminating...", spinner="bouncingBar") as _:
+                console.log(f"Terminating model {self.name} with ID {self.id}.")
+                while status.lower() != "terminated" and time.time() - start < timeout:
+                    try:
+                        self._requester.post(self.endpoint + "/terminate", data={})
+                        status = self.poll().get("status")
+                    except HTTPError:
+                        continue
+                    if status.lower() == "terminated":
+                        return self
+                raise TimeoutError(f"Could not terminate within {timeout} seconds.")
+        finally:
+            self._captured_console += console.get_captured()
 
     def poll(self):
         try:
@@ -224,19 +230,22 @@ class LedgerModel(ModelInterface):
     ) -> dict:
         start = time.time()
         status = ["CREATED"]
-        console = Console()
-        with console.status("Working...", spinner="bouncingBar") as _:
-            while time.time() - start < timeout:
-                task = self._poll(task_id).json()
-                modal_status = (
-                    "FINISHED" if task["task_response"] is not None else "PENDING"
-                )
-                status.append(modal_status)
-                if status[-1] != status[-2]:
-                    console.log(f"{task_name}: {status[-1]}")
-                if status[-1].lower() == "finished":
-                    return task["task_response"]
-            raise TimeoutError(f"Task '{task}' timed out")
+        console = RichConsole()
+        try:
+            with console.status("Working...", spinner="bouncingBar") as _:
+                while time.time() - start < timeout:
+                    task = self._poll(task_id).json()
+                    modal_status = (
+                        "FINISHED" if task["task_response"] is not None else "PENDING"
+                    )
+                    status.append(modal_status)
+                    if status[-1] != status[-2]:
+                        console.log(f"{task_name}: {status[-1]}")
+                    if status[-1].lower() == "finished":
+                        return task["task_response"]
+                raise TimeoutError(f"Task '{task}' timed out")
+        finally:
+            self._captured_console += console.get_captured()
 
 
 class DevelopmentModel(LedgerModel):
