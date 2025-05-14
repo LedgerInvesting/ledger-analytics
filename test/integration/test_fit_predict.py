@@ -153,6 +153,7 @@ def test_fit_termination():
         triangle=triangle,
         name=name,
         model_type="ChainLadder",
+        overwrite=True,
     )
 
     chain_ladder.terminate()
