@@ -35,7 +35,7 @@ See the debugging tips on the `Requesting API Keys <apikeys.rst>`_
 page for more information.
 
 Note: by default, the API is set up to show interactive progress in the console `stdout`. To disable 
-this, set the environment variable ``LEDGER_ANALYTICS_API_CAPTURE=True``, which will store all console
+this, set the environment variable ``LEDGER_ANALYTICS_API_CAPTURE=true``, which will store all console
 output in a `.captured_console` property on the triangle or model interface being used.
 
 
