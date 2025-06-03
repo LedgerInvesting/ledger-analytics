@@ -97,7 +97,7 @@ class GeneralizedBondy(TailModel):
 
         loss_family: LossFamily = "Gamma"
         loss_definition: Literal["paid", "reported", "incurred"] = "paid"
-        recency_decay: str | float | None = None
+        recency_decay: str | float = 1.0
         line_of_business: str | None = None
         min_rel_pred: float = 0.0
         dev_lag_intercept: float = 0.0
@@ -183,7 +183,7 @@ class Sherman(TailModel):
 
         loss_family: LossFamily = "Gamma"
         loss_definition: Literal["paid", "reported", "incurred"] = "paid"
-        recency_decay: str | float | None = None
+        recency_decay: str | float = 1.0
         line_of_business: str | None = None
         min_rel_pred: float = 0.0
         dev_lag_intercept: float = 0.0
@@ -261,7 +261,7 @@ class ClassicalPowerTransformTail(TailModel):
 
         loss_definition: Literal["paid", "reported", "incurred"] = "paid"
         lambda_: float = 1.0
-        recency_decay: str | float | None = None
+        recency_decay: str | float = 1.0
         min_rel_pred: float = 0.0
         priors: dict[str, list[float] | float] | None = None
         prior_only: bool = False

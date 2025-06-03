@@ -26,14 +26,25 @@ class Requester(object):
     def post(self, url: str, data: JSONDict):
         return self._factory("post", url, data)
 
-    def get(self, url: str, data: JSONDict | None = None, stream: bool = False):
-        return self._factory("get", url, data, stream)
+    def get(
+        self,
+        url: str,
+        data: JSONDict | None = None,
+        stream: bool = False,
+        params: JSONDict | None = None,
+    ):
+        return self._factory("get", url, data, stream, params=params or {})
 
     def delete(self, url: str, data: JSONDict | None = None):
         return self._factory("delete", url, data)
 
     def _factory(
-        self, method: HTTPMethods, url: str, data: JSONDict, stream: bool = False
+        self,
+        method: HTTPMethods,
+        url: str,
+        data: JSONDict,
+        stream: bool = False,
+        params: JSONDict | None = None,
     ):
         if method.lower() == "post":
             request = requests.post
@@ -44,7 +55,9 @@ class Requester(object):
         else:
             raise ValueError(f"Unrecognized HTTPMethod {method}.")
 
-        response = request(url=url, json=data or {}, headers=self.headers)
+        response = request(
+            url=url, json=data or {}, headers=self.headers, params=params
+        )
         self._catch_status(response)
         return response
 

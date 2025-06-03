@@ -15,10 +15,12 @@ workflow using LedgerAnalytics.
     api_key = "..."
     client = AnalyticsClient(api_key)
 
-The ``bermuda`` library comes equiped with a sample triangle with paid loss
-and earned premium. It's a squared triangle, so we'll clip off the 
-lower-right triangle leaving a typical triangle-shaped loss development
+The Bermuda library comes equipped with a sample triangle containing paid loss,
+reported loss and earned premium. It's a 10x10 annual triangle, so we'll clip off the 
+lower-right leaving a typical triangle-shaped loss development
 triangle, and load it into the API.
+We can also use Bermuda to plot the 'data completeness' of this triangle, providing
+a high-level view of it's structure.
 
 ..  code:: python
 
@@ -26,9 +28,10 @@ triangle, and load it into the API.
     from bermuda import meyers_tri
 
     clipped_meyers = meyers_tri.clip(max_eval=date(1997, 12, 31)) 
-    dev_triangle = client.triangle.create(name="meyers_triangle", data=clipped_meyers)
+    dev_triangle = client.triangle.create(name="clipped_meyers_triangle", data=clipped_meyers)
+    clipped_meyers.plot_data_completeness()
 
-.. image:: clipped_meyers.png
+..  image:: clipped_meyers.png
 
 Let's see which models are available to us for loss and tail development.
 
@@ -47,7 +50,7 @@ based on the evaluation date.
 ..  code:: python
 
     chain_ladder = client.development_model.create(
-        triangle="meyers_triangle",
+        triangle=dev_triangle,
         name="paid_body_development",
         model_type="ChainLadder",
         config={
@@ -62,7 +65,7 @@ use a ``GeneralizedBondy`` model which is a generalization of the classic Bondy 
 ..  code:: python
 
     bondy = client.tail_model.create(
-        triangle="meyers_triangle",
+        triangle=dev_triangle,
         name="paid_bondy",
         model_type="GeneralizedBondy",
         config={
@@ -71,48 +74,72 @@ use a ``GeneralizedBondy`` model which is a generalization of the classic Bondy 
     )
 
 Now we can square this triangle using a combination of body development via the ``chain_ladder`` model and
-tail development using bondy. Note that by default the prediction triangle will be named ``"paid_body_meyers_triangle"`` based on the ``model_name`` and the triangle name. You have the option of passing in a different ``prediction_name`` to the ``predict`` method that will save the output triangle with a user-specified name.
+tail development using Generalized Bondy. Note that by default the prediction triangle will be named ``"paid_body_clipped_meyers_triangle"`` based on the ``model_name`` and the triangle name. You have the option of passing in a different ``prediction_name`` to the ``predict`` method that will save the output triangle with a user-specified name.
 
-.. code:: python
+..  code:: python
 
     chain_ladder_predictions = chain_ladder.predict(
-        triangle="meyers_triangle",
+        triangle=dev_triangle,
         config={"max_dev_lag": 84},
     )
 
-    chain_ladder_predictions.to_bermuda().plot_data_completeness()
+    (clipped_meyers + chain_ladder_predictions.to_bermuda()).plot_data_completeness()
 
 .. image:: chain_ladder_prediction.png
 
-From the data completeness plot you can see the predictions out to dev lag 84 months. Now
+From the data completeness plot you can see the predictions out to dev lag 84 months, which
+are colored differently to the original data in green due to the different number of fields. Now
 we can apply the bondy model to a combination of these predcitions and the original triangle.
-
-.. image:: tail_prediction_base.png
-
 
 .. code:: python
 
-   tail_prediction_base = clipped_meyers + chain_ladder_predictions.to_bermuda()
-   tail_prediction_base.plot_data_completeness()
-
-   client.triangle.create(name="tail_prediction_base", data=tail_prediction_base)
+   tail_pred_triangle = clipped_meyers + chain_ladder_predictions.to_bermuda()
+   client.triangle.create(name="tail_pred_triangle", data=tail_pred_triangle)
 
    bondy_predictions = bondy.predict(
-       triangle="tail_prediction_base",
+       triangle="tail_pred_triangle",
        config={"max_dev_lag": 120}
    )
 
-   squared_triangle = tail_prediction_base + bondy_predictions.to_bermuda()
+   squared_triangle = tail_pred_triangle + bondy_predictions.to_bermuda()
    squared_triangle.plot_data_completeness()
 
 The tail model predictions take us from lag 84 to lag 120.
 
 .. image:: tail_predictions.png
 
-This combined with the original triangle and chain ladder predictions gives the full squared triangle.
-
-.. image:: squared_triangle.png
-
 For each future cell in the triangle there is a posterior distribution off 10,000 samples of paid losses.These distributions can be fed directly into a forecast model to predict the ultimate loss ratios for a future accident year. Reserves can be set using a selected quantile from these ultimate loss distributions.
 
+We can use Bermuda's plotting tools to help us explore these predictions.
+For example, here's the triangle's 'right edge' after applying our loss development
+models.
 
+..  code:: python
+
+    squared_triangle.plot_right_edge()
+
+The uncertainty intervals reflect that there is more uncertainty about the future
+loss ratios for the greener accident years, as we'd expect.
+
+..  image:: right-edge-forecasts.png
+
+We can also look at the predictions for each accident year separately
+using more complex Bermuda plotting code, which uses Altair on the backend.
+
+..  code:: python
+
+    squared_triangle.derive_metadata(
+        period = lambda cell: cell.period_start.year
+    ).plot_growth_curve(
+        width=250,
+        height=150,
+        ncols=3,
+    ).resolve_scale(
+        y="shared",
+        x="shared",
+        color="independent",
+    )
+
+..  image:: growth-curves.png
+
+Check out the Bermuda library for more plotting options.

@@ -127,11 +127,13 @@ class CashflowModel(CashflowInterface):
         initial_loss_triangle: Triangle | str | None = None,
         prediction_name: str | None = None,
         timeout: int = 300,
+        overwrite: bool = False,
     ) -> Triangle:
         triangle_name = triangle if isinstance(triangle, str) else triangle.name
         config = {
             "triangle_name": triangle_name,
             "predict_config": self.PredictConfig(**(config or {})).__dict__,
+            "overwrite": overwrite,
         }
         if prediction_name:
             config["prediction_name"] = prediction_name
