@@ -70,7 +70,6 @@ use a ``GeneralizedBondy`` model which is a generalization of the classic Bondy 
         model_type="GeneralizedBondy",
         config={
             "loss_definition": "paid",
-            "recency_decay": 1.0,
         }
     )
 
