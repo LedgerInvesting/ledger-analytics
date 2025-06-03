@@ -50,11 +50,12 @@ Now we can predict future losses using this model. We'll create a triangle that 
 
 ..  code:: python
 
-    import bermuda as tri
+    from bermuda import Triangle, CumulativeCell
+    from datetime import date
 
-    target_triangle = tri.Triangle(
+    target_triangle = Triangle(
         [
-            tri.CumulativeCell(
+            CumulativeCell(
                 period_start=date(1998, 1, 1),
                 period_end=date(1998, 12, 31),
                 evaluation_date=date(2020, 12, 31),
@@ -66,15 +67,32 @@ Now we can predict future losses using this model. We'll create a triangle that 
     target = client.triangle.create(name="target_triangle", data=target_triangle)
     gcc_prediction = gcc_forecast.predict("full_meyers", target_triangle=target)
 
-It can be helpful to convert the prediction to bermuda to inspect the results
+It can be helpful to convert the prediction to Bermuda to inspect the results:
 
 ..  code:: python
 
     gcc_prediction_tri = gcc_prediction.to_bermuda()
     gcc_loss_ratio = gcc_prediction_tri[0]['paid_loss'] / gcc_prediction_tri[0]['earned_premium']
     print(f"Ultimate loss ratio: {gcc_loss_ratio}")
+    
+And we can also plot the forecasted loss ratio against the training data using
+Bermuda's lower-level plotting functionality.
+We rename the fields to make the plot easier to read.
 
-We can compare this to a more sophisticated model, like the ``SSM`` model. This model is a bayesian state-space model that incorporates a mean-reverting latent loss ratio.
+..  code:: python
+
+    (
+        meyers_tri.select(["paid_loss", "earned_premium"]) + 
+        gcc_prediction_tri.derive_fields(
+            forecasted_loss = lambda cell: cell["paid_loss"],
+        ).select(
+            ["forecasted_loss", "earned_premium"]
+        )
+    ).plot_right_edge()
+
+..  image:: gcc-forecasts.png
+
+We can compare this to a more sophisticated model, like the ``SSM`` model. This model is a Bayesian state-space model that incorporates a mean-reverting latent loss ratio.
 
 ..  code:: python
 
@@ -88,8 +106,17 @@ We can compare this to a more sophisticated model, like the ``SSM`` model. This 
     )
     ssm_prediction = ssm_forecast.predict("full_meyers", target_triangle=target)
     ssm_prediction_tri = ssm_prediction.to_bermuda()
-    ssm_loss_ratio = ssm_prediction_tri[0]['paid_loss'] / ssm_prediction_tri[0]['earned_premium']
 
-Note that the ``ssm_loss_ratio`` is a posterior distribution of 10,000 samples of the ultimate loss ratio unlike the GCC point estimate.
+    ssm_prediction_tri.plot_histogram(
+        metric_spec="Paid Loss Ratio", 
+        width=500, 
+        height=300,
+    ).properties(
+        title="SSM paid loss ratio",
+    ).configure_axis(
+        labelFontSize=14,
+    )
 
-.. image:: loss_ratio_distribution.png
+.. image:: ssm-forecast.png
+
+Note that the loss ratio is now a posterior distribution of 10,000 samples of the ultimate loss ratio unlike the GCC point estimate.

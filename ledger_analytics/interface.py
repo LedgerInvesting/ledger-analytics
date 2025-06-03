@@ -124,9 +124,10 @@ class TriangleInterface(metaclass=TriangleRegistry):
     def _get_details_from_id_name(
         self, name: str | None = None, id: str | None = None
     ) -> str:
+        n_triangles = self.list(limit=1)["count"]
         triangles = [
             result
-            for result in self.list().get("results")
+            for result in self.list(limit=n_triangles).get("results")
             if result.get("name") == name or result.get("id") == id
         ]
         if not len(triangles):
@@ -134,8 +135,8 @@ class TriangleInterface(metaclass=TriangleRegistry):
             raise ValueError(f"No triangle found with {name_or_id}.")
         return triangles[0]
 
-    def list(self) -> list[JSONDict]:
-        response = self._requester.get(self.endpoint)
+    def list(self, limit: int = 25) -> list[JSONDict]:
+        response = self._requester.get(self.endpoint, params={"limit": limit})
         if not response.ok:
             response.raise_for_status()
         return response.json()
@@ -315,6 +316,7 @@ class ModelInterface(metaclass=ModelRegistry):
         timeout: int = 300,
         name: str | None = None,
         id: str | None = None,
+        overwrite: bool = False,
     ):
         model = self.get(name, id)
         return model.predict(
@@ -323,6 +325,7 @@ class ModelInterface(metaclass=ModelRegistry):
             target_triangle=target_triangle,
             prediction_name=prediction_name,
             timeout=timeout,
+            overwrite=overwrite,
         )
 
     def terminate(self, name: str | None = None, id: str | None = None):
@@ -333,8 +336,10 @@ class ModelInterface(metaclass=ModelRegistry):
         model = self.get(name, id)
         return model.delete()
 
-    def list(self) -> list[JSONDict]:
-        return self._requester.get(self.endpoint, stream=True).json()
+    def list(self, limit: int = 25) -> list[JSONDict]:
+        return self._requester.get(
+            self.endpoint, stream=True, params={"limit": limit}
+        ).json()
 
     def list_model_types(self) -> list[JSONDict]:
         url = self.endpoint + "-type"
@@ -347,9 +352,10 @@ class ModelInterface(metaclass=ModelRegistry):
     def _get_details_from_id_name(
         self, model_name: str | None = None, model_id: str | None = None
     ) -> str:
+        n_objects = self.list(limit=1)["count"]
         models = [
             result
-            for result in self.list().get("results")
+            for result in self.list(limit=n_objects).get("results")
             if result.get("name") == model_name or result.get("id") == model_id
         ]
         if not len(models):
@@ -428,6 +434,7 @@ class CashflowInterface(metaclass=ModelRegistry):
         timeout: int = 300,
         name: str | None = None,
         id: str | None = None,
+        overwrite: bool = False,
     ):
         model = self.get(name, id)
         return model.predict(
@@ -435,14 +442,17 @@ class CashflowInterface(metaclass=ModelRegistry):
             config=config,
             initial_loss_triangle=initial_loss_triangle,
             timeout=timeout,
+            overwrite=overwrite,
         )
 
     def delete(self, name: str | None = None, id: str | None = None) -> None:
         model = self.get(name, id)
         return model.delete()
 
-    def list(self) -> list[JSONDict]:
-        return self._requester.get(self.endpoint, stream=True).json()
+    def list(self, limit: int = 25) -> list[JSONDict]:
+        return self._requester.get(
+            self.endpoint, stream=True, params={"limit": limit}
+        ).json()
 
     def list_model_types(self) -> list[JSONDict]:
         url = self.endpoint + "-type"
@@ -455,9 +465,10 @@ class CashflowInterface(metaclass=ModelRegistry):
     def _get_details_from_id_name(
         self, model_name: str | None = None, model_id: str | None = None
     ) -> str:
+        n_objects = self.list(limit=1)["count"]
         models = [
             result
-            for result in self.list().get("results")
+            for result in self.list(limit=n_objects).get("results")
             if result.get("name") == model_name or result.get("id") == model_id
         ]
         if not len(models):
