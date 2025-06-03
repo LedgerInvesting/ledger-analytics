@@ -8,7 +8,12 @@ from ledger_analytics.config import HTTPMethods, JSONDict
 
 class TriangleMockRequester(Requester):
     def _factory(
-        self, method: HTTPMethods, url: str, data: JSONDict, stream: bool = False
+        self,
+        method: HTTPMethods,
+        url: str,
+        data: JSONDict,
+        stream: bool = False,
+        params: JSONDict | None = None,
     ):
         with Mocker() as mocker:
             if method.lower() == "post":
@@ -18,6 +23,7 @@ class TriangleMockRequester(Requester):
                 mocker.get(
                     url,
                     json={
+                        "count": 1,
                         "triangle_name": "test_meyers_triangle",
                         "triangle_data": meyers_tri.to_dict(),
                         "results": [
@@ -42,7 +48,12 @@ class TriangleMockRequester(Requester):
 
 class TriangleMockRequesterAfterDeletion(Requester):
     def _factory(
-        self, method: HTTPMethods, url: str, data: JSONDict, stream: bool = False
+        self,
+        method: HTTPMethods,
+        url: str,
+        data: JSONDict,
+        stream: bool = False,
+        params: JSONDict | None = None,
     ):
         with Mocker() as mocker:
             if method.lower() == "post":
@@ -63,7 +74,12 @@ class TriangleMockRequesterAfterDeletion(Requester):
 
 class ModelMockRequester(Requester):
     def _factory(
-        self, method: HTTPMethods, url: str, data: JSONDict, stream: bool = False
+        self,
+        method: HTTPMethods,
+        url: str,
+        data: JSONDict,
+        stream: bool = False,
+        params: JSONDict | None = None,
     ):
         with Mocker() as mocker:
             if method.lower() == "post" and "predict" not in url:
@@ -80,6 +96,7 @@ class ModelMockRequester(Requester):
                 mocker.get(
                     url,
                     json={
+                        "count": 1,
                         "results": [
                             {
                                 "triangle_name": "test_meyers_triangle",
@@ -110,7 +127,12 @@ class ModelMockRequester(Requester):
 
 class ModelMockRequesterAfterDeletion(Requester):
     def _factory(
-        self, method: HTTPMethods, url: str, data: JSONDict, stream: bool = False
+        self,
+        method: HTTPMethods,
+        url: str,
+        data: JSONDict,
+        stream: bool = False,
+        params: JSONDict | None = None,
     ):
         with Mocker() as mocker:
             if method.lower() == "get":
