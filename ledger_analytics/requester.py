@@ -20,8 +20,11 @@ def _get_stream_chunks(**kwargs):
 
 
 class Requester(object):
-    def __init__(self, api_key: str) -> None:
-        self.headers = {"Authorization": f"Api-Key {api_key}"}
+    def __init__(self, api_key: str | None = None) -> None:
+        if api_key:
+            self.headers = {"Authorization": f"Api-Key {api_key}"}
+        else:
+            self.headers = {}
 
     def post(self, url: str, data: JSONDict):
         return self._factory("post", url, data)

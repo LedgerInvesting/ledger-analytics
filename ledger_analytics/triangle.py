@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import logging
+from tempfile import NamedTemporaryFile
 from typing import Optional
 
+import requests
 from bermuda import Triangle as BermudaTriangle
-from requests import Response
 from requests.exceptions import ChunkedEncodingError
 
 from .config import JSONDict
@@ -29,8 +30,8 @@ class Triangle(TriangleInterface):
         self._id: str = id
         self._name: str = name
         self._data: JSONDict = data
-        self._get_response: Response | None = None
-        self._delete_response: Response | None = None
+        self._get_response: requests.Response | None = None
+        self._delete_response: requests.Response | None = None
         self._captured_stdout: str = ""
 
     id = property(lambda self: self._id)
@@ -56,6 +57,21 @@ class Triangle(TriangleInterface):
                 try:
                     retries += 1
                     get_response = requester.get(endpoint, stream=stream)
+                    if get_response.json().get("url") is not None:
+                        bytes = get_response.json().get("triangle_size_bytes")
+                        mb = 1_048_576
+                        console.log(
+                            f"Retrieving triangle from pre-signed URL of size {bytes / mb:.02f}MB."
+                        )
+                        url = get_response.json().get("url")
+                        url_response = requests.get(url)
+                        with NamedTemporaryFile(suffix=".trib") as f:
+                            f.write(url_response.content)
+                            triangle_data = BermudaTriangle.from_binary(
+                                f.name
+                            ).to_dict()
+                    else:
+                        triangle_data = (get_response.json().get("triangle_data"),)
                 except ChunkedEncodingError:
                     stream = True
                     continue
@@ -63,7 +79,7 @@ class Triangle(TriangleInterface):
         self = cls(
             id,
             name,
-            get_response.json().get("triangle_data"),
+            triangle_data,
             endpoint,
             requester,
         )
