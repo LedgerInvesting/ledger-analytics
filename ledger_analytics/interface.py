@@ -128,7 +128,7 @@ class TriangleInterface(metaclass=TriangleRegistry):
         triangles = [
             result
             for result in self.list(limit=n_triangles).get("results")
-            if result.get("name") == name or result.get("id") == id
+            if result["name"] == name or result["id"] == id
         ]
         if not len(triangles):
             name_or_id = f"name '{name}'" if id is None else f"ID '{id}'"

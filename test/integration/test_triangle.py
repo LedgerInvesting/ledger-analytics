@@ -35,12 +35,14 @@ def test_triangle_create_delete(client):
 def test_triangle_captured_output(client):
     os.environ["DISABLE_RICH_CONSOLE"] = "true"
     name = "__test_tri_meyers"
-    test_tri = client.triangle.get_or_create(name=name, data=meyers_tri.to_dict())
+    client.triangle.create(name=name, data=meyers_tri.to_dict())
+    test_tri = client.triangle.get(name=name)
     assert test_tri.captured_stdout
     test_tri.delete()
 
     os.environ["DISABLE_RICH_CONSOLE"] = "false"
     name = "__test_tri_meyers"
-    test_tri = client.triangle.get_or_create(name=name, data=meyers_tri.to_dict())
+    client.triangle.create(name=name, data=meyers_tri.to_dict())
+    test_tri = client.triangle.get(name=name)
     assert not test_tri.captured_stdout
     test_tri.delete()

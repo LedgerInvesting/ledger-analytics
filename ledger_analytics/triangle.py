@@ -65,13 +65,14 @@ class Triangle(TriangleInterface):
                         )
                         url = get_response.json().get("url")
                         url_response = requests.get(url)
+                        url_response.raise_for_status()
                         with NamedTemporaryFile(suffix=".trib") as f:
                             f.write(url_response.content)
                             triangle_data = BermudaTriangle.from_binary(
                                 f.name
                             ).to_dict()
                     else:
-                        triangle_data = (get_response.json().get("triangle_data"),)
+                        triangle_data = get_response.json().get("triangle_data")
                 except ChunkedEncodingError:
                     stream = True
                     continue
