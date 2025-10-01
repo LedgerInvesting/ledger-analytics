@@ -7,11 +7,11 @@ from collections import namedtuple
 from .interface import CashflowInterface, ModelInterface, TriangleInterface
 from .requester import Requester
 
-DEFAULT_HOST = "https://api.ldgr.app/analytics/"
+DEFAULT_HOST = "https://api.korra.com/analytics/"
 EnvConfig = namedtuple("EnvConfig", ["host", "api_key"])
 ENVIRONMENTS = {
     "PROD": EnvConfig(
-        host="https://api.ldgr.app/analytics/",
+        host="https://api.korra.com/analytics/",
         api_key=os.getenv("LEDGER_ANALYTICS_API_KEY"),
     ),
     "DEV": EnvConfig(
