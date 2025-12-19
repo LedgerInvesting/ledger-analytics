@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ledger-analytics"
-description = "The Python interface to Ledger Investing's analytics infrastructure"
-authors = [ { name = "Ledger Investing" } ]
+description = "The Python interface to Korra's analytics infrastructure"
+authors = [ { name = "Korra" } ]
 readme = "README.md"
 requires-python = ">3.10"
 dynamic = ["version", "optional-dependencies"]

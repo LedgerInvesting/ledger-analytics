@@ -1,7 +1,7 @@
 Our Software
 =====================
 
-`Ledger Investing <https://ledgerinvesting.com>`_ is open-sourcing and releasing
+`Korra <https://korra.com>`_ is open-sourcing and releasing
 our state-of-the-art analytics infrastructure to insurance data scientists
 and actuaries.
 
