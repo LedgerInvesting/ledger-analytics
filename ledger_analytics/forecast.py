@@ -154,7 +154,7 @@ class SSM(ForecastModel):
                 See the DefaultPriors class for default (non line-of-business)
                 priors.
             informed_priors_version: If ``line_of_business`` is set, the priors are based
-                on Ledger Investing's proprietary values derived from industry data.
+                on Korra's proprietary values derived from industry data.
                 ``"latest"`` uses priors derived from the most recent industry data.
                 Defaults to ``None``.
             autofit_override: override the MCMC autofitting procedure arguments. See the documentation

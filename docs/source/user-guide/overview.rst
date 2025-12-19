@@ -1,7 +1,7 @@
 Overview
 ==============
 
-LedgerAnalytics offers easy access to Ledger Investing's
+LedgerAnalytics offers easy access to Korra's
 modeling API endpoints via Python. If you are fitting loss development models
 and/or pricing insurance-linked securities, LedgerAnalytics provides
 state-of-the-art insurance data science tools to make loss ratio

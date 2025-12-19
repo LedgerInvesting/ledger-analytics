@@ -1,6 +1,6 @@
 # LedgerAnalytics Python
 
-`ledger-analytics` is the Python interface to [Ledger Investing](https://ledgerinvesting.com)'s remote
+`ledger-analytics` is the Python interface to [Korra](https://korra.com)'s remote
 analytics infrastructure, providing remote compute access to state-of-art insurance data science models.
 
 For more information, see the [documentation](https://ledger-investing-ledger-analytics.readthedocs-hosted.com/en/latest/)
